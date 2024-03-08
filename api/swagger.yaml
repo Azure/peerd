@@ -1,0 +1,70 @@
+info:
+  contact: {}
+paths:
+  /blobs/{url}:
+    get:
+      parameters:
+      - description: The URL of the blob
+        in: path
+        name: url
+        required: true
+        type: string
+      responses:
+        "200":
+          description: The blob content
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Get a blob by URL
+  /v2/{repo}/blobs/{digest}:
+    get:
+      parameters:
+      - description: The repository name
+        in: path
+        name: repo
+        required: true
+        type: string
+      - description: The digest of the blob
+        in: path
+        name: digest
+        type: string
+      responses:
+        "200":
+          description: The manifest or blob information
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Get a manifest or a blob by repository and reference or digest
+  /v2/{repo}/manifests/{reference}:
+    get:
+      parameters:
+      - description: The repository name
+        in: path
+        name: repo
+        required: true
+        type: string
+      - description: The reference of the manifest
+        in: path
+        name: reference
+        type: string
+      responses:
+        "200":
+          description: The manifest or blob information
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Get a manifest or a blob by repository and reference or digest
+swagger: "2.0"

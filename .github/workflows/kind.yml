@@ -1,0 +1,36 @@
+name: Kind CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  e2eBlobs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Prerequisites
+        run: sudo make tests-deps-install
+
+      - name: "End to End: Blobs"
+        run: make build-image tests-random-image && docker system prune -f && make kind-create kind-deploy kind-test-random
+
+      - name: "Clean up"
+        run: make kind-delete
+
+  e2eCtr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Prerequisites
+        run: sudo make tests-deps-install
+
+      - name: "End to End: Ctr"
+        run: make build-image tests-random-image && docker system prune -f && make kind-create kind-deploy kind-test-ctr
+
+      - name: "Clean up"
+        run: make kind-delete

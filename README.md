@@ -1,0 +1,230 @@
+# peerd
+
+[![Go Report Card]][go-report-card]
+[![Build Status]][build-status]
+[![Kind CI Status]][kind-ci-status]
+![Code Coverage]
+
+This project implements peer to peer distribution of content (such as files or OCI container images) in a Kubernetes
+cluster. The source of the content could be another node in the same cluster, an OCI container registry (like Azure
+Container Registry) or a remote blob store (such as Azure Blob Storage).
+
+## Quickstart
+
+This section shows how to get started with `peerd`.
+
+```bash
+$ make help
+
+         _____                  _
+        |  __ \                | |
+        | |__) |__  ___ _ __ __| |
+        |  ___/ _ \/ _ \ '__/ _` |
+        | |  |  __/  __/ | | (_| |
+        |_|   \___|\___|_|  \__,_|
+
+all                            Runs the peerd build targets in the correct order
+build-image                    Build the peerd docker image
+build                          Build the peerd packages
+coverage                       Generates test results for code coverage
+help                           Generates help for all targets with a description.
+install-gocov                  Install Go cov.
+install-linter                 Install Go linter.
+install                        Installs the peerd service in the project bin directory
+kind-create                    Creates a kind cluster
+kind-delete                    Deletes kind cluster
+kind-deploy                    Deploys the p2p application to kind cluster
+kind-get                       Shows the current kind cluster
+kind-test-ctr                  Deploys test 'ctr' to the kind cluster
+kind-test-random               Deploys test 'random' to the kind cluster
+lint                           Run linter.
+swag                           Generates the swagger documentation of the p2p server.
+test                           Runs tests.
+tests-build                    Builds the tests binary
+tests-deps-install             Install dependencies for testing (supported only on Ubuntu)
+tests-random-image             Builds the 'random' tests image
+tests-scanner-image            Builds the 'scanner' tests image
+```
+
+### Build and Deploy to a Local Kind Cluster
+
+To build and deploy `peerd` to a 3 node kind cluster, run the following. These commands will build the `peerd`
+docker image, create a kind cluster, and deploy the `peerd` application to each node in it.
+
+```bash
+$ make build-image && \
+    make kind-create kind-deploy
+  ...
+  ...
+  daemonset.apps/peerd created
+  service/peerd created
+  waiting for pods to connect
+  pods: peerd-5trwv peerd-q2c45 peerd-tkj5k
+  checking pod 'peerd-5trwv' for event 'P2PConnected'
+  checking pod 'peerd-q2c45' for event 'P2PConnected'
+  checking pod 'peerd-tkj5k' for event 'P2PConnected'
+  Success: All pods have event 'P2PConnected'.
+```
+
+On deployment, each `peerd` instance will try to connect to its peers in the cluster. 
+
+* When connected successfully, it will generate an event `P2PConnected`. This event is used to signal that the 
+  `peerd` instance is ready to serverequests from its peers or upstream. It can be found in the pod events.
+
+* When a request is served by downloading data from a peer, `peerd` will emit an event called `P2PActive`, 
+  signalling that it's actively communicating with a peer and serving data from it.
+
+Clean up your deployment.
+
+```bash
+$ make kind-delete
+```
+
+### Run a Test Workload
+
+There are two kinds of test workloads that can be run:
+
+1. Simple peer to peer sharing of a file, specified by the range of bytes to read.
+   * This scenario is useful for block level file drivers, such as [Overlaybd].
+   * This test is run by deploying the `random` test workload to the kind cluster.
+   * The test deploys a workload to each node, and outputs performance metrics that are observed by the test app,
+      such as the speed of download aggregated at the 50th, 75th and 90th percentiles, and error rates.
+
+    ```bash
+    $ make build-image tests-random-image && \
+        make kind-create kind-deploy kind-test-random
+      ...
+      {"level":"info","node":"random-zb9vm","version":"bb7ee6a","mode":"upstream","size":22980743,"readsPerBlob":5,"time":"2024-03-07T21:50:29Z","message":"downloading blob"}
+      {"level":"info","node":"random-9gcvw","version":"bb7ee6a","upstream.p50":21.25170790666404,"upstream.p75":5.834663359546446,"upstream.p90":0.7871542327673121,"upstream.p95":0.2965091294200036,"upstream.p100":0.2645602612715345,"time":"2024-03-07T21:50:34Z","message":"speeds (MB/s)"}
+      {"level":"info","node":"random-9gcvw","version":"bb7ee6a","p2p.p50":5.802082290454193,"p2p.p75":1.986398855488793,"p2p.p90":0.6210418172329215,"p2p.p95":0.0523776186045032,"p2p.p100":0.023341096448268952,"time":"2024-03-07T21:50:34Z","message":"speeds (MB/s)"}
+      {"level":"info","node":"random-9gcvw","version":"bb7ee6a","p2p.error_rate":0,"upstream.error_rate":0,"time":"2024-03-07T21:50:34Z","message":"error rates"}
+      ...
+
+      # Clean up
+    $ make kind-delete
+    ```
+
+2. Peer to peer sharing of container images that are available in the containerd store of a node.
+   * This scenario is useful for downloading container images to a cluster.
+   * This test is run by deploying the `ctr` test workload to the kind cluster.
+   * The test deploys a workload to each node, and outputs performance metrics that are observed by the test app,
+     such as the speed of download aggregated at the 50th, 75th and 90th percentiles, and error rates.
+ 
+    ```bash
+    $ make build-image tests-scanner-image && \
+        make kind-create kind-deploy kind-test-ctr
+        ...
+        ...        
+        ...
+
+      # Clean up
+    $ make kind-delete
+    ```
+
+### Build a Docker Image of `peerd`
+
+To build a docker image of `peerd`, which can then be deployed on each node of your cluster, run the following.
+
+```bash
+$ make build-image
+  ...
+  ...
+  => naming to localhost/peerd:dev
+```
+
+### Build `peerd` Binary
+
+To build the `peerd` binary, run the following.
+
+```bash
+$ make
+  ...
+```
+
+The build produces a binary and a systemd service unit file:
+
+```
+|-- peerd          # The binary
+|-- peerd.service  # The service unit file for systemd
+|-- swagger.yml    # The swagger file for the REST API
+```
+
+### Throughput Improvements
+
+An Overlaybd image was created for a simple application that reads an entire file (see [scanner]). The performance is
+compared when running this container in p2p vs non-p2p mode on a 3 node AKS cluster with [ACR Artifact Streaming].
+
+| Mode                 | File Size (Mb) | Throughput (MB/s) |
+| -------------------- | -------------- | ----------------- |
+| Non P2P              | 200            | 3.5, 3.8, 3.9     |
+| P2P (no prefetching) | 600            | 3.8, 3.9, 4.9     |
+| P2P with prefetching | 200            | 6.5, 11, 13       |
+
+## Features
+
+`peerd` allows a node to share content with other nodes in a cluster. Specifically:
+
+* A `peerd` node can share (parts of) a file with another node. The file itself may have been acquired from an upstream
+  source by `peerd`, if no other node in the cluster had it to begin with.
+
+* A `peerd` node can share a container image from the local `containerd` content store with another node.
+
+The APIs are described in the [swagger.yaml].
+
+## Design and Architecture
+
+`peerd` is a self-contained binary that is designed to run as on each node of a cluster. It can be deployed as a 
+systemd service (`peerd.service`), or as a container, such as by using a Kubernetes DaemonSet. It relies on accessing
+the Kubernetes API to run a leader election, and to discover other `peerd` instances in the cluster. 
+
+> The commands `make kind-create kind-deploy` can be used as a reference for deployment.
+
+### Cluster Operations
+
+![cluster-arch] \
+
+[Work in Progress]
+
+## Contributing
+
+Please read our [CONTRIBUTING.md] which outlines all of our policies, procedures, and requirements for contributing to
+this project.
+
+## Acknowledgments
+
+A hat tip to:
+
+* [Spegel]
+* [DADI P2P Proxy]
+
+## Glossary
+
+| Term | Definition                |
+| ---- | ------------------------- |
+| ACR  | Azure Container Registry  |
+| AKS  | Azure Kubernetes Service  |
+| ACI  | Azure Container Instances |
+| DHT  | Distributed Hash Table    |
+| OCI  | Open Container Initiative |
+| P2P  | Peer to Peer              |
+| POC  | Proof of Concept          |
+
+---
+
+[CONTRIBUTING.md]: CONTRIBUTING.md
+[kubectl-node-shell]: https://github.com/kvaps/kubectl-node-shell
+[Go Report Card]: https://goreportcard.com/badge/github.com/azure/peerd
+[go-report-card]: https://goreportcard.com/report/github.com/azure/peerd
+[Build Status]: https://github.com/azure/peerd/actions/workflows/build.yml/badge.svg
+[build-status]: https://github.com/azure/peerd/actions/workflows/build.yml
+[Kind CI Status]: https://github.com/azure/peerd/actions/workflows/kind.yml/badge.svg
+[kind-ci-status]: https://github.com/azure/peerd/actions/workflows/kind.yml
+[Code Coverage]: https://img.shields.io/badge/coverage-54.9%25-orange
+[cluster-arch]: ./assets/images/cluster.png
+[node-arch]: ./assets/images/http-flow.png
+[Overlaybd]: https://github.com/containerd/overlaybd
+[scanner]: ./tests/scanner/scanner.go
+[ACR Artifact Streaming]: https://learn.microsoft.com/en-us/azure/container-registry/container-registry-artifact-streaming
+[swagger.yaml]: ./api/swagger.yaml
+[Spegel]: https://github.com/XenitAB/spegel
+[DADI P2P Proxy]: https://github.com/data-accelerator/dadi-p2proxy

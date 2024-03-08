@@ -1,0 +1,5 @@
+server = "https://mcr.microsoft.com"
+
+[host."https://localhost:30001"]
+  capabilities = ["pull"]
+  skip_verify = true
