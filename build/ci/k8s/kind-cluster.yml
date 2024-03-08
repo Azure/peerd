@@ -1,0 +1,53 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: p2p
+nodes:
+- role: control-plane
+  extraMounts:
+  - hostPath: $GIT_ROOT/build/ci/configs/certs.d
+    containerPath: /etc/containerd/certs.d
+
+- role: worker
+  labels:
+    p2p-nodepool: 'true'
+  extraMounts:
+  - hostPath: $GIT_ROOT/bin/peerd
+    containerPath: /bin/peerd
+  - hostPath: $GIT_ROOT/bin/peerd.service
+    containerPath: /bin/peerd.service
+  - hostPath: $GIT_ROOT/bin/kind/metrics1
+    containerPath: /var/log/
+  - hostPath: $GIT_ROOT/build/ci/configs/containerd.toml
+    containerPath: /etc/containerd/config.toml
+  - hostPath: $GIT_ROOT/build/ci/configs/certs.d
+    containerPath: /etc/containerd/certs.d
+
+- role: worker
+  labels:
+    p2p-nodepool: 'true'
+  extraMounts:
+  - hostPath: $GIT_ROOT/bin/peerd
+    containerPath: /bin/peerd
+  - hostPath: $GIT_ROOT/bin/peerd.service
+    containerPath: /bin/peerd.service
+  - hostPath: $GIT_ROOT/bin/kind/metrics2
+    containerPath: /var/log/
+  - hostPath: $GIT_ROOT/build/ci/configs/containerd.toml
+    containerPath: /etc/containerd/config.toml
+  - hostPath: $GIT_ROOT/build/ci/configs/certs.d
+    containerPath: /etc/containerd/certs.d
+
+- role: worker
+  labels:
+    p2p-nodepool: 'true'
+  extraMounts:
+  - hostPath: $GIT_ROOT/bin/peerd
+    containerPath: /bin/peerd
+  - hostPath: $GIT_ROOT/bin/peerd.service
+    containerPath: /bin/peerd.service
+  - hostPath: $GIT_ROOT/bin/kind/metrics3
+    containerPath: /var/log/
+  - hostPath: $GIT_ROOT/build/ci/configs/containerd.toml
+    containerPath: /etc/containerd/config.toml
+  - hostPath: $GIT_ROOT/build/ci/configs/certs.d
+    containerPath: /etc/containerd/certs.d
