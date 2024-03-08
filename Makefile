@@ -85,6 +85,11 @@ swag: ## Generates the swagger documentation of the p2p server.
 	@echo "+ $@"
 	cd $(ROOT_DIR)/internal/handlers; swag init --ot go,yaml -o $(ROOT_DIR)/api -g ./root.go
 
+.PHONY: add-copyright
+add-copyright: ## Add the copyright header to all Go files.
+	@echo "+ $@"
+	find . -type f -name "*.go" -exec sh -c 'grep -q -F "// Copyright (c) Microsoft Corporation." "$0" || sed -i "1i\\// Copyright (c) Microsoft Corporation.\\n// Licensed under the Apache License, Version 2.0." "$0"' {} \;
+
 define HEADER
 
 	 _____	                _
