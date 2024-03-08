@@ -1,3 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: peerd-ns
+---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -25,8 +30,8 @@ spec:
                 - 'true'
       serviceAccountName: peerd-sa
       containers:
-      - image: $P2P_CONTAINER_IMAGE
-        imagePullPolicy: Never
+      - image: {{ .Values.peerd.image.ref }}
+        imagePullPolicy: {{ .Values.peerd.image.pullPolicy }}
         args: ["--log-level", "debug"]
         name: *name
         ports:

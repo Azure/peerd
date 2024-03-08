@@ -80,6 +80,29 @@ Clean up your deployment.
 $ make kind-delete
 ```
 
+### Deploy Helm Chart
+
+You can deploy the latest build of `peerd` to your cluster using the helm chart.
+
+```bash
+CLUSTER_CONTEXT=<your-cluster-context> && \
+  HELM_RELEASE_NAME=peerd && \
+  HELM_CHART_DIR=./build/ci/k8s/peerd-helm && \
+  helm --kube-context=$CLUSTER_CONTEXT install --wait $HELM_RELEASE_NAME $HELM_CHART_DIR
+```
+
+**Note**: Automatic configuration of containerd hosts is [work in progress][containerd-mirror]. For now, you will
+need to manually configure the [containerd hosts] on each node to point to the `peerd` service as a mirror. For example,
+to proxy `mcr.microsoft.com`, a `hosts.toml` file would look like this:
+
+```toml
+server = "https://mcr.microsoft.com"
+
+  [host."https://localhost:30001"]
+  capabilities = ["pull"]
+  skip_verify = true
+```
+
 ### Run a Test Workload
 
 There are two kinds of test workloads that can be run:
@@ -228,3 +251,5 @@ A hat tip to:
 [swagger.yaml]: ./api/swagger.yaml
 [Spegel]: https://github.com/XenitAB/spegel
 [DADI P2P Proxy]: https://github.com/data-accelerator/dadi-p2proxy
+[containerd hosts]: https://github.com/containerd/containerd/blob/main/docs/hosts.md
+[containerd-mirror]: ./internal/containerd/mirror.go
