@@ -9,6 +9,11 @@ This project implements peer to peer distribution of content (such as files or O
 cluster. The source of the content could be another node in the same cluster, an OCI container registry (like Azure
 Container Registry) or a remote blob store (such as Azure Blob Storage).
 
+#### Important Disclaimer
+
+This project is work in progress and can be used for experimental and development purposes. 
+It is not yet production ready, but we're getting there.
+
 ## Quickstart
 
 This section shows how to get started with `peerd`.

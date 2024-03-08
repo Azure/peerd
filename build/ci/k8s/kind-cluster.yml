@@ -11,10 +11,6 @@ nodes:
   labels:
     p2p-nodepool: 'true'
   extraMounts:
-  - hostPath: $GIT_ROOT/bin/peerd
-    containerPath: /bin/peerd
-  - hostPath: $GIT_ROOT/bin/peerd.service
-    containerPath: /bin/peerd.service
   - hostPath: $GIT_ROOT/bin/kind/metrics1
     containerPath: /var/log/
   - hostPath: $GIT_ROOT/build/ci/configs/containerd.toml
@@ -26,10 +22,6 @@ nodes:
   labels:
     p2p-nodepool: 'true'
   extraMounts:
-  - hostPath: $GIT_ROOT/bin/peerd
-    containerPath: /bin/peerd
-  - hostPath: $GIT_ROOT/bin/peerd.service
-    containerPath: /bin/peerd.service
   - hostPath: $GIT_ROOT/bin/kind/metrics2
     containerPath: /var/log/
   - hostPath: $GIT_ROOT/build/ci/configs/containerd.toml
@@ -41,10 +33,6 @@ nodes:
   labels:
     p2p-nodepool: 'true'
   extraMounts:
-  - hostPath: $GIT_ROOT/bin/peerd
-    containerPath: /bin/peerd
-  - hostPath: $GIT_ROOT/bin/peerd.service
-    containerPath: /bin/peerd.service
   - hostPath: $GIT_ROOT/bin/kind/metrics3
     containerPath: /var/log/
   - hostPath: $GIT_ROOT/build/ci/configs/containerd.toml
