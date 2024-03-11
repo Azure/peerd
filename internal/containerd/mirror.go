@@ -26,6 +26,7 @@ type hostFile struct {
 
 type hostConfig struct {
 	Capabilities []string `toml:"capabilities"`
+	SkipVerify   bool     `toml:"skip_verify"`
 }
 
 // AddMirrorConfiguration adds mirror configuration to containerd host configuration.
@@ -106,7 +107,7 @@ func AddMirrorConfiguration(ctx context.Context, fs afero.Fs, configPath string,
 
 		hostConfigs := map[string]hostConfig{}
 		for _, u := range mirrorURLs {
-			hostConfigs[u.String()] = hostConfig{Capabilities: capabilities}
+			hostConfigs[u.String()] = hostConfig{Capabilities: capabilities, SkipVerify: true} // nolint: gosec. TODO avtakkar: configure TLS.
 		}
 
 		cfg := hostFile{

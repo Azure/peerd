@@ -1,0 +1,21 @@
+peerd:
+  image:
+    ref: ghcr.io/azure/acr/peerd:latest
+    pullPolicy: IfNotPresent
+  configureMirrors: true
+  hosts:
+    - https://mcr.microsoft.com
+    - https://ghcr.io
+  resources:
+    limits:
+      cpu: "100m"
+      memory: "128Mi"
+    requests:
+      cpu: "10m"
+  ports:
+    pod:
+      http: 5000
+      https: 5001
+    service:
+      http: 5000
+      https: 5001

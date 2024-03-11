@@ -5,8 +5,8 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 KIND_CLUSTER_NAME="p2p"
 KIND_CLUSTER_CONTEXT="kind-$KIND_CLUSTER_NAME"
 CLUSTER_CONFIG_FILE="$SCRIPT_DIR/../k8s/kind-cluster.yml"
-APP_DEPLOYMENT_FILE="$SCRIPT_DIR/../k8s/app.yml"
-RBAC_DEPLOYMENT_FILE="$SCRIPT_DIR/../k8s/rbac.yml"
+HELM_CHART_DIR="$SCRIPT_DIR/../k8s/peerd-helm"
+HELM_RELEASE_NAME="peerd"
 export GIT_ROOT="$(git rev-parse --show-toplevel)"
 
 # Console colors and helpers
@@ -147,18 +147,6 @@ create_cluster() {
         fi
         envsubst < $CLUSTER_CONFIG_FILE | kind create cluster --config -
         echo
-
-        ns="peerd-ns"
-        echo "creating namespace $ns" && \
-            kubectl --context=$KIND_CLUSTER_CONTEXT create namespace $ns
-
-        # ns="peerd-tests"
-        # echo "creating namespace $ns" && \
-        #     kubectl --context=$KIND_CLUSTER_CONTEXT create namespace $ns
-
-        echo "creating service account" && \
-            kubectl --context=$KIND_CLUSTER_CONTEXT apply -f $RBAC_DEPLOYMENT_FILE
-        echo
     fi
 }
 
@@ -237,7 +225,7 @@ cmd__test__ctr() {
         for node in $( echo "$nodes" | tr -s " " "\012" ); do
             echo "pulling image '$img' on node '$node'" && \
                 docker exec $node bash -c "ctr -n k8s.io images pull --hosts-dir '/etc/containerd/certs.d' $img" &&
-                sleep 3
+                sleep 6
         done
 
         wait_for_events $context "P2PActive" 1
@@ -331,15 +319,21 @@ cmd__cluster__delete() {
 }
 
 cmd__app__deploy() {
-    export P2P_CONTAINER_IMAGE=$1
+    export PEERD_CONTAINER_IMAGE_REF=$1
 
     kubectl cluster-info --context=$KIND_CLUSTER_CONTEXT && \
-        echo_header "Deploying app: $P2P_CONTAINER_IMAGE"
+        echo_header "Deploying app: $PEERD_CONTAINER_IMAGE_REF"
     
     if [ "$DRY_RUN" == "false" ]; then
         echo "loading image"
-        kind load docker-image $P2P_CONTAINER_IMAGE --name $KIND_CLUSTER_NAME
-        envsubst < $APP_DEPLOYMENT_FILE | kubectl --context=$KIND_CLUSTER_CONTEXT apply -f -
+        kind load docker-image $PEERD_CONTAINER_IMAGE_REF --name $KIND_CLUSTER_NAME
+        
+        helm --kube-context=$KIND_CLUSTER_CONTEXT status $HELM_RELEASE_NAME >/dev/null 2>&1 && \
+            helm --kube-context=$KIND_CLUSTER_CONTEXT uninstall $HELM_RELEASE_NAME
+
+        echo "Helm installing release:" $HELM_RELEASE_NAME
+        helm --kube-context=$KIND_CLUSTER_CONTEXT install --wait $HELM_RELEASE_NAME $HELM_CHART_DIR \
+            --set peerd.image.ref=$PEERD_CONTAINER_IMAGE_REF
 
         echo "waiting for pods to connect"
         wait_for_events $KIND_CLUSTER_CONTEXT "P2PConnected" 3

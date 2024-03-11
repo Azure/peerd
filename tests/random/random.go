@@ -60,6 +60,8 @@ func Random(ctx context.Context, secrets string, n int, proxyHost string) error 
 		return nil
 	})
 
+	delay(l)
+
 	g.Go(func() error {
 		p2pPercentiles, p2pErrorRate = benchmark(l, "p2p", p2pSasUrls, n)
 		return nil
@@ -250,9 +252,27 @@ func downloadSASURL(l *zerolog.Logger, sasURL string, readsPerBlob int) ([]float
 	return speeds, failures, errors.Join(errs...)
 }
 
+// sleep generates a random sleep duration between 3 and 25 milliseconds and pauses the execution for that duration.
 func sleep() {
 	var n int64
 	_ = binary.Read(rand.Reader, binary.LittleEndian, &n)
 	n = (n%(25-3+1) + 3)
 	time.Sleep(time.Duration(n) * time.Millisecond)
+}
+
+func delay(l *zerolog.Logger) {
+	var n uint64
+	err := binary.Read(rand.Reader, binary.LittleEndian, &n)
+	if err != nil {
+		l.Error().Err(err).Msg("SLEEP FAILED")
+		return
+	}
+
+	n = n % 100
+	n = n + 1
+
+	l.Info().Uint64("seconds", n).Msg("sleeping")
+
+	// Sleep for n seconds
+	time.Sleep(time.Duration(n) * time.Second)
 }

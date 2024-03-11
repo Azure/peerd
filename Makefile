@@ -15,6 +15,11 @@ TESTS_BIN_DIR = $(BIN_DIR)/tests
 COVERAGE_DIR=$(BIN_DIR)/coverage
 SCRIPTS_DIR=$(ROOT_DIR)/scripts
 
+# Docker image variables.
+REGISTRY ?= localhost
+REPO_PREFIX ?= 
+TAG ?= dev
+
 include $(ROOT_DIR)/build/ci/Makefile
 include $(ROOT_DIR)/tests/Makefile
 
@@ -109,13 +114,13 @@ header:
 # build-image-internal takes the dockerfile location, repository name and build context.
 # Example: 
 define build-image-internal
-	@echo "\033[92mBuilding Image: $2\033[0m"
+	@echo "\033[92mBuilding image: $(REGISTRY)/$(REPO_PREFIX)$2:$(TAG)\033[0m"
 
 	@echo docker build -f $1 \
-	-t localhost/$2:dev \
+	-t $(REGISTRY)/$(REPO_PREFIX)$2:$(TAG) \
 	$3
 
 	@docker build -f $1 \
-	-t localhost/$2:dev \
+	-t $(REGISTRY)/$(REPO_PREFIX)$2:$(TAG) \
 	$3
 endef
