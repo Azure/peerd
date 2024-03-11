@@ -8,12 +8,14 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
 	"github.com/alexflint/go-arg"
+	intcontainerd "github.com/azure/peerd/internal/containerd"
 	p2pcontext "github.com/azure/peerd/internal/context"
 	"github.com/azure/peerd/internal/files/store"
 	"github.com/azure/peerd/internal/handlers"
@@ -22,6 +24,7 @@ import (
 	"github.com/azure/peerd/internal/state"
 	"github.com/azure/peerd/pkg/containerd"
 	"github.com/rs/zerolog"
+	"github.com/spf13/afero"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -93,7 +96,38 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 		return err
 	}
 
-	containerdStore, err := containerd.NewDefaultStore([]string{"mcr.microsoft.com"})
+	if args.AddMirrorConfiguration {
+		fs := afero.NewOsFs()
+
+		defaultHost, _ := url.Parse("https://mcr.microsoft.com")
+		hosts := append([]url.URL{}, *defaultHost)
+
+		if args.Hosts != nil && len(args.Hosts) > 0 {
+			hosts, err = toUrls(args.Hosts)
+			if err != nil {
+				return err
+			}
+		}
+
+		l.Info().Msg(fmt.Sprintf("mirrors args: %v, hosts: %v", args.Hosts, hosts))
+
+		defaultMirror, _ := url.Parse("https://localhost:30001")
+		mirrors := append([]url.URL{}, *defaultMirror)
+
+		if args.Mirrors != nil && len(args.Mirrors) > 0 {
+			mirrors, err = toUrls(args.Mirrors)
+			if err != nil {
+				return err
+			}
+		}
+
+		err = intcontainerd.AddMirrorConfiguration(ctx, fs, args.ContainerdHostsConfigPath, hosts, mirrors, false)
+		if err != nil {
+			return err
+		}
+	}
+
+	containerdStore, err := containerd.NewDefaultStore(args.Hosts)
 	if err != nil {
 		return err
 	}
@@ -165,4 +199,16 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 	}
 
 	return nil
+}
+
+func toUrls(hosts []string) ([]url.URL, error) {
+	var urls []url.URL
+	for _, h := range hosts {
+		u, err := url.Parse(h)
+		if err != nil {
+			return nil, err
+		}
+		urls = append(urls, *u)
+	}
+	return urls, nil
 }

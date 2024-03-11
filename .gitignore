@@ -20,3 +20,6 @@ bin/**/*
 
 # Go workspace file
 go.work
+
+# Directories mounted to CI cluster.
+build/ci/configs/certs.d

@@ -1,0 +1,51 @@
+name: Release Docker Image
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+-alpha"
+
+jobs:
+  publish:
+    name: Build and Publish Container Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      REGISTRY: ghcr.io
+      REPO_PREFIX: ${{ format('{0}/acr/', github.repository_owner) }}
+
+    steps:
+      - name: Get Git Tag
+        id: get_git_tag
+        run: echo ::set-output name=git_tag::${GITHUB_REF#refs/tags/}
+
+      - name: Check Out Source Code
+        if: ${{ success() }}
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ steps.get_git_tag.outputs.git_tag }}
+
+      - name: Set Docker Image Tag
+        env:
+          GIT_TAG: ${{ steps.get_git_tag.outputs.git_tag }}
+        id: get_image_tag
+        run: echo ::set-output name=docker_tag::${GIT_TAG}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Image
+        if: ${{ success() }}
+        run: |
+          REGISTRY=${{ env.REGISTRY }} REPO_PREFIX=${{ env.REPO_PREFIX }} TAG=${{ steps.get_image_tag.outputs.docker_tag }} make build-image
+        
+      - name: Push Image
+        if: ${{ success() }}
+        run: |
+          docker push ${{ env.REGISTRY }}/${{ env.REPO_PREFIX }}peerd:${{ steps.get_image_tag.outputs.docker_tag }}

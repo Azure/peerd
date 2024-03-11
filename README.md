@@ -9,6 +9,11 @@ This project implements peer to peer distribution of content (such as files or O
 cluster. The source of the content could be another node in the same cluster, an OCI container registry (like Azure
 Container Registry) or a remote blob store (such as Azure Blob Storage).
 
+#### Important Disclaimer
+
+This project is work in progress and can be used for experimental and development purposes. 
+It is not yet production ready, but we're getting there.
+
 ## Quickstart
 
 This section shows how to get started with `peerd`.
@@ -44,6 +49,31 @@ tests-build                    Builds the tests binary
 tests-deps-install             Install dependencies for testing (supported only on Ubuntu)
 tests-random-image             Builds the 'random' tests image
 tests-scanner-image            Builds the 'scanner' tests image
+```
+
+### Deploy Helm Chart to your Cluster
+
+If you already have a k8s cluster, you can deploy the `peerd` helm chart to it. With containerd, `peerd` leverages the 
+[hosts configuration][containerd hosts] to act as a mirror for container images.
+
+The `peerd` container image is available at `ghcr.io/azure/acr/peerd`.
+
+```bash
+CLUSTER_CONTEXT=<your-cluster-context> && \
+  HELM_RELEASE_NAME=peerd && \
+  HELM_CHART_DIR=./build/ci/k8s/peerd-helm && \
+  helm --kube-context=$CLUSTER_CONTEXT install --wait $HELM_RELEASE_NAME $HELM_CHART_DIR
+```
+
+By default, only `mcr.microsoft.com` is mirrored, but this is configurable. For example, to configure `peerd` to mirror 
+`mcr.microsoft.com` and `ghcr.io`, run the following.
+
+```bash
+CLUSTER_CONTEXT=<your-cluster-context> && \
+  HELM_RELEASE_NAME=peerd && \
+  HELM_CHART_DIR=./build/ci/k8s/peerd-helm && \
+  helm --kube-context=$CLUSTER_CONTEXT install --wait $HELM_RELEASE_NAME $HELM_CHART_DIR \
+    --set peerd.hosts="mcr.microsoft.com ghcr.io"
 ```
 
 ### Build and Deploy to a Local Kind Cluster
@@ -228,3 +258,5 @@ A hat tip to:
 [swagger.yaml]: ./api/swagger.yaml
 [Spegel]: https://github.com/XenitAB/spegel
 [DADI P2P Proxy]: https://github.com/data-accelerator/dadi-p2proxy
+[containerd hosts]: https://github.com/containerd/containerd/blob/main/docs/hosts.md
+[containerd-mirror]: ./internal/containerd/mirror.go
