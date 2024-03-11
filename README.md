@@ -62,8 +62,7 @@ The `peerd` container image is available at `ghcr.io/azure/acr/peerd`.
 CLUSTER_CONTEXT=<your-cluster-context> && \
   HELM_RELEASE_NAME=peerd && \
   HELM_CHART_DIR=./build/ci/k8s/peerd-helm && \
-  helm --kube-context=$CLUSTER_CONTEXT install --wait $HELM_RELEASE_NAME $HELM_CHART_DIR \
-    --set peerd.configureMirrors=true
+  helm --kube-context=$CLUSTER_CONTEXT install --wait $HELM_RELEASE_NAME $HELM_CHART_DIR
 ```
 
 By default, only `mcr.microsoft.com` is mirrored, but this is configurable. For example, to configure `peerd` to mirror 
@@ -74,7 +73,6 @@ CLUSTER_CONTEXT=<your-cluster-context> && \
   HELM_RELEASE_NAME=peerd && \
   HELM_CHART_DIR=./build/ci/k8s/peerd-helm && \
   helm --kube-context=$CLUSTER_CONTEXT install --wait $HELM_RELEASE_NAME $HELM_CHART_DIR \
-    --set peerd.configureMirrors=true \
     --set peerd.hosts="mcr.microsoft.com ghcr.io"
 ```
 

@@ -225,7 +225,7 @@ cmd__test__ctr() {
         for node in $( echo "$nodes" | tr -s " " "\012" ); do
             echo "pulling image '$img' on node '$node'" && \
                 docker exec $node bash -c "ctr -n k8s.io images pull --hosts-dir '/etc/containerd/certs.d' $img" &&
-                sleep 3
+                sleep 6
         done
 
         wait_for_events $context "P2PActive" 1

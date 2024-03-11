@@ -111,7 +111,7 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 
 		l.Info().Msg(fmt.Sprintf("mirrors args: %v, hosts: %v", args.Hosts, hosts))
 
-		defaultMirror, _ := url.Parse("http://localhost:30001")
+		defaultMirror, _ := url.Parse("https://localhost:30001")
 		mirrors := append([]url.URL{}, *defaultMirror)
 
 		if args.Mirrors != nil && len(args.Mirrors) > 0 {

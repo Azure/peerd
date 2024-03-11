@@ -2,7 +2,7 @@ peerd:
   image:
     ref: ghcr.io/azure/acr/peerd:latest
     pullPolicy: IfNotPresent
-  configureMirrors: false
+  configureMirrors: true
   hosts:
     - https://mcr.microsoft.com
     - https://ghcr.io
