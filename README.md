@@ -51,6 +51,33 @@ tests-random-image             Builds the 'random' tests image
 tests-scanner-image            Builds the 'scanner' tests image
 ```
 
+### Deploy Helm Chart to your Cluster
+
+If you already have a k8s cluster, you can deploy the `peerd` helm chart to it. With containerd, `peerd` leverages the 
+[hosts configuration][containerd hosts] to act as a mirror for container images.
+
+The `peerd` container image is available at `ghcr.io/azure/acr/peerd`.
+
+```bash
+CLUSTER_CONTEXT=<your-cluster-context> && \
+  HELM_RELEASE_NAME=peerd && \
+  HELM_CHART_DIR=./build/ci/k8s/peerd-helm && \
+  helm --kube-context=$CLUSTER_CONTEXT install --wait $HELM_RELEASE_NAME $HELM_CHART_DIR \
+    --set peerd.configureMirrors=true
+```
+
+By default, only `mcr.microsoft.com` is mirrored, but this is configurable. For example, to configure `peerd` to mirror 
+`mcr.microsoft.com` and `ghcr.io`, run the following.
+
+```bash
+CLUSTER_CONTEXT=<your-cluster-context> && \
+  HELM_RELEASE_NAME=peerd && \
+  HELM_CHART_DIR=./build/ci/k8s/peerd-helm && \
+  helm --kube-context=$CLUSTER_CONTEXT install --wait $HELM_RELEASE_NAME $HELM_CHART_DIR \
+    --set peerd.configureMirrors=true \
+    --set peerd.hosts="mcr.microsoft.com ghcr.io"
+```
+
 ### Build and Deploy to a Local Kind Cluster
 
 To build and deploy `peerd` to a 3 node kind cluster, run the following. These commands will build the `peerd`
@@ -83,29 +110,6 @@ Clean up your deployment.
 
 ```bash
 $ make kind-delete
-```
-
-### Deploy Helm Chart
-
-You can deploy the latest build of `peerd` to your cluster using the helm chart.
-
-```bash
-CLUSTER_CONTEXT=<your-cluster-context> && \
-  HELM_RELEASE_NAME=peerd && \
-  HELM_CHART_DIR=./build/ci/k8s/peerd-helm && \
-  helm --kube-context=$CLUSTER_CONTEXT install --wait $HELM_RELEASE_NAME $HELM_CHART_DIR
-```
-
-**Note**: Automatic configuration of containerd hosts is [work in progress][containerd-mirror]. For now, you will
-need to manually configure the [containerd hosts] on each node to point to the `peerd` service as a mirror. For example,
-to proxy `mcr.microsoft.com`, a `hosts.toml` file would look like this:
-
-```toml
-server = "https://mcr.microsoft.com"
-
-  [host."https://localhost:30001"]
-  capabilities = ["pull"]
-  skip_verify = true
 ```
 
 ### Run a Test Workload

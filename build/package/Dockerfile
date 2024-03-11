@@ -25,4 +25,4 @@ RUN groupadd -g $USER_ID peerd && \
 
 COPY --from=builder --chown=peerd:root /bin/ /bin/
 
-ENTRYPOINT ["/bin/peerd", "run"]
+ENTRYPOINT ["/bin/peerd"]

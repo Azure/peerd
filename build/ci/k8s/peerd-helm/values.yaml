@@ -2,6 +2,10 @@ peerd:
   image:
     ref: ghcr.io/azure/acr/peerd:latest
     pullPolicy: IfNotPresent
+  configureMirrors: false
+  hosts:
+    - https://mcr.microsoft.com
+    - https://ghcr.io
   resources:
     limits:
       cpu: "100m"

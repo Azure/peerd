@@ -23,42 +23,52 @@ spec:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
-            - matchExpressions:
-              - key: p2p-nodepool
-                operator: In
-                values:
-                - 'true'
+              - matchExpressions:
+                  - key: p2p-nodepool
+                    operator: In
+                    values:
+                      - "true"
       serviceAccountName: peerd-sa
       containers:
-      - image: {{ .Values.peerd.image.ref }}
-        imagePullPolicy: {{ .Values.peerd.image.pullPolicy }}
-        args: ["--log-level", "debug"]
-        name: *name
-        ports:
-        - containerPort: 5000
-          name: http
-        - containerPort: 5001
-          name: https
-        volumeMounts:
-        - name: metricsmount
-          mountPath: "/var/log/peerdmetrics"
-        - name: containerd-socket
-          mountPath: /run/containerd/containerd.sock
-        - name: containerd-certs
-          mountPath: /etc/containerd/certs.d
+        - image: "{{ .Values.peerd.image.ref }}"
+          imagePullPolicy: "{{ .Values.peerd.image.pullPolicy }}"
+          args:
+            - "--log-level=debug"
+            - "run"
+            - "--add-mirror-configuration={{ .Values.peerd.configureMirrors }}"
+            {{- with .Values.peerd.hosts }}
+            - --hosts
+            {{- range . }}
+            - {{ . | quote }}
+            {{- end }}
+            {{- end }}
+  
+          name: *name
+          ports:
+            - containerPort: 5000
+              name: http
+            - containerPort: 5001
+              name: https
+          volumeMounts:
+            - name: metricsmount
+              mountPath: "/var/log/peerdmetrics"
+            - name: containerd-socket
+              mountPath: /run/containerd/containerd.sock
+            - name: containerd-certs
+              mountPath: /etc/containerd/certs.d
       volumes:
-      - name: metricsmount
-        hostPath:
-          path: /var/log/peerdmetrics
-          type: FileOrCreate
-      - name: containerd-socket
-        hostPath:
-          path: /run/containerd/containerd.sock
-          type: Socket
-      - name: containerd-certs
-        hostPath:
-          path: /etc/containerd/certs.d
-          type: DirectoryOrCreate
+        - name: metricsmount
+          hostPath:
+            path: /var/log/peerdmetrics
+            type: FileOrCreate
+        - name: containerd-socket
+          hostPath:
+            path: /run/containerd/containerd.sock
+            type: Socket
+        - name: containerd-certs
+          hostPath:
+            path: /etc/containerd/certs.d
+            type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: Service
