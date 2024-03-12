@@ -93,7 +93,7 @@ swag: ## Generates the swagger documentation of the p2p server.
 .PHONY: add-copyright
 add-copyright: ## Add the copyright header to all Go files.
 	@echo "+ $@"
-	find . -type f -name "*.go" -exec sh -c 'grep -q -F "// Copyright (c) Microsoft Corporation." "$0" || sed -i "1i\\// Copyright (c) Microsoft Corporation.\\n// Licensed under the Apache License, Version 2.0." "$0"' {} \;
+	find $(ROOT_DIR) -type f -name "*.go" -exec sh -c 'grep -q -F "// Copyright (c) Microsoft Corporation." "$0" || sed -i "1i\\// Copyright (c) Microsoft Corporation.\\n// Licensed under the MIT License." "$0"' {} \;
 
 define HEADER
 

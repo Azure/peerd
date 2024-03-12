@@ -1,5 +1,5 @@
 // Copyright (c) Microsoft Corporation.
-// Licensed under the Apache License, Version 2.0.
+// Licensed under the MIT License.
 package math
 
 // Max64 returns the larger of x or y.
