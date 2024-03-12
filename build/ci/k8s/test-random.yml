@@ -14,17 +14,25 @@ spec:
       labels:
         app: *name
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: p2p-nodepool
-                operator: In
-                values:
-                - 'true'
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #       - matchExpressions:
+      #         - key: p2p-nodepool
+      #           operator: In
+      #           values:
+      #           - 'true'
       containers:
-      - image: $TEST_RANDOM_CONTAINER_IMAGE
-        imagePullPolicy: Never
-        args: ["--secrets", "$SECRETS", "--node-count", "$NODE_COUNT", "--proxy", "https://peerd:5001"]
-        name: *name
+        - image: $TEST_RANDOM_CONTAINER_IMAGE
+          imagePullPolicy: Never
+          args:
+            [
+              "--secrets",
+              "$SECRETS",
+              "--node-count",
+              "$NODE_COUNT",
+              "--proxy",
+              "https://peerd:5001",
+            ]
+          name: *name

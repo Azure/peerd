@@ -1,5 +1,0 @@
-server = 'https://mcr.microsoft.com'
-
-[host]
-[host.'http://localhost:30001']
-capabilities = ['pull']

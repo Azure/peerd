@@ -19,15 +19,15 @@ spec:
       labels:
         app: *name
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: p2p-nodepool
-                    operator: In
-                    values:
-                      - "true"
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #         - matchExpressions:
+      #             - key: p2p-nodepool
+      #               operator: In
+      #               values:
+      #                 - "true"
       serviceAccountName: peerd-sa
       containers:
         - image: "{{ .Values.peerd.image.ref }}"
