@@ -3,6 +3,7 @@
 [![Go Report Card]][go-report-card]
 [![Build Status]][build-status]
 [![Kind CI Status]][kind-ci-status]
+[![Docker Release CI]][release-ci]
 ![Code Coverage]
 
 This project implements peer to peer distribution of content (such as files or OCI container images) in a Kubernetes
@@ -62,7 +63,8 @@ The `peerd` container image is available at `ghcr.io/azure/acr/peerd`.
 CLUSTER_CONTEXT=<your-cluster-context> && \
   HELM_RELEASE_NAME=peerd && \
   HELM_CHART_DIR=./build/ci/k8s/peerd-helm && \
-  helm --kube-context=$CLUSTER_CONTEXT install --wait $HELM_RELEASE_NAME $HELM_CHART_DIR
+  helm --kube-context=$CLUSTER_CONTEXT install --wait $HELM_RELEASE_NAME $HELM_CHART_DIR \
+    --set peerd.image.ref=ghcr.io/azure/acr/dev/peerd:v0.0.2-alpha
 ```
 
 By default, only `mcr.microsoft.com` is mirrored, but this is configurable. For example, to configure `peerd` to mirror 
@@ -73,6 +75,7 @@ CLUSTER_CONTEXT=<your-cluster-context> && \
   HELM_RELEASE_NAME=peerd && \
   HELM_CHART_DIR=./build/ci/k8s/peerd-helm && \
   helm --kube-context=$CLUSTER_CONTEXT install --wait $HELM_RELEASE_NAME $HELM_CHART_DIR \
+    --set peerd.image.ref=ghcr.io/azure/acr/dev/peerd:v0.0.2-alpha \
     --set peerd.hosts="mcr.microsoft.com ghcr.io"
 ```
 
@@ -249,6 +252,8 @@ A hat tip to:
 [build-status]: https://github.com/azure/peerd/actions/workflows/build.yml
 [Kind CI Status]: https://github.com/azure/peerd/actions/workflows/kind.yml/badge.svg
 [kind-ci-status]: https://github.com/azure/peerd/actions/workflows/kind.yml
+[Docker Release CI]: https://github.com/azure/peerd/actions/workflows/release.yml/badge.svg
+[release-ci]: https://github.com/azure/peerd/actions/workflows/release.yml
 [Code Coverage]: https://img.shields.io/badge/coverage-54.9%25-orange
 [cluster-arch]: ./assets/images/cluster.png
 [node-arch]: ./assets/images/http-flow.png
