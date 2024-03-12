@@ -14,7 +14,7 @@ jobs:
       packages: write
     env:
       REGISTRY: ghcr.io
-      REPO_PREFIX: ${{ format('{0}/acr/', github.repository_owner) }}
+      REPO_PREFIX: ${{ format('azure/acr/dev/') }}
 
     steps:
       - name: Get Git Tag
@@ -44,7 +44,7 @@ jobs:
         if: ${{ success() }}
         run: |
           REGISTRY=${{ env.REGISTRY }} REPO_PREFIX=${{ env.REPO_PREFIX }} TAG=${{ steps.get_image_tag.outputs.docker_tag }} make build-image
-        
+
       - name: Push Image
         if: ${{ success() }}
         run: |
