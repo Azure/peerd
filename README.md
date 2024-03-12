@@ -255,5 +255,3 @@ A hat tip to:
 [containerd-mirror]: ./internal/containerd/mirror.go
 [helm chart]: ./build/ci/k8s/peerd-helm
 ```
-
-[//]: # (Links)
