@@ -26,7 +26,7 @@ include $(ROOT_DIR)/tests/Makefile
 .DEFAULT_GOAL := all
 
 .PHONY: all
-all: lint test build ## Runs the peerd build targets in the correct order
+all: lint test build ## Runs the peerd build targets in the correct order.
 
 .PHONY: build
 build: ## Build the peerd packages
@@ -34,7 +34,7 @@ build: ## Build the peerd packages
 	@( $(GOBUILD) -o $(BIN_DIR)/peerd ./cmd/proxy )
 
 .PHONY: install
-install: build ## Installs the peerd service in the project bin directory
+install: build ## Installs the peerd service in the project bin directory.
 	@echo "+ $@"
 	@( cp $(ROOT_DIR)/init/systemd/peerd.service $(BIN_DIR)/peerd.service )
 	@( cp $(ROOT_DIR)/api/swagger.yaml $(BIN_DIR)/swagger.yaml )
@@ -61,7 +61,7 @@ install-linter: ## Install Go linter.
 	@( curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v1.54.2 )
 
 .PHONY: build-image
-build-image: ## Build the peerd docker image
+build-image: ## Build the peerd docker image.
 	@echo "+ $@"
 ifndef CONTAINER_REGISTRY
 	$(eval CONTAINER_REGISTRY := $(shell echo "localhost"))
@@ -81,7 +81,7 @@ test: ## Runs tests.
 	@( $(GOTEST) ./... )
 
 .PHONY: coverage
-coverage: ## Generates test results for code coverage
+coverage: ## Generates test results for code coverage.
 	@echo "+ $@"
 	@( COVERAGE_DIR=$(COVERAGE_DIR) $(SCRIPTS_DIR)/coverage.sh "$(ROOT_DIR)" "$(TEST_PKGS)" true )
 
@@ -93,7 +93,7 @@ swag: ## Generates the swagger documentation of the p2p server.
 .PHONY: add-copyright
 add-copyright: ## Add the copyright header to all Go files.
 	@echo "+ $@"
-	find . -type f -name "*.go" -exec sh -c 'grep -q -F "// Copyright (c) Microsoft Corporation." "$0" || sed -i "1i\\// Copyright (c) Microsoft Corporation.\\n// Licensed under the Apache License, Version 2.0." "$0"' {} \;
+	find $(ROOT_DIR) -type f -name "*.go" -exec sh -c 'grep -q -F "// Copyright (c) Microsoft Corporation." "$0" || sed -i "1i\\// Copyright (c) Microsoft Corporation.\\n// Licensed under the MIT License." "$0"' {} \;
 
 define HEADER
 
