@@ -17,7 +17,7 @@ It is not yet production ready, but we're getting there.
 
 ## Quickstart
 
-This section shows how to get started with `peerd`.
+This section shows how to get started with `peerd`. To see all available commands, run `make help`.
 
 ```bash
 $ make help
@@ -29,60 +29,67 @@ $ make help
         | |  |  __/  __/ | | (_| |
         |_|   \___|\___|_|  \__,_|
 
-all                            Runs the peerd build targets in the correct order
-build-image                    Build the peerd docker image
-build                          Build the peerd packages
-coverage                       Generates test results for code coverage
+all                            Runs the peerd build targets in the correct order.
+build-image                    Build the peerd docker image.
+build                          Build the peerd packages.
+coverage                       Generates test results for code coverage.
 help                           Generates help for all targets with a description.
-install-gocov                  Install Go cov.
-install-linter                 Install Go linter.
-install                        Installs the peerd service in the project bin directory
-kind-create                    Creates a kind cluster
-kind-delete                    Deletes kind cluster
-kind-deploy                    Deploys the p2p application to kind cluster
-kind-get                       Shows the current kind cluster
-kind-test-ctr                  Deploys test 'ctr' to the kind cluster
-kind-test-random               Deploys test 'random' to the kind cluster
-lint                           Run linter.
-swag                           Generates the swagger documentation of the p2p server.
-test                           Runs tests.
-tests-build                    Builds the tests binary
-tests-deps-install             Install dependencies for testing (supported only on Ubuntu)
-tests-random-image             Builds the 'random' tests image
-tests-scanner-image            Builds the 'scanner' tests image
+...
 ```
 
-### Deploy Helm Chart to your Cluster
+### Deploy `peerd` to Your Cluster Using `helm`
 
-If you already have a k8s cluster, you can deploy the `peerd` helm chart to it. With containerd, `peerd` leverages the 
-[hosts configuration][containerd hosts] to act as a mirror for container images.
+#### Prerequisites
 
-The `peerd` container image is available at `ghcr.io/azure/acr/peerd`.
+* An existing Kubernetes cluster with
+* containerd as the container runtime.
+
+You can deploy `peerd` to your existing cluster using the included [helm chart]. With containerd, `peerd` leverages the 
+[hosts configuration][containerd hosts] to act as a mirror for container images. The helm chart deploys a DameonSet to
+the `peerd-ns` namespace, and mounts the containerd socket to the `peerd` containers.
+
+The `peerd` container image is available at `ghcr.io/azure/acr/peerd`. To deploy, run the following.
 
 ```bash
 CLUSTER_CONTEXT=<your-cluster-context> && \
+  TAG=v0.0.2-alpha && \
   HELM_RELEASE_NAME=peerd && \
   HELM_CHART_DIR=./build/ci/k8s/peerd-helm && \
   helm --kube-context=$CLUSTER_CONTEXT install --wait $HELM_RELEASE_NAME $HELM_CHART_DIR \
-    --set peerd.image.ref=ghcr.io/azure/acr/dev/peerd:v0.0.2-alpha
+    --set peerd.image.ref=ghcr.io/azure/acr/dev/peerd:$TAG
 ```
 
-By default, only `mcr.microsoft.com` is mirrored, but this is configurable. For example, to configure `peerd` to mirror 
-`mcr.microsoft.com` and `ghcr.io`, run the following.
+By default, `mcr.microsoft.com` and `ghcr.io` are mirrored, but this is configurable. For example, to `docker.io`, run
+the following.
 
 ```bash
 CLUSTER_CONTEXT=<your-cluster-context> && \
+  TAG=v0.0.2-alpha && \
   HELM_RELEASE_NAME=peerd && \
   HELM_CHART_DIR=./build/ci/k8s/peerd-helm && \
   helm --kube-context=$CLUSTER_CONTEXT install --wait $HELM_RELEASE_NAME $HELM_CHART_DIR \
-    --set peerd.image.ref=ghcr.io/azure/acr/dev/peerd:v0.0.2-alpha \
-    --set peerd.hosts="mcr.microsoft.com ghcr.io"
+    --set peerd.image.ref=ghcr.io/azure/acr/dev/peerd:$TAG
+    --set peerd.hosts="mcr.microsoft.com ghcr.io docker.io"
+```
+
+On deployment, each `peerd` instance will try to connect to its peers in the cluster. 
+
+* When connected successfully, each pod will generate an event `P2PConnected`. This event is used to signal that the 
+  `peerd` instance is ready to serve requests to its peers.
+
+* When a request is served by downloading data from a peer, `peerd` will emit an event called `P2PActive`, 
+  signalling that it's actively communicating with a peer and serving data from it.
+
+To see logs from the `peerd` pods, run the following.
+
+```bash
+kubectl --context=$CLUSTER_CONTEXT -n peerd-ns logs -l app=peerd -f
 ```
 
 ### Build and Deploy to a Local Kind Cluster
 
-To build and deploy `peerd` to a 3 node kind cluster, run the following. These commands will build the `peerd`
-docker image, create a kind cluster, and deploy the `peerd` application to each node in it.
+For local development or experimentation, you can build the `peerd` docker image, create a kind cluster, and deploy the
+`peerd` application to each node in it. To build and deploy to a 3 node kind cluster, run the following.
 
 ```bash
 $ make build-image && \
@@ -99,14 +106,6 @@ $ make build-image && \
   Success: All pods have event 'P2PConnected'.
 ```
 
-On deployment, each `peerd` instance will try to connect to its peers in the cluster. 
-
-* When connected successfully, it will generate an event `P2PConnected`. This event is used to signal that the 
-  `peerd` instance is ready to serverequests from its peers or upstream. It can be found in the pod events.
-
-* When a request is served by downloading data from a peer, `peerd` will emit an event called `P2PActive`, 
-  signalling that it's actively communicating with a peer and serving data from it.
-
 Clean up your deployment.
 
 ```bash
@@ -115,7 +114,7 @@ $ make kind-delete
 
 ### Run a Test Workload
 
-There are two kinds of test workloads that can be run:
+There are two kinds of test workloads avaialbe in this repository:
 
 1. Simple peer to peer sharing of a file, specified by the range of bytes to read.
    * This scenario is useful for block level file drivers, such as [Overlaybd].
@@ -154,17 +153,6 @@ There are two kinds of test workloads that can be run:
     $ make kind-delete
     ```
 
-### Build a Docker Image of `peerd`
-
-To build a docker image of `peerd`, which can then be deployed on each node of your cluster, run the following.
-
-```bash
-$ make build-image
-  ...
-  ...
-  => naming to localhost/peerd:dev
-```
-
 ### Build `peerd` Binary
 
 To build the `peerd` binary, run the following.
@@ -174,9 +162,9 @@ $ make
   ...
 ```
 
-The build produces a binary and a systemd service unit file:
+The build produces a binary and a systemd service unit file. Additionally, it bin-places the API swagger file.
 
-```
+```bash
 |-- peerd          # The binary
 |-- peerd.service  # The service unit file for systemd
 |-- swagger.yml    # The swagger file for the REST API
@@ -265,3 +253,5 @@ A hat tip to:
 [DADI P2P Proxy]: https://github.com/data-accelerator/dadi-p2proxy
 [containerd hosts]: https://github.com/containerd/containerd/blob/main/docs/hosts.md
 [containerd-mirror]: ./internal/containerd/mirror.go
+[helm chart]: ./build/ci/k8s/peerd-helm
+```

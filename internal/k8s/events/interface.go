@@ -1,5 +1,5 @@
 // Copyright (c) Microsoft Corporation.
-// Licensed under the Apache License, Version 2.0.
+// Licensed under the MIT License.
 package events
 
 // EventRecorder can be used to record various event.

@@ -1,5 +1,5 @@
 // Copyright (c) Microsoft Corporation.
-// Licensed under the Apache License, Version 2.0.
+// Licensed under the MIT License.
 // Package urlparser provides interfaces and implementations for parsing information from a URL.
 package urlparser
 
