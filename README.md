@@ -172,20 +172,6 @@ The build produces a binary and a systemd service unit file. Additionally, it bi
 |-- swagger.yml    # The swagger file for the REST API
 ```
 
-### Throughput Improvements
-
-An Overlaybd image was created for a simple application that reads an entire file (see [scanner]). The app measures the 
-amount of time it takes to read the entire file, which is present on its filesystem. The performance between  p2 and
-non-p2p modes on a 3 node AKS cluster with [ACR Artifact Streaming].
-
-| Mode                 | File Size (Mb) | Throughput (MB/s) |
-| -------------------- | -------------- | ----------------- |
-| Non P2P              | 200            | 3.5, 3.8, 3.9     |
-| P2P (no prefetching) | 600            | 3.8, 3.9, 4.9     |
-| P2P with prefetching | 200            | **6.5, 11, 13**   |
-
-This shows a `3x` improvement in throughtput for such a workload. 
-
 ## Features
 
 `peerd` allows a Kubenetes node to share its container images (when using containerd) with other nodes in the cluster.
@@ -237,15 +223,6 @@ its peers for the image, and download it from them instead of the registry. Cont
 facility that can be used to configure `peerd` as the mirror for container images.
 
 The APIs are described in the [swagger.yaml].
-
-## Comparison with Other Solutions
-
-| Project   | Main Features | Single points of failures | Static Configuration |
-| --------- | ------------- | ------------------------- | -------------------- |
-| Peerd     |               |                           |                      |
-| Spegel    |               |                           |                      |
-| Kraken    |               |                           |                      |
-| Dragonfly |               |                           |                      |
 
 ## Design and Architecture
 
@@ -468,6 +445,8 @@ A hat tip to:
 [ACR Artifact Streaming]: https://learn.microsoft.com/en-us/azure/container-registry/container-registry-artifact-streaming
 [swagger.yaml]: ./api/swagger.yaml
 [Spegel]: https://github.com/XenitAB/spegel
+[Kraken]: https://github.com/uber/kraken
+[Dragonfly]: https://github.com/dragonflyoss/Dragonfly2
 [DADI P2P Proxy]: https://github.com/data-accelerator/dadi-p2proxy
 [containerd hosts]: https://github.com/containerd/containerd/blob/main/docs/hosts.md
 [containerd-mirror]: ./internal/containerd/mirror.go
