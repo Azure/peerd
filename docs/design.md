@@ -177,3 +177,4 @@ running this container in p2p vs non-p2p mode on a 3 node AKS cluster with Artif
 
 [cluster-arch]: ../assets/images/cluster.png
 [file-system-layout]: ../assets/images/file-system-layout.png
+[Spegel]: https://github.com/XenitAB/spegel

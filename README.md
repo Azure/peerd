@@ -235,10 +235,9 @@ this project.
 
 ## Acknowledgments
 
-A hat tip to:
-
-* [Spegel]
-* [DADI P2P Proxy]
+The [Spegel] project has greatly inspired this work, and a big THANK YOU to Philip Laine and Simon Gottschlag at Xenit
+for generously sharing their insights with us. A hat tip also to the [DADI P2P Proxy] project for demonstrating the
+integration with [Overlaybd].
 
 ## Glossary
 
