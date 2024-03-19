@@ -6,6 +6,8 @@
 [![CodeQL]][code-ql]
 [![Go Report Card]][go-report-card]
 
+![cluster-ops]
+
 This project implements peer to peer distribution of content (such as files or OCI container images) in a Kubernetes
 cluster. The source of the content could be another node in the same cluster, an OCI container registry (like Azure
 Container Registry) or a remote blob store (such as Azure Blob Storage).
@@ -285,3 +287,4 @@ integration with [Overlaybd].
 [peerd.service]: ./init/systemd/peerd.service
 [white paper]: https://pdos.csail.mit.edu/~petar/papers/maymounkov-kademlia-lncs.pdf
 [design-doc]: ./docs/design.md
+[cluster-ops]: ./assets/images//cluster-ops.gif
