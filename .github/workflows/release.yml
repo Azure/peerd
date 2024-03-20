@@ -53,6 +53,7 @@ jobs:
   ci:
     name: Run AKS CI
     runs-on: ubuntu-latest
+    needs: publish
     permissions:
       contents: read
       id-token: write # This is required for requesting the JWT from AAD.
