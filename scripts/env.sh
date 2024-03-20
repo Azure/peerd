@@ -97,8 +97,4 @@ get_prerequisites_versions() {
         echo "envsubst not found: to install, try 'apt-get install gettext-base'"
         return $ec
     }
-    which uuid >/dev/null 2>&1 || {
-        echo "uuid not found: to install, try 'apt-get install uuid'"
-        return $ec
-    }
 }
