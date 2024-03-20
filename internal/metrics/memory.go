@@ -12,7 +12,7 @@ import (
 
 var (
 	// Path is the default path to write metrics.
-	Path = "/var/log/p2pmetrics"
+	Path = "/var/log/peerdmetrics"
 
 	// ReportInterval is the interval to report metrics.
 	ReportInterval = 3 * time.Minute

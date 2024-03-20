@@ -1,4 +1,4 @@
-name: Release Docker Image
+name: Release
 
 on:
   push:
@@ -49,3 +49,23 @@ jobs:
         if: ${{ success() }}
         run: |
           docker push ${{ env.REGISTRY }}/${{ env.REPO_PREFIX }}peerd:${{ steps.get_image_tag.outputs.docker_tag }}
+
+  ci:
+    name: Run AKS CI
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # This is required for requesting the JWT from AAD.
+    env:
+      TAG: ${{ steps.publish.outputs.get_image_tag.outputs.docker_tag }}
+    steps:
+      - name: 'Az CLI login'
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: 'Make'
+        run: |
+          PEERD_IMAGE_TAG=${{ env.TAG }} make tests-ci-aks
