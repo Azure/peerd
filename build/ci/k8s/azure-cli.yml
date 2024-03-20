@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: azure-cli-daemonset
+  namespace: peerd-ns
+spec:
+  selector:
+    matchLabels:
+      app: peerd-test
+  template:
+    metadata:
+      labels:
+        app: peerd-test
+    spec:
+      initContainers:
+        - name: sleep
+          image: busybox
+          command: ["sh", "-c", "sleep $(shuf -i 1-10 -n 1)"]
+      containers:
+        - name: azure-cli
+          image: mcr.microsoft.com/azure-cli:latest
+          imagePullPolicy: Always

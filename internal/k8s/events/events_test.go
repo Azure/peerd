@@ -14,7 +14,7 @@ import (
 func TestExpectedEvents(t *testing.T) {
 	er := &eventRecorder{
 		recorder: &testRecorder{t},
-		nodeRef: &v1.ObjectReference{
+		objRef: &v1.ObjectReference{
 			Kind:       "Node",
 			Name:       "node-name",
 			UID:        "node.UID",
@@ -32,7 +32,7 @@ func TestExpectedEvents(t *testing.T) {
 func TestFromContext(t *testing.T) {
 	er := &eventRecorder{
 		recorder: &testRecorder{t},
-		nodeRef: &v1.ObjectReference{
+		objRef: &v1.ObjectReference{
 			Kind:       "Node",
 			Name:       "node-name",
 			UID:        "node.UID",

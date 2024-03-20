@@ -54,6 +54,7 @@ func NewRecorder(ctx context.Context) (EventRecorder, error) {
 		objRef = &v1.ObjectReference{
 			Kind:       "Pod",
 			Name:       pod.Name,
+			Namespace:  pod.Namespace,
 			UID:        pod.UID,
 			APIVersion: pod.APIVersion,
 		}
@@ -61,14 +62,14 @@ func NewRecorder(ctx context.Context) (EventRecorder, error) {
 
 	broadcaster := record.NewBroadcaster()
 	broadcaster.StartStructuredLogging(4)
-	broadcaster.StartRecordingToSink(&typedv1core.EventSinkImpl{Interface: clientset.CoreV1().Events("")})
+	broadcaster.StartRecordingToSink(&typedv1core.EventSinkImpl{Interface: clientset.CoreV1().Events(p2pcontext.Namespace)})
 
 	return &eventRecorder{
 		recorder: broadcaster.NewRecorder(
 			scheme.Scheme,
 			v1.EventSource{},
 		),
-		nodeRef: objRef,
+		objRef: objRef,
 	}, nil
 }
 
@@ -89,32 +90,32 @@ func FromContext(ctx context.Context) EventRecorder {
 
 type eventRecorder struct {
 	recorder record.EventRecorder
-	nodeRef  *v1.ObjectReference
+	objRef   *v1.ObjectReference
 }
 
-// Active should be called to indicate that the node is active in the cluster.
+// Active should be called to indicate that the instance is active in the cluster.
 func (er *eventRecorder) Active() {
-	er.recorder.Eventf(er.nodeRef, v1.EventTypeNormal, "P2PActive", "P2P proxy is active on node %s", er.nodeRef.Name)
+	er.recorder.Eventf(er.objRef, v1.EventTypeNormal, "P2PActive", "P2P proxy is active on instance %s", er.objRef.Name)
 }
 
-// Connected should be called to indicate that the node is connected to the cluster.
+// Connected should be called to indicate that the instance is connected to the cluster.
 func (er *eventRecorder) Connected() {
-	er.recorder.Eventf(er.nodeRef, v1.EventTypeNormal, "P2PConnected", "P2P proxy is connected to cluster on node %s", er.nodeRef.Name)
+	er.recorder.Eventf(er.objRef, v1.EventTypeNormal, "P2PConnected", "P2P proxy is connected to cluster on instance %s", er.objRef.Name)
 }
 
-// Disconnected should be called to indicate that the node is disconnected from the cluster.
+// Disconnected should be called to indicate that the instance is disconnected from the cluster.
 func (er *eventRecorder) Disconnected() {
-	er.recorder.Eventf(er.nodeRef, v1.EventTypeWarning, "P2PDisconnected", "P2P proxy is disconnected from cluster on node %s", er.nodeRef.Name)
+	er.recorder.Eventf(er.objRef, v1.EventTypeWarning, "P2PDisconnected", "P2P proxy is disconnected from cluster on instance %s", er.objRef.Name)
 }
 
-// Failed should be called to indicate that the node has failed.
+// Failed should be called to indicate that the instance has failed.
 func (er *eventRecorder) Failed() {
-	er.recorder.Eventf(er.nodeRef, v1.EventTypeWarning, "P2PFailed", "P2P proxy failed on node %s", er.nodeRef.Name)
+	er.recorder.Eventf(er.objRef, v1.EventTypeWarning, "P2PFailed", "P2P proxy failed on instance %s", er.objRef.Name)
 }
 
-// Initializing should be called to indicate that the node is initializing.
+// Initializing should be called to indicate that the instance is initializing.
 func (er *eventRecorder) Initializing() {
-	er.recorder.Eventf(er.nodeRef, v1.EventTypeNormal, "P2PInitializing", "P2P proxy is initializing on node %s", er.nodeRef.Name)
+	er.recorder.Eventf(er.objRef, v1.EventTypeNormal, "P2PInitializing", "P2P proxy is initializing on instance %s", er.objRef.Name)
 }
 
 var _ EventRecorder = &eventRecorder{}

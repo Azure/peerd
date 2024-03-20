@@ -5,6 +5,7 @@
 [![Docker Release CI]][release-ci]
 [![CodeQL]][code-ql]
 [![Go Report Card]][go-report-card]
+[![Scorecard supply-chain security]][scorecard-supply-chain-security]
 
 ![cluster-ops]
 
@@ -288,3 +289,5 @@ integration with [Overlaybd].
 [white paper]: https://pdos.csail.mit.edu/~petar/papers/maymounkov-kademlia-lncs.pdf
 [design-doc]: ./docs/design.md
 [cluster-ops]: ./assets/images//cluster-ops.gif
+[Scorecard supply-chain security]: https://github.com/Azure/peerd/actions/workflows/scorecard.yml/badge.svg
+[scorecard-supply-chain-security]: https://github.com/Azure/peerd/actions/workflows/scorecard.yml
