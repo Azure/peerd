@@ -2,7 +2,7 @@
 
 [![Build Status]][build-status]
 [![Kind CI Status]][kind-ci-status]
-[![Docker Release CI]][release-ci]
+[![Release CI]][release-ci]
 [![CodeQL]][code-ql]
 [![Go Report Card]][go-report-card]
 [![Scorecard supply-chain security]][scorecard-supply-chain-security]
@@ -265,7 +265,7 @@ integration with [Overlaybd].
 [build-status]: https://github.com/azure/peerd/actions/workflows/build.yml
 [Kind CI Status]: https://github.com/azure/peerd/actions/workflows/kind.yml/badge.svg
 [kind-ci-status]: https://github.com/azure/peerd/actions/workflows/kind.yml
-[Docker Release CI]: https://github.com/azure/peerd/actions/workflows/release.yml/badge.svg
+[Release CI]: https://github.com/azure/peerd/actions/workflows/release.yml/badge.svg
 [release-ci]: https://github.com/azure/peerd/actions/workflows/release.yml
 [Code Coverage]: https://img.shields.io/badge/coverage-54.9%25-orange
 [node-arch]: ./assets/images/http-flow.png

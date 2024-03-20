@@ -26,7 +26,7 @@ ifndef NODEPOOL
 	$(eval NODEPOOL := $(shell date +"p2p%y%m%d"))
 endif
 ifndef PEERD_IMAGE_TAG
-	$(eval PEERD_IMAGE_TAG := "v0.0.2-alpha")
+	$(eval PEERD_IMAGE_TAG := "dev")
 endif
 	@echo "\033[92mRunning CI NODEPOOL: $(NODEPOOL)\033[0m"
 	@( PEERD_IMAGE_TAG=$(PEERD_IMAGE_TAG) $(ROOT_DIR)/scripts/azure.sh nodepool up -y $(NODEPOOL) )
