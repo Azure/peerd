@@ -15,7 +15,8 @@ jobs:
     env:
       REGISTRY: ghcr.io
       REPO_PREFIX: ${{ format('azure/acr/dev/') }}
-
+    outputs:
+      git_tag: ${{ steps.get_git_tag.outputs.git_tag }}
     steps:
       - name: Get Git Tag
         id: get_git_tag
@@ -58,7 +59,7 @@ jobs:
       contents: read
       id-token: write # This is required for requesting the JWT from AAD.
     env:
-      TAG: ${{ needs.publish.outputs.get_git_tag.outputs.git_tag }}
+      TAG: ${{ needs.publish.outputs.git_tag }}
     steps:
       - name: 'Az CLI login'
         uses: azure/login@v1
