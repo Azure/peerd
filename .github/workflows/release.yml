@@ -75,4 +75,4 @@ jobs:
 
       - name: 'Make'
         run: |
-          PEERD_IMAGE_TAG=${{ needs.publish.outputs.get_git_tag.outputs.git_tag }} make tests-ci-aks
+          PEERD_IMAGE_TAG=${{ needs.publish.outputs.get_git_tag.outputs.git_tag }} make tests-deps-install tests-ci-aks
