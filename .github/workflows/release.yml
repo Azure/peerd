@@ -57,7 +57,7 @@ jobs:
       contents: read
       id-token: write # This is required for requesting the JWT from AAD.
     env:
-      TAG: ${{ steps.publish.outputs.get_image_tag.outputs.docker_tag }}
+      TAG: ${GITHUB_REF#refs/tags/}
     steps:
       - name: 'Az CLI login'
         uses: azure/login@v1
