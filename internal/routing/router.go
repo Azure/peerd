@@ -210,7 +210,7 @@ func (r *router) Resolve(ctx context.Context, key string, allowSelf bool, count 
 
 // Advertise advertises the given keys to the network.
 func (r *router) Advertise(ctx context.Context, keys []string) error {
-	zerolog.Ctx(ctx).Debug().Str("host", r.host.ID().String()).Strs("keys", keys).Msg("advertising keys")
+	zerolog.Ctx(ctx).Trace().Str("host", r.host.ID().String()).Strs("keys", keys).Msg("advertising keys")
 	for _, key := range keys {
 		c, err := createCid(key)
 		if err != nil {

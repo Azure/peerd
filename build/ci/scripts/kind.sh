@@ -180,10 +180,10 @@ wait_for_events() {
         for pod in $( echo "$pods" | tr -s " " "\012" ); do
             echo "checking pod '$pod' for event '$event'"
             
-            foundEvent=$(kubectl --context=$context get events --field-selector involvedObject.kind=Pod,involvedObject.name=$pod -o json | jq -r ".items[] | select(.reason == \"$event\")")
+            foundEvent=$(kubectl --context=$context -n $ns get events --field-selector involvedObject.kind=Pod,involvedObject.name=$pod -o json | jq -r ".items[] | select(.reason == \"$event\")")
             [[ "$foundEvent" == "" ]] && echo "Event '$event' not found for pod '$pod'" || found=$((found+1))
             
-            errorEvent=$(kubectl --context=$context get events --field-selector involvedObject.kind=Pod,involvedObject.name=$pod -o json | jq -r '.items[] | select(.reason == "P2PDisconnected" or .resosn == "P2PFailed")')
+            errorEvent=$(kubectl --context=$context -n $ns get events --field-selector involvedObject.kind=Pod,involvedObject.name=$pod -o json | jq -r '.items[] | select(.reason == "P2PDisconnected" or .resosn == "P2PFailed")')
             [[ "$errorEvent" == "" ]] || (echo "Error event found for pod '$pod': $errorEvent" && exit 1)
         done
 
