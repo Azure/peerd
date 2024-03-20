@@ -58,7 +58,7 @@ jobs:
       contents: read
       id-token: write # This is required for requesting the JWT from AAD.
     env:
-      TAG: ${GITHUB_REF#refs/tags/}
+      TAG: ${{ needs.publish.outputs.get_git_tag.outputs.git_tag }}
     steps:
       - name: 'Az CLI login'
         uses: azure/login@v1
@@ -71,8 +71,9 @@ jobs:
         if: ${{ success() }}
         uses: actions/checkout@v2
         with:
-          ref: ${{ needs.publish.outputs.get_git_tag.outputs.git_tag }}
+          ref: ${{ env.TAG }}
 
       - name: 'Make'
+        if: ${{ success() }}
         run: |
-          PEERD_IMAGE_TAG=${{ needs.publish.outputs.get_git_tag.outputs.git_tag }} make tests-deps-install tests-ci-aks
+          PEERD_IMAGE_TAG=${{ env.TAG }} make tests-deps-install tests-ci-aks
