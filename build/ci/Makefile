@@ -1,25 +1,20 @@
-.PHONY: tests-deps-install
-tests-deps-install: ## Install dependencies for testing (supported only on Ubuntu)
-	@echo "+ $@"
-	sudo $(SCRIPTS_DIR)/install-deps.sh
-
 .PHONY: kind-create
-kind-create: ## Creates a kind cluster
+kind-create:
 	@echo "+ $@"
 	@( $(SCRIPTS_DIR)/kind.sh cluster create -y )
 
 .PHONY: kind-get
-kind-get: ## Shows the current kind cluster
+kind-get:
 	@echo "+ $@"
 	@( $(SCRIPTS_DIR)/kind.sh cluster get -y )
 
 .PHONY: kind-delete
-kind-delete: ## Deletes kind cluster
+kind-delete:
 	@echo "+ $@"
 	@( $(SCRIPTS_DIR)/kind.sh cluster delete -y )
 
 .PHONY: kind-deploy
-kind-deploy: ## Deploys the p2p application to kind cluster
+kind-deploy:
 	@echo "+ $@"
 ifndef CONTAINER_REGISTRY
 	$(eval CONTAINER_REGISTRY := $(shell echo "localhost"))
@@ -27,20 +22,31 @@ endif
 	@( $(SCRIPTS_DIR)/kind.sh app deploy -y $(CONTAINER_REGISTRY)/peerd:dev )
 
 .PHONY: kind-test-ctr
-kind-test-ctr: ## Deploys test 'ctr' to the kind cluster
+kind-test-ctr:
 	@echo "+ $@"
 	@( $(SCRIPTS_DIR)/kind.sh test ctr -y )
 
 .PHONY: kind-test-random
-kind-test-random: ## Deploys test 'random' to the kind cluster
+kind-test-random:
 	@echo "+ $@"
 ifndef CONTAINER_REGISTRY
 	$(eval CONTAINER_REGISTRY := $(shell echo "localhost"))
 endif
 	@( $(SCRIPTS_DIR)/kind.sh test random -y $(CONTAINER_REGISTRY)/random:dev )
 
-.PHONY: tests-ci-aks
-tests-ci-aks: ## Run CI in AKS
+.PHONY: tests-deps-install
+tests-deps-install: ## Install dependencies for testing (supported only on Ubuntu)
+	@echo "+ $@"
+	sudo $(SCRIPTS_DIR)/install-deps.sh
+
+.PHONY: ci-kind-ctr
+ci-kind-ctr: build-image kind-delete kind-create kind-deploy kind-test-ctr ## Run the containerd hosts CI in kind.
+
+.PHONY: ci-kind-random
+ci-kind-random: build-image tests-random-image kind-delete kind-create kind-deploy kind-test-random ## Run the blobs range CI in kind.
+
+.PHONY: ci-aks-ctr
+ci-aks-ctr: ## Run the containerd hosts CI in AKS.
 	@echo "+ $@"
 ifndef NODEPOOL
 	$(eval NODEPOOL := $(shell date +"p2p%y%m%d"))

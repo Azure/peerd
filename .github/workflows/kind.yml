@@ -16,7 +16,7 @@ jobs:
         run: sudo make tests-deps-install
 
       - name: "End to End: Blobs"
-        run: make build-image tests-random-image && docker system prune -f && make kind-create kind-deploy kind-test-random
+        run: make ci-kind-random
 
       - name: "Clean up"
         run: make kind-delete
@@ -30,7 +30,7 @@ jobs:
         run: sudo make tests-deps-install
 
       - name: "End to End: Ctr"
-        run: make build-image tests-random-image && docker system prune -f && make kind-create kind-deploy kind-test-ctr
+        run: make ci-kind-ctr
 
       - name: "Clean up"
         run: make kind-delete

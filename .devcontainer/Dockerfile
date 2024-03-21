@@ -1,6 +1,6 @@
 # This is a dockerfile specifically for running as a devcontainer
-FROM mcr.microsoft.com/oss/go/microsoft/golang:1.22-fips-cbl-mariner2.0
-RUN tdnf update -y && tdnf install make -y && tdnf install git -y && tdnf install gawk -y && tdnf install jq -y
+FROM mcr.microsoft.com/oss/go/microsoft/golang:1.22-bookworm
+RUN apt-get update -y && apt-get install make -y && apt-get install git -y && apt-get install gawk -y && apt-get install jq -y
 
 RUN go install github.com/cweill/gotests/gotests@latest && \
     go install github.com/fatih/gomodifytags@latest && \
