@@ -14,15 +14,6 @@ spec:
       labels:
         app: *name
     spec:
-      # affinity:
-      #   nodeAffinity:
-      #     requiredDuringSchedulingIgnoredDuringExecution:
-      #       nodeSelectorTerms:
-      #       - matchExpressions:
-      #         - key: p2p-nodepool
-      #           operator: In
-      #           values:
-      #           - 'true'
       containers:
         - image: $TEST_RANDOM_CONTAINER_IMAGE
           imagePullPolicy: Never

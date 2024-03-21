@@ -4,7 +4,7 @@ set -e
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 source $SCRIPT_DIR/env.sh
 
-PEERD_HELM_CHART="$SCRIPT_DIR/../build/ci/k8s/peerd-helm"
+PEERD_HELM_CHART="$SCRIPT_DIR/../build/package/peerd-helm"
 TESTS_AZURE_CLI_DEPLOY_TEMPLATE=$SCRIPT_DIR/../build/ci/k8s/azure-cli.yml
 
 show_help() {
@@ -112,7 +112,7 @@ wait_for_peerd_pods() {
     fi
 
     # Loop until all pods are connected or an error occurs.
-    for ((i=1; i<=100; i++)); do
+    for ((i=1; i<=10; i++)); do
         # Initialize a counter for connected pods.
         found=0
 
@@ -131,7 +131,7 @@ wait_for_peerd_pods() {
             echo "Success: All pods have event '$event'."
             break
         else
-            echo "Waiting: $found out of $total pods have event '$event'. Attempt $i of 100."
+            echo "Waiting: $found out of $total pods have event '$event'. Attempt $i of 10."
             sleep 15
         fi
     done
