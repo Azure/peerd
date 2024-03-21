@@ -59,7 +59,7 @@ The `peerd` container image is available at `ghcr.io/azure/acr/peerd`. To deploy
 CLUSTER_CONTEXT=<your-cluster-context> && \
   TAG=v0.0.2-alpha && \
   HELM_RELEASE_NAME=peerd && \
-  HELM_CHART_DIR=./build/ci/k8s/peerd-helm && \
+  HELM_CHART_DIR=./build/package/peerd-helm && \
   helm --kube-context=$CLUSTER_CONTEXT install --wait $HELM_RELEASE_NAME $HELM_CHART_DIR \
     --set peerd.image.ref=ghcr.io/azure/acr/dev/peerd:$TAG
 ```
@@ -71,7 +71,7 @@ as well, run the following.
 CLUSTER_CONTEXT=<your-cluster-context> && \
   TAG=v0.0.2-alpha && \
   HELM_RELEASE_NAME=peerd && \
-  HELM_CHART_DIR=./build/ci/k8s/peerd-helm && \
+  HELM_CHART_DIR=./build/package/peerd-helm && \
   helm --kube-context=$CLUSTER_CONTEXT install --wait $HELM_RELEASE_NAME $HELM_CHART_DIR \
     --set peerd.image.ref=ghcr.io/azure/acr/dev/peerd:$TAG
     --set peerd.hosts="mcr.microsoft.com ghcr.io docker.io"
@@ -279,7 +279,7 @@ integration with [Overlaybd].
 [DADI P2P Proxy]: https://github.com/data-accelerator/dadi-p2proxy
 [containerd hosts]: https://github.com/containerd/containerd/blob/main/docs/hosts.md
 [containerd-mirror]: ./internal/containerd/mirror.go
-[helm chart]: ./build/ci/k8s/peerd-helm
+[helm chart]: ./build/package/peerd-helm
 [CodeQL]: https://github.com/Azure/peerd/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main
 [code-ql]: https://github.com/Azure/peerd/actions/workflows/github-code-scanning/codeql
 [Azure Blob]: https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction
