@@ -5,7 +5,7 @@
 [![Release CI]][release-ci]
 [![CodeQL]][code-ql]
 [![Go Report Card]][go-report-card]
-[![Scorecard supply-chain security]][scorecard-supply-chain-security]
+[![codecov]][code-cov]
 
 ![cluster-ops]
 
@@ -51,7 +51,8 @@ Alternatively, it can also be deployed as DaemonSet pods using the [helm chart].
 * containerd as the container runtime.
 
 With containerd, `peerd` leverages the [hosts configuration][containerd hosts] to act as a mirror for container images.
-The [helm chart] deploys a DameonSet to the `peerd-ns` namespace, and mounts the containerd socket to the `peerd` containers.
+The [helm chart] deploys a DameonSet to the `peerd-ns` namespace, and mounts the containerd socket to the `peerd`
+containers.
 
 The `peerd` container image is available at `ghcr.io/azure/acr/peerd`. To deploy, run the following.
 
@@ -287,5 +288,5 @@ integration with [Overlaybd].
 [white paper]: https://pdos.csail.mit.edu/~petar/papers/maymounkov-kademlia-lncs.pdf
 [design-doc]: ./docs/design.md
 [cluster-ops]: ./assets/images//cluster-ops.gif
-[Scorecard supply-chain security]: https://github.com/Azure/peerd/actions/workflows/scorecard.yml/badge.svg
-[scorecard-supply-chain-security]: https://github.com/Azure/peerd/actions/workflows/scorecard.yml
+[codecov]: https://codecov.io/gh/Azure/peerd/branch/main/graph/badge.svg
+[code-cov]: https://codecov.io/gh/Azure/peerd
