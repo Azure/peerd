@@ -13,7 +13,7 @@ BIN_DIR = $(ROOT_DIR)/bin
 TEST_PKGS = $(shell go list ./...)
 TESTS_BIN_DIR = $(BIN_DIR)/tests
 COVERAGE_DIR=$(BIN_DIR)/coverage
-SCRIPTS_DIR=$(ROOT_DIR)/scripts
+SCRIPTS_DIR=$(ROOT_DIR)/build/ci/scripts
 
 # Docker image variables.
 REGISTRY ?= localhost

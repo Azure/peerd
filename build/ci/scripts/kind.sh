@@ -5,7 +5,7 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 KIND_CLUSTER_NAME="p2p"
 KIND_CLUSTER_CONTEXT="kind-$KIND_CLUSTER_NAME"
 CLUSTER_CONFIG_FILE="$SCRIPT_DIR/../k8s/kind-cluster.yml"
-HELM_CHART_DIR="$SCRIPT_DIR/../k8s/peerd-helm"
+HELM_CHART_DIR="$SCRIPT_DIR/../../package/peerd-helm"
 HELM_RELEASE_NAME="peerd"
 export GIT_ROOT="$(git rev-parse --show-toplevel)"
 
