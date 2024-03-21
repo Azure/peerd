@@ -77,4 +77,4 @@ jobs:
       - name: 'Make'
         if: ${{ success() }}
         run: |
-          PEERD_IMAGE_TAG=${{ env.TAG }} make tests-deps-install tests-ci-aks
+          PEERD_IMAGE_TAG=${{ env.TAG }} make tests-deps-install ci-aks-ctr
