@@ -14,7 +14,7 @@ coverage:
         target: 80%
 
 ignore:
-  - */tests/.*
+  - tests/**/*
 
 comment:
   layout: diff, files
