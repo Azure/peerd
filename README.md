@@ -57,7 +57,7 @@ The `peerd` container image is available at `ghcr.io/azure/acr/peerd`. To deploy
 
 ```bash
 CLUSTER_CONTEXT=<your-cluster-context> && \
-  TAG=v0.0.2-alpha && \
+  TAG=v0.0.3-alpha && \
   HELM_RELEASE_NAME=peerd && \
   HELM_CHART_DIR=./build/package/peerd-helm && \
   helm --kube-context=$CLUSTER_CONTEXT install --wait $HELM_RELEASE_NAME $HELM_CHART_DIR \
@@ -69,7 +69,7 @@ as well, run the following.
 
 ```bash
 CLUSTER_CONTEXT=<your-cluster-context> && \
-  TAG=v0.0.2-alpha && \
+  TAG=v0.0.3-alpha && \
   HELM_RELEASE_NAME=peerd && \
   HELM_CHART_DIR=./build/package/peerd-helm && \
   helm --kube-context=$CLUSTER_CONTEXT install --wait $HELM_RELEASE_NAME $HELM_CHART_DIR \
@@ -128,8 +128,7 @@ There are two kinds of test workloads available in this repository:
       of downloads and error rates.
 
     ```bash
-    $ make build-image tests-random-image && \
-        make kind-create kind-deploy kind-test-random
+    $ make ci-kind-random
       ...
       {"level":"info","node":"random-zb9vm","version":"bb7ee6a","mode":"upstream","size":22980743,"readsPerBlob":5,"time":"2024-03-07T21:50:29Z","message":"downloading blob"}
       {"level":"info","node":"random-9gcvw","version":"bb7ee6a","upstream.p50":21.25170790666404,"upstream.p75":5.834663359546446,"upstream.p90":0.7871542327673121,"upstream.p95":0.2965091294200036,"upstream.p100":0.2645602612715345,"time":"2024-03-07T21:50:34Z","message":"speeds (MB/s)"}
@@ -148,8 +147,7 @@ There are two kinds of test workloads available in this repository:
       of downloads and error rates.
  
     ```bash
-    $ make build-image tests-scanner-image && \
-        make kind-create kind-deploy kind-test-ctr
+    $ make ci-kind-ctr
         ...
         ...        
         ...

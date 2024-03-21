@@ -1,6 +1,11 @@
 # This is a dockerfile specifically for running as a devcontainer
-FROM mcr.microsoft.com/oss/go/microsoft/golang:1.22-fips-cbl-mariner2.0
-RUN tdnf update -y && tdnf install make -y && tdnf install git -y && tdnf install gawk -y && tdnf install jq -y
+FROM mcr.microsoft.com/oss/go/microsoft/golang:1.22-bookworm
+RUN apt-get update -y && \
+    apt-get install make -y && \
+    apt-get install git -y && \
+    apt-get install gawk -y && \
+    apt-get install jq -y && \
+    apt-get install gettext-base -y
 
 RUN go install github.com/cweill/gotests/gotests@latest && \
     go install github.com/fatih/gomodifytags@latest && \
@@ -13,7 +18,10 @@ RUN go install github.com/cweill/gotests/gotests@latest && \
     go install gotest.tools/gotestsum@latest && \
     go install github.com/jandelgado/gcov2lcov@latest && \
     go install github.com/AlekSi/gocov-xml@latest && \
-    curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v1.54.2
+    go install sigs.k8s.io/kind@v0.22.0 && \
+    curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v1.54.2 && \
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && chmod +x kubectl && mkdir -p ~/.local/bin && mv ./kubectl /usr/local/bin/kubectl && \
+    curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 && chmod 700 get_helm.sh && ./get_helm.sh
 
 RUN mkdir -p /go/src/github.com/azure/peerd
 
