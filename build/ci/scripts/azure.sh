@@ -7,7 +7,7 @@ source $SCRIPT_DIR/env.sh
 PEERD_HELM_CHART="$SCRIPT_DIR/../../package/peerd-helm"
 TELEPORT_DEPLOY_TEMPLATE="$SCRIPT_DIR/../k8s/teleport.yml"
 SCANNER_APP_DEPLOY_TEMPLATE="$SCRIPT_DIR/../k8s/scanner.yml"
-TESTS_AZURE_CLI_DEPLOY_TEMPLATE=$SCRIPT_DIR/../build/ci/k8s/azure-cli.yml
+TESTS_AZURE_CLI_DEPLOY_TEMPLATE=$SCRIPT_DIR/../k8s/azure-cli.yml
 
 show_help() {
     usageStr="

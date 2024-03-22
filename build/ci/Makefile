@@ -49,7 +49,7 @@ ci-kind-random: build-image tests-random-image kind-delete kind-create kind-depl
 ci-aks-ctr: ## Run the containerd hosts CI in AKS.
 	@echo "+ $@"
 ifndef NODEPOOL
-	$(eval NODEPOOL := $(shell date +"p2p%y%m%d"))
+	$(eval NODEPOOL := $(shell date +"prel%y%m%d"))
 endif
 ifndef PEERD_IMAGE_TAG
 	$(eval PEERD_IMAGE_TAG := "dev")
@@ -63,7 +63,7 @@ endif
 ci-streaming-ctr: ## Run the streaming CI in AKS.
 	@echo "+ $@"
 ifndef NODEPOOL
-	$(eval NODEPOOL := $(shell date +"p2p%y%m%d"))
+	$(eval NODEPOOL := $(shell date +"prels%y%m%d"))
 endif
 ifndef PEERD_IMAGE_TAG
 	$(eval PEERD_IMAGE_TAG := "dev")
