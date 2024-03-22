@@ -60,7 +60,7 @@ endif
 	@( $(SCRIPTS_DIR)/azure.sh nodepool delete -y $(NODEPOOL) )
 
 .PHONY: ci-aks-streaming
-ci-streaming-ctr: ## Run the streaming CI in AKS.
+ci-aks-streaming: ## Run the streaming CI in AKS.
 	@echo "+ $@"
 ifndef NODEPOOL
 	$(eval NODEPOOL := $(shell date +"prels%y%m%d"))
