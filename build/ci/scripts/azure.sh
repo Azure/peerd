@@ -4,7 +4,7 @@ set -e
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 source $SCRIPT_DIR/env.sh
 
-PEERD_HELM_CHART="$SCRIPT_DIR/../build/package/peerd-helm"
+PEERD_HELM_CHART="$SCRIPT_DIR/../../package/peerd-helm"
 TELEPORT_DEPLOY_TEMPLATE="$SCRIPT_DIR/../k8s/teleport.yml"
 SCANNER_APP_DEPLOY_TEMPLATE="$SCRIPT_DIR/../k8s/scanner.yml"
 TESTS_AZURE_CLI_DEPLOY_TEMPLATE=$SCRIPT_DIR/../build/ci/k8s/azure-cli.yml
@@ -242,7 +242,7 @@ cmd__test__streaming() {
         echo "deploying acr mirror"
         kubectl apply -f $TELEPORT_DEPLOY_TEMPLATE
 
-        echo "waiting 5 minutes"
+        echo "waiting 5 minutes" 
         sleep 300
 
         echo "deploying scanner app"
@@ -252,6 +252,9 @@ cmd__test__streaming() {
 
         echo "fetching metrics from pods"
         print_peerd_metrics
+
+        echo "scanner logs"
+        kubectl -n peerd-ns logs -l app=tests-scanner
 
         echo "cleaning up apps"
         helm uninstall peerd --ignore-not-found=true
