@@ -245,16 +245,17 @@ cmd__test__streaming() {
         echo "waiting 5 minutes" 
         sleep 300
 
-        echo "deploying scanner app"
+        echo "deploying scanner app and waiting 2 minutes"
         envsubst < $SCANNER_APP_DEPLOY_TEMPLATE | kubectl apply -f -
+        sleep 120
+
+        echo "scanner logs"
+        kubectl -n peerd-ns logs -l app=tests-scanner
 
         wait_for_peerd_pods $context $AKS_NAME $RESOURCE_GROUP $nodepool "P2PActive" 1
 
         echo "fetching metrics from pods"
         print_peerd_metrics
-
-        echo "scanner logs"
-        kubectl -n peerd-ns logs -l app=tests-scanner
 
         echo "cleaning up apps"
         helm uninstall peerd --ignore-not-found=true
