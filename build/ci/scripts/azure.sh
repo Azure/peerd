@@ -4,8 +4,10 @@ set -e
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 source $SCRIPT_DIR/env.sh
 
-PEERD_HELM_CHART="$SCRIPT_DIR/../build/package/peerd-helm"
-TESTS_AZURE_CLI_DEPLOY_TEMPLATE=$SCRIPT_DIR/../build/ci/k8s/azure-cli.yml
+PEERD_HELM_CHART="$SCRIPT_DIR/../../package/peerd-helm"
+TELEPORT_DEPLOY_TEMPLATE="$SCRIPT_DIR/../k8s/teleport.yml"
+SCANNER_APP_DEPLOY_TEMPLATE="$SCRIPT_DIR/../k8s/scanner.yml"
+TESTS_AZURE_CLI_DEPLOY_TEMPLATE=$SCRIPT_DIR/../k8s/azure-cli.yml
 
 show_help() {
     usageStr="
@@ -45,6 +47,12 @@ Sub commands:
 
 * confirm: run the ctr test on 'nodepool1'
     $(basename $0) test ctr -y 'nodepool1'
+
+* dry run: runs the streaming test on 'nodepool1'
+    $(basename $0) test streaming 'nodepool1'
+
+* confirm: run the streaming test on 'nodepool1'
+    $(basename $0) test streaming -y 'nodepool1'
 "
     echo "$usageStr"
 }
@@ -76,6 +84,7 @@ nodepool_deploy() {
 peerd_helm_deploy() {
     local nodepool=$1
     local peerd_image_tag=$2
+    local configureMirrors=$3
 
     ensure_azure_token
     
@@ -85,7 +94,8 @@ peerd_helm_deploy() {
     if [ "$DRY_RUN" == "false" ]; then
         HELM_RELEASE_NAME=peerd && \
             helm install --wait $HELM_RELEASE_NAME $PEERD_HELM_CHART \
-                --set "peerd.image.ref=ghcr.io/azure/acr/dev/peerd:$peerd_image_tag"
+                --set "peerd.image.ref=ghcr.io/azure/acr/dev/peerd:$peerd_image_tag" \
+                --set "peerd.configureMirrors=$configureMirrors"
     else
         echo "[dry run] would have deployed app to k8s cluster"
     fi
@@ -173,6 +183,7 @@ cmd__nodepool__delete() {
 cmd__nodepool__up () {
     local nodepool=$1
     local peerd_image_tag=$PEERD_IMAGE_TAG
+    local configureMirrors=$PEERD_CONFIGURE_MIRRORS
 
     echo "get AKS credentials"
     get_aks_credentials $AKS_NAME $RESOURCE_GROUP
@@ -184,7 +195,7 @@ cmd__nodepool__up () {
     nodepool_deploy $AKS_NAME $RESOURCE_GROUP $nodepool
 
     echo "deploying peerd helm chart using tag '$peerd_image_tag'"
-    peerd_helm_deploy $nodepool $peerd_image_tag
+    peerd_helm_deploy $nodepool $peerd_image_tag $configureMirrors
 
     echo "waiting for pods to connect"
     wait_for_peerd_pods $AKS_NAME $RESOURCE_GROUP $nodepool "P2PConnected"
@@ -200,11 +211,6 @@ cmd__test__ctr() {
     if [ "$DRY_RUN" == "true" ]; then
         echo "[dry run] would have run test 'ctr'"
     else
-        # Get nodes
-        nodes=$(kubectl get nodes -o jsonpath='{.items[*].metadata.name}')
-        echo "nodes: $nodes"
-        total=`echo "$nodes" | tr -s " " "\012" | wc -l`
-
         # Pull the image on all nodes and verify that at least one P2PActive event is generated.
         kubectl apply -f $TESTS_AZURE_CLI_DEPLOY_TEMPLATE
 
@@ -212,11 +218,54 @@ cmd__test__ctr() {
 
         echo "fetching metrics from pods"
         print_peerd_metrics
+
+        echo "cleaning up apps"
+        helm uninstall peerd --ignore-not-found=true
+        kubectl delete -f $TESTS_AZURE_CLI_DEPLOY_TEMPLATE
+
+        echo "test 'ctr' complete"
     fi
 
     print_and_exit_if_dry_run
 }
 
+cmd__test__streaming() {
+    aksName=$AKS_NAME
+    rg=$RESOURCE_GROUP
+    local nodepool=$1
+
+    echo "running test 'streaming'"
+
+    if [ "$DRY_RUN" == "true" ]; then
+        echo "[dry run] would have run test 'streaming'"
+    else
+        echo "deploying acr mirror"
+        kubectl apply -f $TELEPORT_DEPLOY_TEMPLATE
+
+        echo "waiting 5 minutes" 
+        sleep 300
+
+        echo "deploying scanner app and waiting 2 minutes"
+        envsubst < $SCANNER_APP_DEPLOY_TEMPLATE | kubectl apply -f -
+        sleep 120
+
+        echo "scanner logs"
+        kubectl -n peerd-ns logs -l app=tests-scanner
+
+        wait_for_peerd_pods $context $AKS_NAME $RESOURCE_GROUP $nodepool "P2PActive" 1
+
+        echo "fetching metrics from pods"
+        print_peerd_metrics
+
+        echo "cleaning up apps"
+        helm uninstall peerd --ignore-not-found=true
+        kubectl delete -f $SCANNER_APP_DEPLOY_TEMPLATE
+
+        echo "test 'streaming' complete"
+    fi
+
+    print_and_exit_if_dry_run
+}
 
 # Initialize script.
 if [[ -z "$DRY_RUN" ]]; then

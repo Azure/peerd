@@ -12,10 +12,3 @@ peerd:
       memory: "128Mi"
     requests:
       cpu: "10m"
-  ports:
-    pod:
-      http: 5000
-      https: 5001
-    service:
-      http: 5000
-      https: 5001
