@@ -49,12 +49,26 @@ ci-kind-random: build-image tests-random-image kind-delete kind-create kind-depl
 ci-aks-ctr: ## Run the containerd hosts CI in AKS.
 	@echo "+ $@"
 ifndef NODEPOOL
-	$(eval NODEPOOL := $(shell date +"p2p%y%m%d"))
+	$(eval NODEPOOL := $(shell date +"prel%y%m%d"))
 endif
 ifndef PEERD_IMAGE_TAG
 	$(eval PEERD_IMAGE_TAG := "dev")
 endif
 	@echo "\033[92mRunning CI NODEPOOL: $(NODEPOOL)\033[0m"
-	@( PEERD_IMAGE_TAG=$(PEERD_IMAGE_TAG) $(SCRIPTS_DIR)/azure.sh nodepool up -y $(NODEPOOL) )
+	@( PEERD_IMAGE_TAG=$(PEERD_IMAGE_TAG) PEERD_CONFIGURE_MIRRORS=true $(SCRIPTS_DIR)/azure.sh nodepool up -y $(NODEPOOL) )
 	@( $(SCRIPTS_DIR)/azure.sh test ctr -y $(NODEPOOL) )
+	@( $(SCRIPTS_DIR)/azure.sh nodepool delete -y $(NODEPOOL) )
+
+.PHONY: ci-aks-streaming
+ci-aks-streaming: ## Run the streaming CI in AKS.
+	@echo "+ $@"
+ifndef NODEPOOL
+	$(eval NODEPOOL := $(shell date +"prels%y%m%d"))
+endif
+ifndef PEERD_IMAGE_TAG
+	$(eval PEERD_IMAGE_TAG := "dev")
+endif
+	@echo "\033[92mRunning CI NODEPOOL: $(NODEPOOL)\033[0m"
+	@( PEERD_IMAGE_TAG=$(PEERD_IMAGE_TAG) PEERD_CONFIGURE_MIRRORS=false $(SCRIPTS_DIR)/azure.sh nodepool up -y $(NODEPOOL) )
+	@( $(SCRIPTS_DIR)/azure.sh test streaming -y $(NODEPOOL) )
 	@( $(SCRIPTS_DIR)/azure.sh nodepool delete -y $(NODEPOOL) )

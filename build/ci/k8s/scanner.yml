@@ -1,0 +1,63 @@
+# Runs the 'scanner' benchmark scenario on all cluster nodes.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tests-scanner-actions
+  namespace: peerd-ns
+  labels:
+    app: tests-scanner
+data:
+  wasm: |
+    #!/usr/bin/env bash
+    set -xe
+
+    nerdctl run \
+      --hosts-dir "/etc/containerd/certs.d" \
+      --snapshotter=overlaybd \
+      --net host -i --rm $TESTS_SCANNER_IMAGE
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: &name tests-scanner
+  namespace: peerd-ns
+  labels:
+    app: *name
+spec:
+  selector:
+    matchLabels:
+      app: *name
+  template:
+    metadata:
+      labels:
+        app: *name
+    spec:
+      hostNetwork: true
+      hostPID: true
+      containers:
+      - image: docker.io/alexeldeib/nsenter:latest # https://github.com/alexeldeib/azbench/blob/main/images/nsenter/entrypoint.sh
+        imagePullPolicy: Always
+        name: *name
+        args: ["wasm"]
+        resources:
+          # requests:
+          #   cpu: 0.5
+          #   memory: 2000Mi
+          # limits:
+          #   cpu: 0.5
+          #   memory: 2000Mi
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: actions
+          mountPath: "/opt/actions"
+        - name: hostmount
+          mountPath: "/mnt/actions"
+      volumes:
+      - name: hostmount
+        hostPath:
+          path: /opt/actions
+          type: DirectoryOrCreate
+      - name: actions
+        configMap:
+          name: tests-scanner-actions
