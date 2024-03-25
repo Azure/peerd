@@ -23,6 +23,7 @@ import (
 	"github.com/azure/peerd/internal/routing"
 	"github.com/azure/peerd/internal/state"
 	"github.com/azure/peerd/pkg/containerd"
+	"github.com/azure/peerd/pkg/k8s"
 	"github.com/rs/zerolog"
 	"github.com/spf13/afero"
 	"golang.org/x/sync/errgroup"
@@ -78,7 +79,12 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 		return err
 	}
 
-	ctx, err = events.WithContext(ctx)
+	clientset, err := k8s.NewKubernetesInterface(p2pcontext.KubeConfigPath)
+	if err != nil {
+		return err
+	}
+
+	ctx, err = events.WithContext(ctx, clientset)
 	if err != nil {
 		return err
 	}
@@ -91,7 +97,7 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 
 	eventsRecorder.Initializing()
 
-	r, err := routing.NewRouter(ctx, args.RouterAddr, httpsPort)
+	r, err := routing.NewRouter(ctx, clientset, args.RouterAddr, httpsPort)
 	if err != nil {
 		return err
 	}
