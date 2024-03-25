@@ -6,12 +6,13 @@
 [![CodeQL]][code-ql]
 [![Go Report Card]][go-report-card]
 [![codecov]][code-cov]
-
-![cluster-ops]
+[![release-tag]][peerd-pkgs]
 
 This project implements peer to peer distribution of content (such as content-addressable files or OCI container images)
 in a Kubernetes cluster. The source of the content could be another node in the same cluster, an OCI container registry
 (like Azure Container Registry) or a remote blob store (such as Azure Blob Storage).
+
+![cluster-ops]
 
 #### Important Disclaimer
 
@@ -27,8 +28,6 @@ To see all available commands, run `make help`.
 If you have a k8s cluster that uses containerd as the runtime, you can use the provided [helm chart] to deploy Peerd
 pods on every node. With containerd, Peerd leverages the [hosts configuration][containerd hosts] to act as a mirror for
 container images.
-
-[![release-tag]][peerd-pkgs]
 
 ```bash
 CLUSTER_CONTEXT=<your-cluster-context> && \
@@ -62,11 +61,9 @@ To see logs from the Peerd pods, run the following.
 kubectl --context=$CLUSTER_CONTEXT -n peerd-ns logs -l app=peerd -f
 ```
 
-Further details on building can be found in [build.md].
-
 ## Features
 
-* **Peer to Peer File Sharing**: Peerd llows a node to act as a mirror for files obtained from any HTTP upstream source
+* **Peer to Peer File Sharing**: Peerd allows a node to act as a mirror for files obtained from any HTTP upstream source
   (such as an [Azure Blob] using a [SAS URL]), and can discover and serve a specified byte range of the file to/from
   other nodes in the cluster. Peerd will first attempt to discover and serve this range from its peers. If not found, it
   will  fallback to download the range from the upstream URL. Peerd caches downloaded ranges as well as optionally, can
@@ -90,6 +87,10 @@ Further details on building can be found in [build.md].
   mirror for container images.
 
 The APIs are described in the [swagger.yaml].
+
+## Build
+
+See [build.md].
 
 ## Design and Architecture
 
