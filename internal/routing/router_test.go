@@ -9,6 +9,7 @@ import (
 	"time"
 
 	p2pcontext "github.com/azure/peerd/internal/context"
+	"github.com/azure/peerd/pkg/k8s"
 	"github.com/dgraph-io/ristretto"
 	cid "github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p/core/connmgr"
@@ -21,7 +22,10 @@ import (
 	corerouting "github.com/libp2p/go-libp2p/core/routing"
 	"github.com/libp2p/go-libp2p/p2p/discovery/routing"
 	multiaddr "github.com/multiformats/go-multiaddr"
+	"k8s.io/client-go/kubernetes/fake"
 )
+
+var fakeClientset = k8s.ClientSet{Interface: fake.NewSimpleClientset(), InPod: true}
 
 func TestResolveWithCache(t *testing.T) {
 	c, err := ristretto.NewCache(&ristretto.Config{
@@ -41,6 +45,7 @@ func TestResolveWithCache(t *testing.T) {
 	}
 
 	r := &router{
+		clientset:   &fakeClientset,
 		host:        h,
 		port:        "5000",
 		lookupCache: c,
@@ -79,6 +84,7 @@ func TestResolve(t *testing.T) {
 	}
 
 	r := &router{
+		clientset:   &fakeClientset,
 		host:        h,
 		port:        "5000",
 		lookupCache: c,
@@ -134,6 +140,7 @@ func TestProvide(t *testing.T) {
 	}
 
 	r := &router{
+		clientset:   &fakeClientset,
 		host:        h,
 		port:        "5000",
 		lookupCache: c,

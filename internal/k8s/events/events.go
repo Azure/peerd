@@ -11,7 +11,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	typedv1core "k8s.io/client-go/kubernetes/typed/core/v1"
-	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
 )
 
@@ -22,17 +21,9 @@ var (
 )
 
 // NewRecorder creates a new event recorder.
-func NewRecorder(ctx context.Context) (EventRecorder, error) {
-	clientset, err := k8s.NewKubernetesInterface(p2pcontext.KubeConfigPath)
-	if err != nil {
-		return nil, err
-	}
-
-	inPod := false
-	_, err = rest.InClusterConfig() // Assume run in a Pod or an environment with appropriate env variables set
-	if err == nil {
-		inPod = true
-	}
+func NewRecorder(ctx context.Context, k *k8s.ClientSet) (EventRecorder, error) {
+	clientset := k.Interface
+	inPod := k.InPod
 
 	var objRef *v1.ObjectReference
 	if !inPod {
@@ -74,8 +65,8 @@ func NewRecorder(ctx context.Context) (EventRecorder, error) {
 }
 
 // WithContext returns a new context with an event recorder.
-func WithContext(ctx context.Context) (context.Context, error) {
-	er, err := NewRecorder(ctx)
+func WithContext(ctx context.Context, clientset *k8s.ClientSet) (context.Context, error) {
+	er, err := NewRecorder(ctx, clientset)
 	if err != nil {
 		return nil, err
 	}
