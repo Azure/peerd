@@ -10,6 +10,7 @@ import (
 
 	p2pcontext "github.com/azure/peerd/internal/context"
 	"github.com/azure/peerd/internal/k8s/events"
+	"github.com/azure/peerd/pkg/k8s"
 	"github.com/azure/peerd/pkg/k8s/election"
 	"github.com/azure/peerd/pkg/peernet"
 	"github.com/dgraph-io/ristretto"
@@ -26,6 +27,7 @@ import (
 )
 
 type router struct {
+	clientset   *k8s.ClientSet
 	p2pnet      peernet.Network
 	host        host.Host
 	rd          *routing.RoutingDiscovery
@@ -42,7 +44,7 @@ type PeerNotFoundError struct {
 }
 
 // NewRouter creates a new router.
-func NewRouter(ctx context.Context, routerAddr, serverPort string) (Router, error) {
+func NewRouter(ctx context.Context, clientset *k8s.ClientSet, routerAddr, serverPort string) (Router, error) {
 	log := zerolog.Ctx(ctx).With().Str("component", "router").Logger()
 
 	h, p, err := net.SplitHostPort(routerAddr)
@@ -137,6 +139,7 @@ func NewRouter(ctx context.Context, routerAddr, serverPort string) (Router, erro
 	}
 
 	return &router{
+		clientset:   clientset,
 		p2pnet:      n,
 		host:        host,
 		rd:          rd,
@@ -196,7 +199,7 @@ func (r *router) Resolve(ctx context.Context, key string, allowSelf bool, count 
 			peerCh <- PeerInfo{info.ID, fmt.Sprintf("https://%s:%s", v, r.port)}
 
 			if r.active.CompareAndSwap(false, true) {
-				er, err := events.NewRecorder(ctx)
+				er, err := events.NewRecorder(ctx, r.clientset)
 				if err != nil {
 					log.Error().Err(err).Msg("could not create event recorder")
 				} else {
