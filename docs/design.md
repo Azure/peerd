@@ -173,6 +173,19 @@ running this container in p2p vs non-p2p mode on a 3 node AKS cluster with Artif
 | Teleport with p2p and prefetching | 200                 | 6.5, **11, 13**        |
 | Teleport with p2p and prefetching | 600                 | 5.5, 6.1, 6.8          |
 
+## Glossary
+
+| Term | Definition                   |
+| ---- | ---------------------------- |
+| ACR  | Azure Container Registry     |
+| AKS  | Azure Kubernetes Service     |
+| ACI  | Azure Container Instances    |
+| DHT  | Distributed Hash Table       |
+| OCI  | Open Container Initiative    |
+| P2P  | Peer to Peer                 |
+| POC  | Proof of Concept             |
+| TCMU | Target Core Module Userspace |
+
 ---
 
 [cluster-arch]: ../assets/images/cluster.png
