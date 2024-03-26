@@ -13,7 +13,6 @@ import (
 	"github.com/azure/peerd/pkg/containerd"
 	"github.com/gin-gonic/gin"
 	"github.com/opencontainers/go-digest"
-	"github.com/rs/zerolog"
 )
 
 // Response headers
@@ -71,11 +70,11 @@ func (r *Registry) Handle(c *gin.Context) {
 	switch refType.(distribution.ReferenceType) {
 
 	case distribution.ReferenceTypeManifest:
-		r.handleManifest(c, l, d)
+		r.handleManifest(c, d)
 		return
 
 	case distribution.ReferenceTypeBlob:
-		r.handleBlob(c, l, d)
+		r.handleBlob(c, d)
 		return
 	}
 
@@ -84,7 +83,7 @@ func (r *Registry) Handle(c *gin.Context) {
 }
 
 // handleManifest handles a manifest request.
-func (r *Registry) handleManifest(c *gin.Context, l zerolog.Logger, dgst digest.Digest) {
+func (r *Registry) handleManifest(c *gin.Context, dgst digest.Digest) {
 	size, err := r.containerdStore.Size(c, dgst)
 	if err != nil {
 		//nolint
@@ -113,13 +112,13 @@ func (r *Registry) handleManifest(c *gin.Context, l zerolog.Logger, dgst digest.
 	_, err = c.Writer.Write(b)
 	if err != nil {
 		//nolint
-		c.AbortWithError(http.StatusNotFound, err)
+		c.AbortWithError(http.StatusServiceUnavailable, err)
 		return
 	}
 }
 
 // handleBlob handles a blob request.
-func (r *Registry) handleBlob(c *gin.Context, l zerolog.Logger, dgst digest.Digest) {
+func (r *Registry) handleBlob(c *gin.Context, dgst digest.Digest) {
 	size, err := r.containerdStore.Size(c, dgst)
 	if err != nil {
 		//nolint
