@@ -43,13 +43,27 @@ func (m *MockContainerdStore) Resolve(ctx context.Context, ref string) (digest.D
 }
 
 func (m *MockContainerdStore) Size(ctx context.Context, dgst digest.Digest) (int64, error) {
-	return 0, nil
+	for _, r := range m.refs {
+		if r.Digest() == dgst {
+			return int64(len([]byte("test"))), nil
+		}
+	}
+
+	return -1, nil
 }
 
 func (m *MockContainerdStore) Write(ctx context.Context, dst io.Writer, dgst digest.Digest) error {
-	return nil
+	val := []byte("test")
+	_, err := dst.Write(val)
+	return err
 }
 
 func (m *MockContainerdStore) Bytes(ctx context.Context, dgst digest.Digest) ([]byte, string, error) {
+	for _, r := range m.refs {
+		if r.Digest() == dgst {
+			return []byte("test"), "application/vnd.oci.image.manifest.v1+json", nil
+		}
+	}
+
 	return nil, "", nil
 }
