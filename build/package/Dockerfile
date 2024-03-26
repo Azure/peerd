@@ -13,6 +13,8 @@ FROM mcr.microsoft.com/cbl-mariner/base/core:2.0 as runtime
 
 ARG USER_ID=6191
 
+ENV GIN_MODE=release
+
 # Install useful packages
 RUN tdnf update -y && \
     tdnf install ca-certificates-microsoft -y && \

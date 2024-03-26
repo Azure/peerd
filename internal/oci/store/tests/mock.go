@@ -53,7 +53,9 @@ func (m *MockContainerdStore) Size(ctx context.Context, dgst digest.Digest) (int
 }
 
 func (m *MockContainerdStore) Write(ctx context.Context, dst io.Writer, dgst digest.Digest) error {
-	return nil
+	val := []byte("test")
+	_, err := dst.Write(val)
+	return err
 }
 
 func (m *MockContainerdStore) Bytes(ctx context.Context, dgst digest.Digest) ([]byte, string, error) {
