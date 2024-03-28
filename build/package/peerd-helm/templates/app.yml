@@ -3,6 +3,22 @@ kind: Namespace
 metadata:
   name: peerd-ns
 ---
+kind: ConfigMap
+apiVersion: v1
+data:
+  prometheus-config: |-
+    global:
+      scrape_interval: 15s
+    scrape_configs:
+    - job_name: peerd
+      static_configs:
+      - targets:
+        - peerd.peerd-ns.svc.cluster.local:5004
+      metrics_path: /metrics/prometheus
+metadata:
+  name: ama-metrics-prometheus-config
+  namespace: kube-system
+---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -10,6 +26,10 @@ metadata:
   namespace: peerd-ns
   labels:
     app: *name
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/path: '/metrics/prometheus'
+    prometheus.io/port: '5004'
 spec:
   selector:
     matchLabels:
@@ -19,15 +39,6 @@ spec:
       labels:
         app: *name
     spec:
-      # affinity:
-      #   nodeAffinity:
-      #     requiredDuringSchedulingIgnoredDuringExecution:
-      #       nodeSelectorTerms:
-      #         - matchExpressions:
-      #             - key: p2p-nodepool
-      #               operator: In
-      #               values:
-      #                 - "true"
       serviceAccountName: peerd-sa
       containers:
         - image: "{{ .Values.peerd.image.ref }}"
@@ -50,6 +61,10 @@ spec:
               name: http
             - containerPort: 5001
               name: https
+            - containerPort: 5003
+              name: router
+            - containerPort: 5004
+              name: metrics
           volumeMounts:
             - name: metricsmount
               mountPath: "/var/log/peerdmetrics"
@@ -78,6 +93,10 @@ metadata:
   namespace: peerd-ns
   labels:
     app: *name
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/path: '/metrics/prometheus'
+    prometheus.io/port: '30004'
 spec:
   type: NodePort
   selector:
@@ -93,3 +112,8 @@ spec:
       port: 5001
       nodePort: 30001
       targetPort: https
+    - name: metrics
+      protocol: TCP
+      port: 5004
+      nodePort: 30004
+      targetPort: metrics
