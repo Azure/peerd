@@ -18,4 +18,4 @@ type Metrics interface {
 }
 
 // Global is the global metrics collector.
-var Global Metrics = NewMemoryMetrics()
+var Global Metrics = NewPromMetrics()
