@@ -103,7 +103,7 @@ this project.
 
 ## Acknowledgments
 
-The [Spegel] project has greatly inspired this work, and a big THANK YOU to Philip Laine and Simon Gottschlag at Xenit
+The [Spegel] project has inspired this work; thanks to Philip Laine and Simon Gottschlag at Xenit
 for generously sharing their insights with us. A hat tip also to the [DADI P2P Proxy] project for demonstrating the
 integration with [Overlaybd].
 
