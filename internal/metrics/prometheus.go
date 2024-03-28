@@ -54,7 +54,7 @@ func NewPromMetrics() *promMetrics {
 	peerDiscoveryDurationHist := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name:    "peerd_peer_discovery_duration_seconds",
 		Help:    "Duration of peer discovery in seconds.",
-		Buckets: prometheus.LinearBuckets(0.005, 0.005, 200),
+		Buckets: prometheus.LinearBuckets(0.001, 0.002, 200),
 	}, []string{"self", "ip"})
 	prometheus.MustRegister(peerDiscoveryDurationHist)
 
