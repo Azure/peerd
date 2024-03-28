@@ -11,9 +11,15 @@ data:
       scrape_interval: 15s
     scrape_configs:
     - job_name: peerd
-      static_configs:
-      - targets:
-        - peerd.peerd-ns.svc.cluster.local:5004
+      kubernetes_sd_configs:
+        - role: pod
+      relabel_configs:
+        - source_labels: [__meta_kubernetes_pod_label_app]
+          action: keep
+          regex: peerd
+        - source_labels: [__meta_kubernetes_pod_container_port_number]
+          action: keep
+          regex: "5004"
       metrics_path: /metrics/prometheus
 metadata:
   name: ama-metrics-prometheus-config
