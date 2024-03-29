@@ -124,6 +124,7 @@ print_p2p_metrics() {
     for pod in $( echo "$p" | tr -s " " "\012" ); do
         echo "checking pod '$pod' for metrics"
         kubectl --context=$KIND_CLUSTER_CONTEXT -n peerd-ns exec -i $pod -- bash -c "cat /var/log/peerdmetrics"
+        kubectl --context=$KIND_CLUSTER_CONTEXT -n peerd-ns exec -i $pod -- bash -c "curl http://localhost:5004/metrics/prometheus"
     done
 }
 

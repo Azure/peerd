@@ -2,6 +2,8 @@
 // Licensed under the MIT License.
 package metrics
 
+import "github.com/prometheus/client_golang/prometheus"
+
 // Metrics defines an interface to collect p2p metrics.
 type Metrics interface {
 	// RecordRequest records the time it takes to process a request.
@@ -18,4 +20,4 @@ type Metrics interface {
 }
 
 // Global is the global metrics collector.
-var Global Metrics = NewMemoryMetrics()
+var Global Metrics = NewPromMetrics(prometheus.DefaultRegisterer)
