@@ -61,6 +61,12 @@ To see logs from the Peerd pods, run the following.
 kubectl --context=$CLUSTER_CONTEXT -n peerd-ns logs -l app=peerd -f
 ```
 
+### Observe Metrics
+
+Peerd exposes metrics on the `/metrics/prometheus` endpoint. Mmetrics are prefixed with `peerd_`. `libp2p` metrics are
+prefixed with `libp2p_`.
+
+
 ## Features
 
 * **Peer to Peer File Sharing**: Peerd allows a node to act as a mirror for files obtained from any HTTP upstream source
