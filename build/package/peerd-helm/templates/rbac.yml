@@ -1,29 +1,29 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: peerd-sa
-  namespace: peerd-ns
+  name: {{ include "peerd.serviceAccountName" . }}
+  namespace: {{ include "peerd.namespace" . }}
   labels:
-    app: peerd
+    {{- include "peerd.labels" . | nindent 4 }}
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: peerd-sa-secret
-  namespace: peerd-ns
+  name: {{ include "peerd.serviceAccountName" . }}-secret
+  namespace: {{ include "peerd.namespace" . }}
   labels:
-    app: peerd
+    {{- include "peerd.labels" . | nindent 4 }}
   annotations:
-    kubernetes.io/service-account.name: peerd-sa
+    kubernetes.io/service-account.name: {{ include "peerd.serviceAccountName" . }}
 type: kubernetes.io/service-account-token
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: peerd-manager-role
-  namespace: peerd-ns
+  name: {{ include "peerd.name" . }}-manager-role
+  namespace: {{ include "peerd.namespace" . }}
   labels:
-    app: peerd
+    {{- include "peerd.labels" . | nindent 4 }}
 rules:
   - apiGroups: ["coordination.k8s.io"]
     resources: ["configmaps"]
@@ -38,23 +38,25 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: peerd-manager-role-binding
-  namespace: peerd-ns
+  name: {{ include "peerd.name" . }}-manager-role-binding
+  namespace: {{ include "peerd.namespace" . }}
   labels:
-    app: peerd
+    {{- include "peerd.labels" . | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: peerd-manager-role
 subjects:
   - kind: ServiceAccount
-    name: peerd-sa
-    namespace: peerd-ns
+    name: {{ include "peerd.serviceAccountName" . }}
+    namespace: {{ include "peerd.namespace" . }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: node-reader-and-event-creator-clusterrole
+  labels:
+    {{- include "peerd.labels" . | nindent 4 }}
 rules:
 - apiGroups: [""]
   resources: ["nodes"]
@@ -67,10 +69,12 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: node-reader-and-event-creator-clusterrole-binding
+  labels:
+    {{- include "peerd.labels" . | nindent 4 }}
 subjects:
 - kind: ServiceAccount
-  name: peerd-sa
-  namespace: peerd-ns
+  name: {{ include "peerd.serviceAccountName" . }}
+  namespace: {{ include "peerd.namespace" . }}
 roleRef:
   kind: ClusterRole
   name: node-reader-and-event-creator-clusterrole
