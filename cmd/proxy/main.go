@@ -24,6 +24,7 @@ import (
 	"github.com/azure/peerd/internal/state"
 	"github.com/azure/peerd/pkg/containerd"
 	"github.com/azure/peerd/pkg/k8s"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 	"github.com/spf13/afero"
 	"golang.org/x/sync/errgroup"
@@ -164,26 +165,12 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 		Handler:   handler,
 		TLSConfig: r.Net().DefaultTLSConfig(),
 	}
-
 	g.Go(func() error {
 		if err := httpsSrv.ListenAndServeTLS("", ""); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			return err
 		}
 		return nil
 	})
-
-	httpSrv := &http.Server{
-		Addr:    args.HttpAddr,
-		Handler: handler,
-	}
-
-	g.Go(func() error {
-		if err := httpSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			return err
-		}
-		return nil
-	})
-
 	g.Go(func() error {
 		<-ctx.Done()
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -191,6 +178,16 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 		return httpsSrv.Shutdown(shutdownCtx)
 	})
 
+	httpSrv := &http.Server{
+		Addr:    args.HttpAddr,
+		Handler: handler,
+	}
+	g.Go(func() error {
+		if err := httpSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			return err
+		}
+		return nil
+	})
 	g.Go(func() error {
 		<-ctx.Done()
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -198,7 +195,15 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 		return httpSrv.Shutdown(shutdownCtx)
 	})
 
-	l.Info().Str("https", args.HttpsAddr).Str("http", args.HttpAddr).Msg("server start")
+	g.Go(func() error {
+		http.Handle("/metrics/prometheus", promhttp.Handler())
+		if err = http.ListenAndServe(args.PromAddr, nil); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			return err
+		}
+		return nil
+	})
+
+	l.Info().Str("https", args.HttpsAddr).Str("http", args.HttpAddr).Str("router", args.RouterAddr).Str("prom", args.PromAddr).Msg("server start")
 	err = g.Wait()
 	if err != nil {
 		return err

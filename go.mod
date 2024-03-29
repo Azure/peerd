@@ -14,6 +14,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0
 	github.com/pelletier/go-toml/v2 v2.1.1
+	github.com/prometheus/client_golang v1.18.0
 	github.com/rs/zerolog v1.32.0
 	github.com/schollz/progressbar/v3 v3.14.2
 	github.com/swaggo/swag v1.16.3
@@ -130,7 +131,6 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/polydawn/refmt v0.89.0 // indirect
-	github.com/prometheus/client_golang v1.18.0 // indirect
 	github.com/prometheus/client_model v0.6.0 // indirect
 	github.com/prometheus/common v0.47.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
