@@ -66,6 +66,35 @@ kubectl --context=$CLUSTER_CONTEXT -n peerd-ns logs -l app=peerd -f
 Peerd exposes metrics on the `/metrics/prometheus` endpoint. Mmetrics are prefixed with `peerd_`. `libp2p` metrics are
 prefixed with `libp2p_`.
 
+#### Examples on a 5 node AKS cluster, node sizes: `Standard_D2s_v3` and `Standard_D8ds_v5`
+
+1. How long does it take for a node to find a peer that has a key?
+
+    ```promql
+    sum(histogram_quantile(0.95, peerd_peer_discovery_duration_seconds_bucket)) by (self)
+    ```
+
+    | Node        | Time (s) |
+    | ----------- | -------- |
+    | peerd-xkjm  | 0.0156   |
+    | peerd-j6kf4 | 0.0619   |
+    | peerd-pj68b | 0.0451   |
+    | peerd-v8ndj | 0.0054   |
+    | peerd-8csx9 | 0.00834  |
+
+2. Peer download speed distribution?
+   
+    ```promql
+    sum(histogram_quantile(0.95, peerd_peer_response_speed_mib_per_second_bucket)) by (self)
+    ```
+
+    | Node        | Throughput (MiB/s) |
+    | ----------- | ------------------ |
+    | peerd-xkjm  | 173                |
+    | peerd-j6kf4 | 260                |
+    | peerd-pj68b | 118                |
+    | peerd-v8ndj | 333                |
+    | peerd-8csx9 | 324                |
 
 ## Features
 

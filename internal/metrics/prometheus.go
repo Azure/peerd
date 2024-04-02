@@ -66,7 +66,7 @@ func NewPromMetrics(reg prometheus.Registerer) *promMetrics {
 	reg.MustRegister(peerResponseDurationHist)
 
 	upstreamResponseDurationHist := prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name:    "peerd_upstream_response_speed_mib_per_seconds",
+		Name:    "peerd_upstream_response_speed_mib_per_second",
 		Help:    "Speed of upstream response in Mib per second.",
 		Buckets: prometheus.LinearBuckets(1, 15, 200),
 	}, []string{"self", "hostname", "op"})

@@ -45,7 +45,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: peerd-manager-role
+  name: {{ include "peerd.name" . }}-manager-role
 subjects:
   - kind: ServiceAccount
     name: {{ include "peerd.serviceAccountName" . }}
