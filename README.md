@@ -155,4 +155,3 @@ integration with [Overlaybd].
 [release-tag]: https://img.shields.io/github/v/tag/Azure/peerd?label=Docker%20Image%20Tag
 [peerd-pkgs]: https://github.com/Azure/peerd/pkgs/container/acr%2Fdev%2Fpeerd
 [build.md]: ./docs/build.md
-[peer-metrics]: ./assets/images/peer-metrics.png
