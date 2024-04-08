@@ -1,6 +1,6 @@
 peerd:
   image:
-    ref: ghcr.io/azure/acr/dev/peerd:latest
+    ref: ghcr.io/azure/acr/dev/peerd:stable
     pullPolicy: IfNotPresent
   configureMirrors: true
   hosts:

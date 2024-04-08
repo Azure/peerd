@@ -31,7 +31,7 @@ container images.
 
 ```bash
 CLUSTER_CONTEXT=<your-cluster-context> && \
-  TAG=<docker-image-tag> && \
+  TAG=stable && \
   helm --kube-context=$CLUSTER_CONTEXT install --wait peerd ./build/package/peerd-helm \
     --set peerd.image.ref=ghcr.io/azure/acr/dev/peerd:$TAG
 ```
@@ -41,7 +41,7 @@ as well, run the following.
 
 ```bash
 CLUSTER_CONTEXT=<your-cluster-context> && \
-  TAG=<docker-image-tag> && \
+  TAG=stable && \
   helm --kube-context=$CLUSTER_CONTEXT install --wait peerd ./build/package/peerd-helm \
     --set peerd.image.ref=ghcr.io/azure/acr/dev/peerd:$TAG
     --set peerd.hosts="mcr.microsoft.com ghcr.io docker.io"
@@ -63,10 +63,13 @@ kubectl --context=$CLUSTER_CONTEXT -n peerd-ns logs -l app=peerd -f
 
 ### Observe Metrics
 
-Peerd exposes metrics on the `/metrics/prometheus` endpoint. Mmetrics are prefixed with `peerd_`. `libp2p` metrics are
+Peerd exposes metrics on the `/metrics/prometheus` endpoint. Metrics are prefixed with `peerd_`. `libp2p` metrics are
 prefixed with `libp2p_`.
 
-#### Examples on a 5 node AKS cluster, node sizes: `Standard_D2s_v3` and `Standard_D8ds_v5`
+#### Example
+
+On a 100 nodes AKS cluster of VM size `Standard_D2s_v3`, sample throughput observed by a single pod is shown below.
+
 
 <img src="./assets/images/peer-metrics.png" alt="peer metrics" width="1000">
 
