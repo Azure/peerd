@@ -82,7 +82,7 @@ func NewRouter(ctx context.Context, clientset *k8s.ClientSet, routerAddr, server
 	self := fmt.Sprintf("%s/p2p/%s", host.Addrs()[0].String(), host.ID().String())
 	log.Info().Str("id", self).Msg("starting p2p router")
 
-	leaderElection := election.New("peerd-ns", "peerd-leader-election", p2pcontext.KubeConfigPath)
+	leaderElection := election.New(p2pcontext.Namespace, "peerd-leader-election", p2pcontext.KubeConfigPath)
 
 	err = leaderElection.RunOrDie(ctx, self)
 	if err != nil {
