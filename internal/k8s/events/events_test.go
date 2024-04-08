@@ -16,11 +16,12 @@ import (
 )
 
 func TestWithContext(t *testing.T) {
+	ns := "test-ns"
 	fcs := fake.NewSimpleClientset([]runtime.Object{
 		&v1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      p2pcontext.NodeName,
-				Namespace: p2pcontext.Namespace,
+				Namespace: ns,
 				UID:       "test-uid",
 			},
 		},
@@ -28,7 +29,7 @@ func TestWithContext(t *testing.T) {
 
 	cs := &k8s.ClientSet{Interface: fcs, InPod: true}
 
-	ctx, err := WithContext(context.Background(), cs)
+	ctx, err := WithContext(context.Background(), cs, ns)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -44,6 +45,8 @@ func TestWithContext(t *testing.T) {
 }
 
 func TestNewRecorderInNode(t *testing.T) {
+	ns := "test-ns"
+
 	fcs := fake.NewSimpleClientset([]runtime.Object{
 		&v1.Node{
 			ObjectMeta: metav1.ObjectMeta{
@@ -55,7 +58,7 @@ func TestNewRecorderInNode(t *testing.T) {
 
 	cs := &k8s.ClientSet{Interface: fcs, InPod: false}
 
-	r, err := NewRecorder(context.Background(), cs)
+	r, err := NewRecorder(context.Background(), cs, ns)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,11 +80,13 @@ func TestNewRecorderInNode(t *testing.T) {
 }
 
 func TestNewRecorderInPod(t *testing.T) {
+	ns := "test-ns"
+
 	fcs := fake.NewSimpleClientset([]runtime.Object{
 		&v1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      p2pcontext.NodeName,
-				Namespace: p2pcontext.Namespace,
+				Namespace: ns,
 				UID:       "test-uid",
 			},
 		},
@@ -89,7 +94,7 @@ func TestNewRecorderInPod(t *testing.T) {
 
 	cs := &k8s.ClientSet{Interface: fcs, InPod: true}
 
-	r, err := NewRecorder(context.Background(), cs)
+	r, err := NewRecorder(context.Background(), cs, ns)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -105,8 +110,8 @@ func TestNewRecorderInPod(t *testing.T) {
 	if er.objRef.Name != p2pcontext.NodeName {
 		t.Errorf("expected name to be %s, got %s", p2pcontext.NodeName, er.objRef.Name)
 	}
-	if er.objRef.Namespace != p2pcontext.Namespace {
-		t.Errorf("expected namespace to be %s, got %s", p2pcontext.Namespace, er.objRef.Namespace)
+	if er.objRef.Namespace != ns {
+		t.Errorf("expected namespace to be %s, got %s", ns, er.objRef.Namespace)
 	}
 	if er.objRef.UID != "test-uid" {
 		t.Errorf("expected uid to be test-uid, got %s", er.objRef.UID)

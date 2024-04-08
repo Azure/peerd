@@ -6,7 +6,11 @@ Expand the name of the chart.
 {{- end }}
 
 {{- define "peerd.namespace" -}}
+{{- if .Values.peerd.namespace.k8s }}
+{{- .Values.peerd.namespace.k8s }}
+{{- else }}
 {{ include "peerd.name" . }}-ns
+{{- end }}
 {{- end }}
 
 {{- define "peerd.serviceAccountName" -}}
