@@ -24,3 +24,6 @@ peerd:
       memory: "128Mi"
     requests:
       cpu: "10m"
+
+  # Uncomment to add tolerations.
+  # tolerations:
