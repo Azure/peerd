@@ -9,9 +9,6 @@ type ServerCmd struct {
 	PromAddr        string `arg:"--prom-addr" help:"address of prometheus metrics endpoint" default:"0.0.0.0:5004"`
 	PrefetchWorkers int    `arg:"--prefetch-workers" help:"number of workers to prefetch content" default:"50"`
 
-	// Leader election namespace.
-	K8sNamespace string `arg:"--k8s-namespace" help:"namespace for leader election" default:"peerd-ns"`
-
 	// Mirror configuration.
 	Hosts                     []string `arg:"--hosts" help:"list of hosts to mirror"`
 	AddMirrorConfiguration    bool     `arg:"--add-mirror-configuration" help:"add mirror configuration to containerd host configuration" default:"false"`
