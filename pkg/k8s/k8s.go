@@ -63,7 +63,7 @@ func getPodNamespace() string {
 	}
 
 	namespaceBytes, err := os.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/namespace")
-	if err != nil {
+	if err == nil {
 		return string(namespaceBytes)
 	}
 
