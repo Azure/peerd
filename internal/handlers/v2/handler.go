@@ -27,7 +27,7 @@ var _ gin.HandlerFunc = (&V2Handler{}).Handle
 
 // Handle handles a request for a file.
 func (h *V2Handler) Handle(c *gin.Context) {
-	l := p2pcontext.Logger(c).With().Str("blob", c.GetString(p2pcontext.BlobUrlCtxKey)).Bool("p2p", p2pcontext.IsRequestFromAPeer(c)).Logger()
+	l := p2pcontext.Logger(c).With().Bool("p2p", p2pcontext.IsRequestFromAPeer(c)).Logger()
 	l.Debug().Msg("v2 handler start")
 	s := time.Now()
 	defer func() {

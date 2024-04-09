@@ -31,16 +31,7 @@ func Handler(ctx context.Context, r routing.Router, containerdStore containerd.S
 	}
 
 	engine := newEngine(ctx)
-
-	engine.HEAD("/blobs/*url", fileHandler)
-	engine.GET("/blobs/*url", fileHandler)
-
-	engine.HEAD("/v2", v2Handler)
-	engine.GET("/v2", v2Handler)
-	engine.HEAD("/v2/:repo/manifests/:reference", v2Handler)
-	engine.GET("/v2/:repo/manifests/:reference", v2Handler)
-	engine.HEAD("/v2/:repo/blobs/:digest", v2Handler)
-	engine.GET("/v2/:repo/blobs/:digest", v2Handler)
+	registerRoutes(engine, fileHandler, v2Handler)
 
 	return engine, nil
 }
@@ -83,6 +74,17 @@ func newEngine(ctx context.Context) *gin.Engine {
 
 	engine.Use(gin.Recovery())
 	return engine
+}
+
+// registerRoutes registers the routes for the HTTP server.
+func registerRoutes(engine *gin.Engine, f, v gin.HandlerFunc) {
+	engine.HEAD("/blobs/*url", f)
+	engine.GET("/blobs/*url", f)
+
+	engine.HEAD("/v2", v)
+	engine.GET("/v2", v)
+	engine.HEAD("/v2/*ref", v)
+	engine.GET("/v2/*ref", v)
 }
 
 // fileHandler is a handler function for the /blob API
