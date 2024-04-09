@@ -5,12 +5,12 @@ metadata:
   namespace: {{ include "peerd.namespace" . }}
   labels:
     {{- include "peerd.labels" . | nindent 4 }}
-  {{- if .Values.peerd.metrics.prometheus.aksAutoDiscovery }}
-    annotations:
-      prometheus.io/scrape: 'true'
-      prometheus.io/path: '/metrics/prometheus'
-      prometheus.io/port: '5004'
-  {{- end }}
+{{- if .Values.peerd.metrics.prometheus.aksAutoDiscovery }}
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/path: '/metrics/prometheus'
+    prometheus.io/port: '5004'
+{{- end }}
 spec:
   selector:
     matchLabels:
