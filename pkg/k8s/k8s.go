@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	defaultNamespace = "peerd-ns"
+	peerdDefaultNamespace = "peerd-ns"
 )
 
 // ClientSet is an interface for k8s API server.
@@ -38,7 +38,7 @@ func NewKubernetesInterface(kubeConfigPath string) (*ClientSet, error) {
 			return nil, err
 		}
 		k.InPod = false
-		k.Namespace = defaultNamespace
+		k.Namespace = peerdDefaultNamespace
 	} else {
 		k.InPod = true
 		k.Namespace = getPodNamespace()
@@ -67,5 +67,5 @@ func getPodNamespace() string {
 		return string(namespaceBytes)
 	}
 
-	return defaultNamespace
+	return peerdDefaultNamespace
 }

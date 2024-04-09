@@ -28,7 +28,6 @@ spec:
             - "--log-level={{ .Values.peerd.logLevel }}"
             - "run"
             - "--http-addr=0.0.0.0:5000"
-            - "--k8s-namespace={{ .Values.peerd.namespace.k8s }}"
             - "--add-mirror-configuration={{ .Values.peerd.configureMirrors }}"
             {{- with .Values.peerd.hosts }}
             - --hosts
