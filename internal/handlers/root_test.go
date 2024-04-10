@@ -1,10 +1,14 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/azure/peerd/internal/files/store"
+	storetests "github.com/azure/peerd/internal/oci/store/tests"
+	"github.com/azure/peerd/internal/routing/tests"
 	"github.com/gin-gonic/gin"
 )
 
@@ -74,5 +78,39 @@ func TestV2RoutesRegistrations(t *testing.T) {
 				t.Errorf("%s: expected status code %d, got %d", tt.name, http.StatusOK, recorder.Code)
 			}
 		})
+	}
+}
+
+func TestNewEngine(t *testing.T) {
+	engine := newEngine(context.Background())
+	if engine == nil {
+		t.Fatal("Expected non-nil engine, got nil")
+	}
+
+	if engine.Handlers == nil {
+		t.Fatal("Expected non-nil handlers, got nil")
+	}
+
+	if len(engine.Handlers) != 2 {
+		t.Errorf("Expected 2 middleware, got %d", len(engine.Handlers))
+	}
+}
+
+func TestHandler(t *testing.T) {
+	ctx := context.Background()
+	mr := tests.NewMockRouter(map[string][]string{})
+	ms := storetests.NewMockContainerdStore(nil)
+	mfs, err := store.NewMockStore(ctx, mr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	h, err := Handler(ctx, mr, ms, mfs)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if h == nil {
+		t.Fatal("Expected non-nil handler, got nil")
 	}
 }
