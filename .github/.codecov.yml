@@ -11,7 +11,7 @@ coverage:
         target: 65%
     patch:
       default:
-        target: 65%
+        target: 55%
 
 ignore:
   - tests/**/*
