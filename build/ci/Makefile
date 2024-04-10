@@ -52,7 +52,7 @@ ifndef NODEPOOL
 	$(eval NODEPOOL := $(shell date +"prel%y%m%d"))
 endif
 ifndef PEERD_IMAGE_TAG
-	$(eval PEERD_IMAGE_TAG := "dev")
+	$(eval PEERD_IMAGE_TAG := "stable")
 endif
 	@echo "\033[92mRunning CI NODEPOOL: $(NODEPOOL)\033[0m"
 	@( PEERD_IMAGE_TAG=$(PEERD_IMAGE_TAG) PEERD_CONFIGURE_MIRRORS=true $(SCRIPTS_DIR)/azure.sh nodepool up -y $(NODEPOOL) )
@@ -66,7 +66,7 @@ ifndef NODEPOOL
 	$(eval NODEPOOL := $(shell date +"prels%y%m%d"))
 endif
 ifndef PEERD_IMAGE_TAG
-	$(eval PEERD_IMAGE_TAG := "dev")
+	$(eval PEERD_IMAGE_TAG := "stable")
 endif
 	@echo "\033[92mRunning CI NODEPOOL: $(NODEPOOL)\033[0m"
 	@( PEERD_IMAGE_TAG=$(PEERD_IMAGE_TAG) PEERD_CONFIGURE_MIRRORS=false $(SCRIPTS_DIR)/azure.sh nodepool up -y $(NODEPOOL) )

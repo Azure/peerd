@@ -59,7 +59,6 @@ const (
 
 var (
 	NodeName, _ = os.Hostname()
-	Namespace   = "peerd-ns"
 
 	// KubeConfigPath is the path of the kubeconfig file.
 	KubeConfigPath = "/opt/peerd/kubeconfig"

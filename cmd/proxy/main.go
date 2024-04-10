@@ -85,7 +85,7 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 		return err
 	}
 
-	ctx, err = events.WithContext(ctx, clientset)
+	ctx, err = events.WithContext(ctx, clientset, clientset.Namespace)
 	if err != nil {
 		return err
 	}
@@ -98,7 +98,7 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 
 	eventsRecorder.Initializing()
 
-	r, err := routing.NewRouter(ctx, clientset, args.RouterAddr, httpsPort)
+	r, err := routing.NewRouter(ctx, clientset, args.RouterAddr, httpsPort, clientset.Namespace)
 	if err != nil {
 		return err
 	}
