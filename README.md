@@ -19,57 +19,6 @@ in a Kubernetes cluster. The source of the content could be another node in the 
 This is **work in progress** and not yet production ready. We are actively working on this project and would love to
 hear your feedback. Please feel free to open an issue or a pull request.
 
-## Quickstart
-
-To see all available commands, run `make help`.
-
-### Deploy Peerd to Your Cluster Using Helm
-
-If you have a k8s cluster that uses containerd as the runtime, you can use the provided [helm chart] to deploy Peerd
-pods on every node. With containerd, Peerd leverages the [hosts configuration][containerd hosts] to act as a mirror for
-container images.
-
-```bash
-CLUSTER_CONTEXT=<your-cluster-context> && \
-  TAG=<docker-image-tag> && \
-  helm --kube-context=$CLUSTER_CONTEXT install --wait peerd ./build/package/peerd-helm \
-    --set peerd.image.ref=ghcr.io/azure/acr/dev/peerd:$TAG
-```
-
-By default, `mcr.microsoft.com` and `ghcr.io` are mirrored, but this is configurable. For example, to mirror `docker.io`
-as well, run the following.
-
-```bash
-CLUSTER_CONTEXT=<your-cluster-context> && \
-  TAG=<docker-image-tag> && \
-  helm --kube-context=$CLUSTER_CONTEXT install --wait peerd ./build/package/peerd-helm \
-    --set peerd.image.ref=ghcr.io/azure/acr/dev/peerd:$TAG
-    --set peerd.hosts="mcr.microsoft.com ghcr.io docker.io"
-```
-
-On deployment, each Peerd instance will try to connect to its peers in the cluster. 
-
-* When connected successfully, each pod will generate an event `P2PConnected`. This event is used to signal that the 
-  Peerd instance is ready to serve requests to its peers.
-
-* When an instance serves a request by downloading data from a peer, it will emit an event called `P2PActive`, 
-  signalling that it's actively communicating with a peer and serving data from it.
-
-To see logs from the Peerd pods, run the following.
-
-```bash
-kubectl --context=$CLUSTER_CONTEXT -n peerd-ns logs -l app=peerd -f
-```
-
-### Observe Metrics
-
-Peerd exposes metrics on the `/metrics/prometheus` endpoint. Mmetrics are prefixed with `peerd_`. `libp2p` metrics are
-prefixed with `libp2p_`.
-
-#### Examples on a 5 node AKS cluster, node sizes: `Standard_D2s_v3` and `Standard_D8ds_v5`
-
-<img src="./assets/images/peer-metrics.png" alt="peer metrics" width="1000">
-
 ## Features
 
 * **Peer to Peer File Sharing**: Peerd allows a node to act as a mirror for files obtained from any HTTP upstream source
@@ -96,6 +45,58 @@ prefixed with `libp2p_`.
   mirror for container images.
 
 The APIs are described in the [swagger.yaml].
+
+## Quickstart
+
+To see all available commands, run `make help`.
+
+### Deploy Peerd to Your Cluster Using Helm
+
+If you have a k8s cluster that uses containerd as the runtime, you can use the provided [helm chart] to deploy Peerd
+pods on every node. With containerd, Peerd leverages the [hosts configuration][containerd hosts] to act as a mirror for
+container images.
+
+```bash
+CLUSTER_CONTEXT=<your-cluster-context> && \
+  helm --kube-context=$CLUSTER_CONTEXT install --wait peerd ./build/package/peerd-helm \
+    --set peerd.image.ref=ghcr.io/azure/acr/dev/peerd:stable
+```
+
+By default, some well known registries are mirrored (see [values.yml]), but this is configurable. For example, to mirror
+`docker.io`, `mcr.microsoft.com` and `ghcr.io`, run the following.
+
+```bash
+CLUSTER_CONTEXT=<your-cluster-context> && \
+  helm --kube-context=$CLUSTER_CONTEXT install --wait peerd ./build/package/peerd-helm \
+    --set peerd.image.ref=ghcr.io/azure/acr/dev/peerd:stable
+    --set peerd.hosts="mcr.microsoft.com ghcr.io docker.io"
+```
+
+On deployment, each Peerd instance will try to connect to its peers in the cluster. 
+
+* When connected successfully, each pod will generate an event `P2PConnected`. This event is used to signal that the 
+  Peerd instance is ready to serve requests to its peers.
+
+* When an instance serves a request by downloading data from a peer, it will emit an event called `P2PActive`, 
+  signalling that it's actively communicating with a peer and serving data from it.
+
+To see logs from the Peerd pods, run the following.
+
+```bash
+kubectl --context=$CLUSTER_CONTEXT -n peerd-ns logs -l app=peerd -f
+```
+
+### Observe Metrics
+
+Peerd exposes metrics on the `/metrics/prometheus` endpoint. Metrics are prefixed with `peerd_`. `libp2p` metrics are
+prefixed with `libp2p_`.
+
+#### Example
+
+On a 100 nodes AKS cluster of VM size `Standard_D2s_v3`, sample throughput observed by a single pod is shown below.
+
+
+<img src="./assets/images/peer-metrics.png" alt="peer metrics" width="1000">
 
 ## Build
 
@@ -155,3 +156,4 @@ integration with [Overlaybd].
 [release-tag]: https://img.shields.io/github/v/tag/Azure/peerd?label=Docker%20Image%20Tag
 [peerd-pkgs]: https://github.com/Azure/peerd/pkgs/container/acr%2Fdev%2Fpeerd
 [build.md]: ./docs/build.md
+[values.yml]: ./build/package/peerd-helm/values.yaml

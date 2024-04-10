@@ -21,7 +21,7 @@ var (
 )
 
 // NewRecorder creates a new event recorder.
-func NewRecorder(ctx context.Context, k *k8s.ClientSet) (EventRecorder, error) {
+func NewRecorder(ctx context.Context, k *k8s.ClientSet, k8sNamespace string) (EventRecorder, error) {
 	clientset := k.Interface
 	inPod := k.InPod
 
@@ -38,7 +38,7 @@ func NewRecorder(ctx context.Context, k *k8s.ClientSet) (EventRecorder, error) {
 			APIVersion: node.APIVersion,
 		}
 	} else {
-		pod, err := clientset.CoreV1().Pods(p2pcontext.Namespace).Get(ctx, p2pcontext.NodeName, metav1.GetOptions{})
+		pod, err := clientset.CoreV1().Pods(k8sNamespace).Get(ctx, p2pcontext.NodeName, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -53,7 +53,7 @@ func NewRecorder(ctx context.Context, k *k8s.ClientSet) (EventRecorder, error) {
 
 	broadcaster := record.NewBroadcaster()
 	broadcaster.StartStructuredLogging(4)
-	broadcaster.StartRecordingToSink(&typedv1core.EventSinkImpl{Interface: clientset.CoreV1().Events(p2pcontext.Namespace)})
+	broadcaster.StartRecordingToSink(&typedv1core.EventSinkImpl{Interface: clientset.CoreV1().Events(k8sNamespace)})
 
 	return &eventRecorder{
 		recorder: broadcaster.NewRecorder(
@@ -65,8 +65,8 @@ func NewRecorder(ctx context.Context, k *k8s.ClientSet) (EventRecorder, error) {
 }
 
 // WithContext returns a new context with an event recorder.
-func WithContext(ctx context.Context, clientset *k8s.ClientSet) (context.Context, error) {
-	er, err := NewRecorder(ctx, clientset)
+func WithContext(ctx context.Context, clientset *k8s.ClientSet, k8sNamespace string) (context.Context, error) {
+	er, err := NewRecorder(ctx, clientset, k8sNamespace)
 	if err != nil {
 		return nil, err
 	}

@@ -27,12 +27,13 @@ import (
 )
 
 type router struct {
-	clientset   *k8s.ClientSet
-	p2pnet      peernet.Network
-	host        host.Host
-	rd          *routing.RoutingDiscovery
-	port        string
-	lookupCache *ristretto.Cache
+	clientset    *k8s.ClientSet
+	p2pnet       peernet.Network
+	host         host.Host
+	rd           *routing.RoutingDiscovery
+	port         string
+	lookupCache  *ristretto.Cache
+	k8sNamespace string
 
 	active atomic.Bool
 }
@@ -44,7 +45,7 @@ type PeerNotFoundError struct {
 }
 
 // NewRouter creates a new router.
-func NewRouter(ctx context.Context, clientset *k8s.ClientSet, routerAddr, serverPort string) (Router, error) {
+func NewRouter(ctx context.Context, clientset *k8s.ClientSet, routerAddr, serverPort, k8sNamespace string) (Router, error) {
 	log := zerolog.Ctx(ctx).With().Str("component", "router").Logger()
 
 	h, p, err := net.SplitHostPort(routerAddr)
@@ -82,7 +83,7 @@ func NewRouter(ctx context.Context, clientset *k8s.ClientSet, routerAddr, server
 	self := fmt.Sprintf("%s/p2p/%s", host.Addrs()[0].String(), host.ID().String())
 	log.Info().Str("id", self).Msg("starting p2p router")
 
-	leaderElection := election.New("peerd-ns", "peerd-leader-election", p2pcontext.KubeConfigPath)
+	leaderElection := election.New(k8sNamespace, "peerd-leader-election", p2pcontext.KubeConfigPath)
 
 	err = leaderElection.RunOrDie(ctx, self)
 	if err != nil {
@@ -139,12 +140,13 @@ func NewRouter(ctx context.Context, clientset *k8s.ClientSet, routerAddr, server
 	}
 
 	return &router{
-		clientset:   clientset,
-		p2pnet:      n,
-		host:        host,
-		rd:          rd,
-		port:        serverPort,
-		lookupCache: c,
+		clientset:    clientset,
+		p2pnet:       n,
+		host:         host,
+		rd:           rd,
+		port:         serverPort,
+		lookupCache:  c,
+		k8sNamespace: k8sNamespace,
 	}, nil
 }
 
@@ -199,7 +201,7 @@ func (r *router) Resolve(ctx context.Context, key string, allowSelf bool, count 
 			peerCh <- PeerInfo{info.ID, fmt.Sprintf("https://%s:%s", v, r.port)}
 
 			if r.active.CompareAndSwap(false, true) {
-				er, err := events.NewRecorder(ctx, r.clientset)
+				er, err := events.NewRecorder(ctx, r.clientset, r.k8sNamespace)
 				if err != nil {
 					log.Error().Err(err).Msg("could not create event recorder")
 				} else {

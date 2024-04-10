@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "peerd.serviceAccountName" . }}
+  namespace: {{ include "peerd.namespace" . }}
+  labels:
+    {{- include "peerd.labels" . | nindent 4 }}

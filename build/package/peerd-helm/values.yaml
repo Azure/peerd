@@ -1,14 +1,35 @@
 peerd:
   image:
-    ref: ghcr.io/azure/acr/dev/peerd:latest
+    ref: ghcr.io/azure/acr/dev/peerd:stable
     pullPolicy: IfNotPresent
+  
+  logLevel: debug
+
+  # Whether to add configuration for mirrors specified below to /etc/containerd/certs.d.
+  # https://github.com/containerd/containerd/blob/main/docs/hosts.md#registry-configuration---examples
   configureMirrors: true
   hosts:
     - https://mcr.microsoft.com
     - https://ghcr.io
+    - https://docker.io
+    - https://registry.k8s.io
+  
+  metrics:
+    prometheus:
+      # Enable auto-discovery of Prometheus metrics on AKS. Set to false if you are using a custom Prometheus configuration.
+      # See: https://learn.microsoft.com/azure/azure-monitor/containers/prometheus-metrics-scrape-configuration?tabs=CRDConfig%2CCRDScrapeConfig#configmaps
+      aksAutoDiscovery: true
+  
   resources:
     limits:
       cpu: "100m"
       memory: "128Mi"
     requests:
       cpu: "10m"
+
+  namespace:
+    # The kubernetes namespace for pod deployment and leader election.
+    k8s: peerd-ns
+
+  # Uncomment to add tolerations.
+  # tolerations:
