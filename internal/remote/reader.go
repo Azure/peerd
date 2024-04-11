@@ -111,7 +111,7 @@ func (r *reader) doP2p(log zerolog.Logger, fileChunkKey string, start, end int64
 
 	startTime := time.Now()
 	peerCount := 0
-	peersCh, negCacheCallback, err := r.router.ResolveWithCache(resolveCtx, fileChunkKey, false, r.resolveRetries)
+	peersCh, negCacheCallback, err := r.router.ResolveWithNegativeCacheCallback(resolveCtx, fileChunkKey, false, r.resolveRetries)
 	if err != nil {
 		//nolint:errcheck // ignore
 		log.Error().Err(err).Msg(p2pcontext.PeerRequestErrorLog)
@@ -139,11 +139,11 @@ peerLoop:
 
 			if peerCount == 0 {
 				// Only report the time it took to discover the first peer.
-				metrics.Global.RecordPeerDiscovery(peer.Addr, time.Since(startTime).Seconds())
+				metrics.Global.RecordPeerDiscovery(peer.HttpHost, time.Since(startTime).Seconds())
 				peerCount++
 			}
 
-			peerReq, err := r.peerRequest(peer.Addr, start, end)
+			peerReq, err := r.peerRequest(peer.HttpHost, start, end)
 			if err != nil {
 				log.Error().Err(err).Msg(p2pcontext.PeerRequestErrorLog)
 				// try next peer
@@ -172,7 +172,7 @@ peerLoop:
 				if o == operationPreadRemote {
 					op = "pread"
 				}
-				metrics.Global.RecordPeerResponse(peer.Addr, fileChunkKey, op, time.Since(startTime).Seconds(), count)
+				metrics.Global.RecordPeerResponse(peer.HttpHost, fileChunkKey, op, time.Since(startTime).Seconds(), count)
 				return count, nil
 			}
 		}

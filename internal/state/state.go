@@ -38,7 +38,7 @@ func Advertise(ctx context.Context, r routing.Router, containerdStore containerd
 	immediate := make(chan time.Time, 1)
 	immediate <- time.Now()
 
-	expirationTicker := time.NewTicker(p2pcontext.KeyTTL - time.Minute)
+	expirationTicker := time.NewTicker(routing.MaxRecordAge - time.Minute)
 	defer expirationTicker.Stop()
 
 	ticker := p2pcontext.Merge(immediate, expirationTicker.C)
@@ -67,7 +67,7 @@ func Advertise(ctx context.Context, r routing.Router, containerdStore containerd
 
 		case blob := <-filesChan:
 			l.Debug().Str("blob", blob).Msg("advertising file")
-			err := r.Advertise(ctx, []string{blob})
+			err := r.Provide(ctx, []string{blob})
 			if err != nil {
 				l.Error().Err(err).Str("blob", blob).Msg("file: advertising error")
 				continue
@@ -117,7 +117,7 @@ func advertiseRef(ctx context.Context, l zerolog.Logger, containerdStore contain
 		keys = append(keys, dgsts...)
 	}
 
-	err = router.Advertise(ctx, keys)
+	err = router.Provide(ctx, keys)
 	if err != nil {
 		return 0, fmt.Errorf("could not advertise image %v: %w", ref, err)
 	}

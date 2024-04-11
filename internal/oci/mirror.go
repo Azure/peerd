@@ -83,7 +83,7 @@ func (m *Mirror) Handle(c *gin.Context) {
 			}
 
 			succeeded := false
-			u, err := url.Parse(peer.Addr)
+			u, err := url.Parse(peer.HttpHost)
 			if err != nil {
 				//nolint
 				c.AbortWithError(http.StatusInternalServerError, err)

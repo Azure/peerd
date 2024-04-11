@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"sync/atomic"
+	"time"
 
 	p2pcontext "github.com/azure/peerd/internal/context"
 	"github.com/azure/peerd/internal/k8s/events"
@@ -26,64 +27,62 @@ import (
 	"github.com/rs/zerolog"
 )
 
+const (
+	MaxRecordAge = 30 * time.Minute
+
+	negCacheTtl     = 500 * time.Millisecond
+	strPeerNotFound = "PEER_NOT_FOUND"
+)
+
 type router struct {
-	clientset    *k8s.ClientSet
-	p2pnet       peernet.Network
-	host         host.Host
-	rd           *routing.RoutingDiscovery
-	port         string
-	lookupCache  *ristretto.Cache
+	// host is this libp2p host.
+	host host.Host
+
+	// p2pnet provides clients for downloading content from peers.
+	p2pnet peernet.Network
+
+	// content is the content discovery service.
+	content *routing.RoutingDiscovery
+
+	// peerRegistryPort is the port used for the peer registry.
+	peerRegistryPort string
+
+	// lookupCache is a cache for storing the results of lookups, usually used to store negative results.
+	lookupCache *ristretto.Cache
+
+	// k8sClient is the k8s client.
+	k8sClient *k8s.ClientSet
+
+	// k8sNamespace is the k8s namespace used for leader election and event recording.
 	k8sNamespace string
 
+	// active is a flag that indicates if this host is actively discovering content on the network.
 	active atomic.Bool
 }
 
-// PeerNotFoundError indicates that no peer could be found for the given key.
-type PeerNotFoundError struct {
+var _ Router = &router{}
+
+// ContentNotFoundError indicates that the content for the given key was not found in the network.
+type ContentNotFoundError struct {
 	error
+
+	// key is the key that could not be resolved.
 	key string
 }
 
-// NewRouter creates a new router.
-func NewRouter(ctx context.Context, clientset *k8s.ClientSet, routerAddr, serverPort, k8sNamespace string) (Router, error) {
+// NewRouter creates a new Router.
+func NewRouter(ctx context.Context, clientset *k8s.ClientSet, hostAddr, peerRegistryPort string) (Router, error) {
 	log := zerolog.Ctx(ctx).With().Str("component", "router").Logger()
 
-	h, p, err := net.SplitHostPort(routerAddr)
-	if err != nil {
-		return nil, err
-	}
-
-	multiAddr, err := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%s", h, p))
-	if err != nil {
-		return nil, fmt.Errorf("could not create host multi address: %w", err)
-	}
-
-	factory := libp2p.AddrsFactory(func(addrs []multiaddr.Multiaddr) []multiaddr.Multiaddr {
-		for _, addr := range addrs {
-			v, err := addr.ValueForProtocol(multiaddr.P_IP4)
-			if err != nil {
-				continue
-			}
-			if v == "" {
-				continue
-			}
-			if v == "127.0.0.1" {
-				continue
-			}
-			return []multiaddr.Multiaddr{addr}
-		}
-		return nil
-	})
-
-	host, err := libp2p.New(libp2p.ListenAddrs(multiAddr), factory)
+	host, err := newHost(hostAddr)
 	if err != nil {
 		return nil, fmt.Errorf("could not create host: %w", err)
 	}
 
 	self := fmt.Sprintf("%s/p2p/%s", host.Addrs()[0].String(), host.ID().String())
-	log.Info().Str("id", self).Msg("starting p2p router")
+	log.Debug().Str("id", self).Msg("starting p2p router")
 
-	leaderElection := election.New(k8sNamespace, "peerd-leader-election", p2pcontext.KubeConfigPath)
+	leaderElection := election.New(clientset.Namespace, "peerd-leader-election", p2pcontext.KubeConfigPath)
 
 	err = leaderElection.RunOrDie(ctx, self)
 	if err != nil {
@@ -91,7 +90,7 @@ func NewRouter(ctx context.Context, clientset *k8s.ClientSet, routerAddr, server
 	}
 
 	// TODO avtakkar: reconsider the max record age for cached files. Or, ensure that the cached list is periodically advertised.
-	dhtOpts := []dht.Option{dht.Mode(dht.ModeServer), dht.ProtocolPrefix("/microsoft"), dht.DisableValues(), dht.MaxRecordAge(p2pcontext.KeyTTL)}
+	dhtOpts := []dht.Option{dht.Mode(dht.ModeServer), dht.ProtocolPrefix("/peerd"), dht.DisableValues(), dht.MaxRecordAge(MaxRecordAge)}
 	bootstrapPeerOpt := dht.BootstrapPeersFunc(func() []peer.AddrInfo {
 		addr, err := leaderElection.Leader()
 		if err != nil {
@@ -102,7 +101,7 @@ func NewRouter(ctx context.Context, clientset *k8s.ClientSet, routerAddr, server
 
 		addrInfo, err := peer.AddrInfoFromP2pAddr(addr)
 		if err != nil {
-			log.Error().Err(err).Msg("could not get leader")
+			log.Error().Err(err).Msg("could not get leader addr info")
 			return nil
 		}
 
@@ -111,11 +110,11 @@ func NewRouter(ctx context.Context, clientset *k8s.ClientSet, routerAddr, server
 		}()
 
 		if addrInfo.ID == host.ID() {
-			log.Info().Msg("leader is self, skipping connection to bootstrap node")
+			log.Debug().Msg("bootstrapped as leader")
 			return nil
 		}
 
-		log.Info().Str("node", addrInfo.ID.String()).Msg("bootstrap node found")
+		log.Debug().Str("leader", addrInfo.ID.String()).Msg("leader found")
 		return []peer.AddrInfo{*addrInfo}
 	})
 
@@ -140,13 +139,13 @@ func NewRouter(ctx context.Context, clientset *k8s.ClientSet, routerAddr, server
 	}
 
 	return &router{
-		clientset:    clientset,
-		p2pnet:       n,
-		host:         host,
-		rd:           rd,
-		port:         serverPort,
-		lookupCache:  c,
-		k8sNamespace: k8sNamespace,
+		k8sClient:        clientset,
+		p2pnet:           n,
+		host:             host,
+		content:          rd,
+		peerRegistryPort: peerRegistryPort,
+		lookupCache:      c,
+		k8sNamespace:     clientset.Namespace,
 	}, nil
 }
 
@@ -160,76 +159,85 @@ func (r *router) Close() error {
 	return r.host.Close()
 }
 
-// ResolveWithCache is like Resolve but it also returns a function callback that can be used to cache that a key could not be resolved.
-func (r *router) ResolveWithCache(ctx context.Context, key string, allowSelf bool, count int) (<-chan PeerInfo, func(), error) {
-	if val, ok := r.lookupCache.Get(key); ok && val.(string) == p2pcontext.P2pLookupNotFoundValue {
+// ResolveWithNegativeCacheCallback is like Resolve but it also returns a function callback that can be used to cache that a key could not be resolved.
+func (r *router) ResolveWithNegativeCacheCallback(ctx context.Context, key string, allowSelf bool, count int) (<-chan PeerInfo, func(), error) {
+	if val, ok := r.lookupCache.Get(key); ok && val.(string) == strPeerNotFound {
 		// TODO avtakkar: currently only doing a negative cache, this could maybe become a positive cache as well.
-		return nil, nil, PeerNotFoundError{key: key, error: fmt.Errorf("(cached) peer not found for key")}
+		return nil, nil, ContentNotFoundError{key: key, error: fmt.Errorf("(cached) peer not found for key")}
 	}
+
 	peerCh, err := r.Resolve(ctx, key, allowSelf, count)
 	return peerCh, func() {
-		r.lookupCache.SetWithTTL(key, p2pcontext.P2pLookupNotFoundValue, 1, p2pcontext.P2pLookupCacheTtl)
+		r.lookupCache.SetWithTTL(key, strPeerNotFound, 1, negCacheTtl)
 	}, err
 }
 
 // Resolve resolves the given key to a peer address.
 func (r *router) Resolve(ctx context.Context, key string, allowSelf bool, count int) (<-chan PeerInfo, error) {
-	log := zerolog.Ctx(ctx).With().Str("host", r.host.ID().String()).Str("key", key).Logger()
-	c, err := createCid(key)
+	log := zerolog.Ctx(ctx).With().Str("selfId", r.host.ID().String()).Str("key", key).Logger()
+	contentId, err := createContentId(key)
 	if err != nil {
 		return nil, err
 	}
-	addrCh := r.rd.FindProvidersAsync(ctx, c, count)
-	peerCh := make(chan PeerInfo, count)
+
+	providersCh := r.content.FindProvidersAsync(ctx, contentId, count)
+	peersCh := make(chan PeerInfo, count)
+
 	go func() {
-		for info := range addrCh {
+		for info := range providersCh {
 			if !allowSelf && info.ID == r.host.ID() {
 				continue
 			}
+
 			if len(info.Addrs) != 1 {
-				log.Info().Msg("expected address list to only contain a single item")
+				log.Debug().Msg("expected address list to only contain a single item")
 				continue
 			}
 
 			v, err := info.Addrs[0].ValueForProtocol(multiaddr.P_IP4)
 			if err != nil {
-				log.Error().Err(err).Msg("could not get IPV4 address")
+				log.Error().Err(err).Str("peer", info.Addrs[0].String()).Msg("could not get IPV4 address")
 				continue
 			}
 
 			// Combine peer with registry port to create mirror endpoint.
-			peerCh <- PeerInfo{info.ID, fmt.Sprintf("https://%s:%s", v, r.port)}
+			peersCh <- PeerInfo{info.ID, fmt.Sprintf("https://%s:%s", v, r.peerRegistryPort)}
 
 			if r.active.CompareAndSwap(false, true) {
-				er, err := events.NewRecorder(ctx, r.clientset, r.k8sNamespace)
+				er, err := events.NewRecorder(ctx, r.k8sClient, r.k8sNamespace)
 				if err != nil {
-					log.Error().Err(err).Msg("could not create event recorder")
+					log.Error().Err(err).Msg("failed to create event recorder")
 				} else {
 					er.Active() // Report that p2p is active.
 				}
 			}
 		}
 	}()
-	return peerCh, nil
+
+	return peersCh, nil
 }
 
-// Advertise advertises the given keys to the network.
-func (r *router) Advertise(ctx context.Context, keys []string) error {
-	zerolog.Ctx(ctx).Trace().Str("host", r.host.ID().String()).Strs("keys", keys).Msg("advertising keys")
+// Provide advertises the given keys to the network.
+func (r *router) Provide(ctx context.Context, keys []string) error {
+	zerolog.Ctx(ctx).Trace().Str("host", r.host.ID().String()).Strs("keys", keys).Msg("providing keys")
 	for _, key := range keys {
-		c, err := createCid(key)
+
+		contentId, err := createContentId(key)
 		if err != nil {
 			return err
 		}
-		err = r.rd.Provide(ctx, c, true)
+
+		err = r.content.Provide(ctx, contentId, true)
 		if err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
-func createCid(key string) (cid.Cid, error) {
+// createContentId creates a deterministic content id from the given key.
+func createContentId(key string) (cid.Cid, error) {
 	pref := cid.Prefix{
 		Version:  1,
 		Codec:    uint64(mc.Raw),
@@ -241,4 +249,36 @@ func createCid(key string) (cid.Cid, error) {
 		return cid.Cid{}, err
 	}
 	return c, nil
+}
+
+// newHost creates a new Host from the given address.
+func newHost(addr string) (host.Host, error) {
+	h, p, err := net.SplitHostPort(addr)
+	if err != nil {
+		return nil, err
+	}
+
+	hostAddr, err := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%s", h, p))
+	if err != nil {
+		return nil, fmt.Errorf("could not create host multi address: %w", err)
+	}
+
+	factory := libp2p.AddrsFactory(func(addrs []multiaddr.Multiaddr) []multiaddr.Multiaddr {
+		for _, addr := range addrs {
+			v, err := addr.ValueForProtocol(multiaddr.P_IP4)
+			if err != nil {
+				continue
+			}
+			if v == "" {
+				continue
+			}
+			if v == "127.0.0.1" {
+				continue
+			}
+			return []multiaddr.Multiaddr{addr}
+		}
+		return nil
+	})
+
+	return libp2p.New(libp2p.ListenAddrs(hostAddr), factory)
 }
