@@ -10,22 +10,10 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
-)
-
-// P2P network.
-const (
-	KeyTTL = 30 * time.Minute
-)
-
-// Cache constants.
-const (
-	P2pLookupCacheTtl      = 500 * time.Millisecond
-	P2pLookupNotFoundValue = "PEER_NOT_FOUND"
 )
 
 // Context keys.
