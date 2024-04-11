@@ -117,6 +117,11 @@ func TestRoundTripperFor(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	defaultRt := n.RoundTripperFor("")
+	if defaultRt == nil {
+		t.Fatal("expected non-nil client")
+	}
+
 	c := n.RoundTripperFor("test-peer")
 	if c == nil {
 		t.Fatal("expected non-nil client")

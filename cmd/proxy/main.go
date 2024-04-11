@@ -19,11 +19,11 @@ import (
 	p2pcontext "github.com/azure/peerd/internal/context"
 	"github.com/azure/peerd/internal/files/store"
 	"github.com/azure/peerd/internal/handlers"
-	"github.com/azure/peerd/internal/k8s/events"
 	"github.com/azure/peerd/internal/routing"
 	"github.com/azure/peerd/internal/state"
 	"github.com/azure/peerd/pkg/containerd"
 	"github.com/azure/peerd/pkg/k8s"
+	"github.com/azure/peerd/pkg/k8s/events"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 	"github.com/spf13/afero"
@@ -80,12 +80,12 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 		return err
 	}
 
-	clientset, err := k8s.NewKubernetesInterface(p2pcontext.KubeConfigPath)
+	clientset, err := k8s.NewKubernetesInterface(p2pcontext.KubeConfigPath, p2pcontext.NodeName)
 	if err != nil {
 		return err
 	}
 
-	ctx, err = events.WithContext(ctx, clientset, clientset.Namespace)
+	ctx, err = events.WithContext(ctx, clientset)
 	if err != nil {
 		return err
 	}
