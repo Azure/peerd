@@ -13,7 +13,7 @@ import (
 )
 
 type MockRouter struct {
-	net      peernet.Network
+	p2pNet   peernet.Network
 	mx       sync.RWMutex
 	resolver map[string][]string
 
@@ -22,11 +22,11 @@ type MockRouter struct {
 
 // Net implements routing.Router.
 func (m *MockRouter) Net() peernet.Network {
-	return m.net
+	return m.p2pNet
 }
 
-// ResolveWithCache implements Router.
-func (m *MockRouter) ResolveWithCache(ctx context.Context, key string, allowSelf bool, count int) (<-chan routing.PeerInfo, func(), error) {
+// ResolveWithNegativeCacheCallback implements Router.
+func (m *MockRouter) ResolveWithNegativeCacheCallback(ctx context.Context, key string, allowSelf bool, count int) (<-chan routing.PeerInfo, func(), error) {
 	c, e := m.Resolve(ctx, key, allowSelf, count)
 	return c, func() {
 		m.mx.Lock()
@@ -44,7 +44,7 @@ func NewMockRouter(resolver map[string][]string) *MockRouter {
 	}
 
 	return &MockRouter{
-		net:      n,
+		p2pNet:   n,
 		resolver: resolver,
 		negCache: map[string]struct{}{},
 	}
@@ -66,7 +66,7 @@ func (m *MockRouter) Resolve(ctx context.Context, key string, allowSelf bool, co
 		m.mx.RLock()
 		defer m.mx.RUnlock()
 		for _, p := range peers {
-			peerCh <- routing.PeerInfo{ID: peer.ID(p), Addr: p}
+			peerCh <- routing.PeerInfo{ID: peer.ID(p), HttpHost: p}
 		}
 		close(peerCh)
 	}()
@@ -74,7 +74,7 @@ func (m *MockRouter) Resolve(ctx context.Context, key string, allowSelf bool, co
 	return peerCh, nil
 }
 
-func (m *MockRouter) Advertise(ctx context.Context, keys []string) error {
+func (m *MockRouter) Provide(ctx context.Context, keys []string) error {
 	m.mx.Lock()
 	defer m.mx.Unlock()
 	for _, key := range keys {

@@ -5,10 +5,10 @@ package routing
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
-	p2pcontext "github.com/azure/peerd/internal/context"
 	"github.com/azure/peerd/pkg/k8s"
 	"github.com/dgraph-io/ristretto"
 	cid "github.com/ipfs/go-cid"
@@ -45,15 +45,15 @@ func TestResolveWithCache(t *testing.T) {
 	}
 
 	r := &router{
-		clientset:   &fakeClientset,
-		host:        h,
-		port:        "5000",
-		lookupCache: c,
-		rd:          routing.NewRoutingDiscovery(tcr),
+		k8sClient:        &fakeClientset,
+		host:             h,
+		peerRegistryPort: "5000",
+		lookupCache:      c,
+		content:          routing.NewRoutingDiscovery(tcr),
 	}
 
 	ctx := context.Background()
-	_, negCacheCallback, err := r.ResolveWithCache(ctx, key, false, 2)
+	_, negCacheCallback, err := r.ResolveWithNegativeCacheCallback(ctx, key, false, 2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -61,8 +61,8 @@ func TestResolveWithCache(t *testing.T) {
 	negCacheCallback()
 	time.Sleep(250 * time.Millisecond) // allow cache to flush
 
-	if val, ok := r.lookupCache.Get(key); !ok || val != p2pcontext.P2pLookupNotFoundValue {
-		t.Errorf("expected key to be %s, got %s", p2pcontext.P2pLookupNotFoundValue, val)
+	if val, ok := r.lookupCache.Get(key); !ok || val != strPeerNotFound {
+		t.Errorf("expected key to be %s, got %s", strPeerNotFound, val)
 	}
 }
 
@@ -78,17 +78,17 @@ func TestResolve(t *testing.T) {
 
 	h := &testHost{"host-id"}
 	key := "some-key"
-	contentId, err := createCid(key)
+	contentId, err := createContentId(key)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	r := &router{
-		clientset:   &fakeClientset,
-		host:        h,
-		port:        "5000",
-		lookupCache: c,
-		rd: routing.NewRoutingDiscovery(&testCr{
+		k8sClient:        &fakeClientset,
+		host:             h,
+		peerRegistryPort: "5000",
+		lookupCache:      c,
+		content: routing.NewRoutingDiscovery(&testCr{
 			m: map[string][]string{
 				contentId.String(): {"10.0.0.1", "10.0.0.2"},
 			},
@@ -103,7 +103,7 @@ func TestResolve(t *testing.T) {
 
 	count := 0
 	for info := range got {
-		if info.Addr == "https://10.0.0.1:5000" || info.Addr == "https://10.0.0.2:5000" {
+		if info.HttpHost == "https://10.0.0.1:5000" || info.HttpHost == "https://10.0.0.2:5000" {
 			count++
 		} else {
 			t.Errorf("expected peer1 or peer2, got %s", info)
@@ -131,7 +131,7 @@ func TestProvide(t *testing.T) {
 
 	h := &testHost{"host-id"}
 	key := "some-key"
-	contentId, err := createCid(key)
+	contentId, err := createContentId(key)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -140,15 +140,15 @@ func TestProvide(t *testing.T) {
 	}
 
 	r := &router{
-		clientset:   &fakeClientset,
-		host:        h,
-		port:        "5000",
-		lookupCache: c,
-		rd:          routing.NewRoutingDiscovery(tcr),
+		k8sClient:        &fakeClientset,
+		host:             h,
+		peerRegistryPort: "5000",
+		lookupCache:      c,
+		content:          routing.NewRoutingDiscovery(tcr),
 	}
 
 	ctx := context.Background()
-	err = r.Advertise(ctx, []string{key})
+	err = r.Provide(ctx, []string{key})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -157,6 +157,56 @@ func TestProvide(t *testing.T) {
 		t.Errorf("expected 1 cid to be provided, got %d", len(tcr.provided))
 	} else if tcr.provided[0] != contentId {
 		t.Errorf("expected cid %s to be provided, got %s", contentId, tcr.provided[0])
+	}
+}
+
+func TestNewHost(t *testing.T) {
+	for _, tc := range []struct {
+		name         string
+		addr         string
+		expectedIp   string
+		expectedPort string
+		expectedErr  bool
+	}{
+		{
+			name:         "valid address",
+			addr:         "0.0.0.0:5000",
+			expectedPort: "5000",
+			expectedErr:  false,
+		},
+		{
+			name:         "invalid address",
+			addr:         "invalidaddress",
+			expectedPort: "",
+			expectedErr:  true,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h, err := newHost(tc.addr)
+			if tc.expectedErr && err == nil {
+				t.Fatalf("expected error, got nil")
+			}
+
+			if !tc.expectedErr && err != nil {
+				t.Fatalf("expected no error, got %v", err)
+			}
+
+			if tc.expectedErr && err != nil {
+				return
+			}
+
+			if h == nil {
+				t.Fatal("expected host to be non-nil")
+			}
+
+			if len(h.Addrs()) != 1 {
+				t.Fatalf("expected 1 address, got %d", len(h.Addrs()))
+			}
+
+			if !strings.HasSuffix(h.Addrs()[0].String(), "/tcp/"+tc.expectedPort) {
+				t.Fatalf("expected address to end with /tcp/%s, got %s", tc.expectedPort, h.Addrs()[0].String())
+			}
+		})
 	}
 }
 
