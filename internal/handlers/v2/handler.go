@@ -12,8 +12,8 @@ import (
 	"github.com/azure/peerd/internal/metrics"
 	"github.com/azure/peerd/internal/oci"
 	"github.com/azure/peerd/internal/oci/distribution"
-	"github.com/azure/peerd/internal/routing"
 	"github.com/azure/peerd/pkg/containerd"
+	"github.com/azure/peerd/pkg/discovery/routing"
 	"github.com/gin-gonic/gin"
 )
 

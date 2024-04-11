@@ -9,8 +9,8 @@ import (
 	"time"
 
 	p2pcontext "github.com/azure/peerd/internal/context"
-	"github.com/azure/peerd/internal/routing"
 	"github.com/azure/peerd/pkg/containerd"
+	"github.com/azure/peerd/pkg/discovery/routing"
 	"github.com/rs/zerolog"
 )
 

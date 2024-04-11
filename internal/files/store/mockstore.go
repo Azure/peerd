@@ -6,7 +6,7 @@ import (
 	"context"
 
 	"github.com/azure/peerd/internal/files/cache"
-	"github.com/azure/peerd/internal/routing"
+	"github.com/azure/peerd/pkg/discovery/routing"
 )
 
 type MockStore struct {

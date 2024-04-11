@@ -12,7 +12,7 @@ import (
 	"time"
 
 	p2pcontext "github.com/azure/peerd/internal/context"
-	"github.com/azure/peerd/internal/routing"
+	"github.com/azure/peerd/pkg/discovery/routing"
 	"github.com/azure/peerd/pkg/peernet"
 	"github.com/gin-gonic/gin"
 )

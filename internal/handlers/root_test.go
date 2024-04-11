@@ -8,7 +8,7 @@ import (
 
 	"github.com/azure/peerd/internal/files/store"
 	storetests "github.com/azure/peerd/internal/oci/store/tests"
-	"github.com/azure/peerd/internal/routing/tests"
+	"github.com/azure/peerd/pkg/discovery/routing/tests"
 	"github.com/gin-gonic/gin"
 )
 

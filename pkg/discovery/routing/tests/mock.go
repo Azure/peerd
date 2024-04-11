@@ -6,7 +6,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/azure/peerd/internal/routing"
+	"github.com/azure/peerd/pkg/discovery/routing"
 	"github.com/azure/peerd/pkg/mocks"
 	"github.com/azure/peerd/pkg/peernet"
 	"github.com/libp2p/go-libp2p/core/peer"

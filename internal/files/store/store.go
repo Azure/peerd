@@ -13,7 +13,7 @@ import (
 	"github.com/azure/peerd/internal/files"
 	"github.com/azure/peerd/internal/files/cache"
 	"github.com/azure/peerd/internal/remote"
-	"github.com/azure/peerd/internal/routing"
+	"github.com/azure/peerd/pkg/discovery/routing"
 	"github.com/azure/peerd/pkg/urlparser"
 	"github.com/gin-gonic/gin"
 	"github.com/opencontainers/go-digest"

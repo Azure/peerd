@@ -13,7 +13,7 @@ import (
 	"github.com/azure/peerd/internal/files"
 	"github.com/azure/peerd/internal/files/cache"
 	remotetests "github.com/azure/peerd/internal/remote/tests"
-	"github.com/azure/peerd/internal/routing/tests"
+	"github.com/azure/peerd/pkg/discovery/routing/tests"
 )
 
 func TestReadAtWithChunkOffset(t *testing.T) {
