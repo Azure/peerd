@@ -19,8 +19,8 @@ import (
 	p2pcontext "github.com/azure/peerd/internal/context"
 	"github.com/azure/peerd/internal/files/store"
 	"github.com/azure/peerd/internal/handlers"
-	"github.com/azure/peerd/internal/state"
 	"github.com/azure/peerd/pkg/containerd"
+	"github.com/azure/peerd/pkg/discovery"
 	"github.com/azure/peerd/pkg/discovery/routing"
 	"github.com/azure/peerd/pkg/k8s"
 	"github.com/azure/peerd/pkg/k8s/events"
@@ -151,7 +151,7 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 	g, ctx := errgroup.WithContext(ctx)
 
 	g.Go(func() error {
-		state.Advertise(ctx, r, containerdStore, filesStore.Subscribe())
+		discovery.Provide(ctx, r, containerdStore, filesStore.Subscribe())
 		return nil
 	})
 
