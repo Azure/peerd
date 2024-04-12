@@ -9,12 +9,17 @@ import (
 	"github.com/azure/peerd/internal/files/store"
 	"github.com/azure/peerd/pkg/containerd"
 	"github.com/azure/peerd/pkg/discovery/routing/tests"
+	"github.com/azure/peerd/pkg/metrics"
 	"github.com/gin-gonic/gin"
 )
 
-var simpleOKHandler = gin.HandlerFunc(func(c *gin.Context) {
-	c.Status(http.StatusOK)
-})
+var (
+	simpleOKHandler = gin.HandlerFunc(func(c *gin.Context) {
+		c.Status(http.StatusOK)
+	})
+
+	ctxWithMetrics, _ = metrics.WithContext(context.Background(), "test", "peerd")
+)
 
 func TestV2RoutesRegistrations(t *testing.T) {
 	recorder := httptest.NewRecorder()
@@ -82,7 +87,7 @@ func TestV2RoutesRegistrations(t *testing.T) {
 }
 
 func TestNewEngine(t *testing.T) {
-	engine := newEngine(context.Background())
+	engine := newEngine(ctxWithMetrics)
 	if engine == nil {
 		t.Fatal("Expected non-nil engine, got nil")
 	}
@@ -97,15 +102,14 @@ func TestNewEngine(t *testing.T) {
 }
 
 func TestHandler(t *testing.T) {
-	ctx := context.Background()
 	mr := tests.NewMockRouter(map[string][]string{})
 	ms := containerd.NewMockContainerdStore(nil)
-	mfs, err := store.NewMockStore(ctx, mr)
+	mfs, err := store.NewMockStore(ctxWithMetrics, mr)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	h, err := Handler(ctx, mr, ms, mfs)
+	h, err := Handler(ctxWithMetrics, mr, ms, mfs)
 	if err != nil {
 		t.Fatal(err)
 	}

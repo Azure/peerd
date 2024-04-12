@@ -14,6 +14,7 @@ import (
 	"github.com/azure/peerd/internal/files/cache"
 	"github.com/azure/peerd/internal/remote"
 	"github.com/azure/peerd/pkg/discovery/routing"
+	"github.com/azure/peerd/pkg/metrics"
 	"github.com/azure/peerd/pkg/urlparser"
 	"github.com/gin-gonic/gin"
 	"github.com/opencontainers/go-digest"
@@ -23,14 +24,15 @@ import (
 // NewFilesStore creates a new store.
 func NewFilesStore(ctx context.Context, r routing.Router) (FilesStore, error) {
 	fs := &store{
-		cache:          cache.New(ctx),
-		prefetchChan:   make(chan prefetchableSegment, PrefetchWorkers),
-		prefetchable:   PrefetchWorkers > 0,
-		router:         r,
-		resolveRetries: ResolveRetries,
-		resolveTimeout: ResolveTimeout,
-		blobsChan:      make(chan string, 1000),
-		parser:         urlparser.New(),
+		metricsRecorder: metrics.FromContext(ctx),
+		cache:           cache.New(ctx),
+		prefetchChan:    make(chan prefetchableSegment, PrefetchWorkers),
+		prefetchable:    PrefetchWorkers > 0,
+		router:          r,
+		resolveRetries:  ResolveRetries,
+		resolveTimeout:  ResolveTimeout,
+		blobsChan:       make(chan string, 1000),
+		parser:          urlparser.New(),
 	}
 
 	go func() {
@@ -61,14 +63,15 @@ type prefetchableSegment struct {
 
 // store describes a content store whose contents can come from disk or a remote source.
 type store struct {
-	cache          cache.Cache
-	prefetchable   bool
-	prefetchChan   chan prefetchableSegment
-	router         routing.Router
-	resolveRetries int
-	resolveTimeout time.Duration
-	blobsChan      chan string
-	parser         urlparser.Parser
+	metricsRecorder metrics.Metrics
+	cache           cache.Cache
+	prefetchable    bool
+	prefetchChan    chan prefetchableSegment
+	router          routing.Router
+	resolveRetries  int
+	resolveTimeout  time.Duration
+	blobsChan       chan string
+	parser          urlparser.Parser
 }
 
 var _ FilesStore = &store{}
@@ -100,7 +103,7 @@ func (s *store) Open(c *gin.Context) (File, error) {
 		store:  s,
 		cur:    0,
 		size:   0,
-		reader: remote.NewReader(c, s.router, s.resolveRetries, s.resolveTimeout),
+		reader: remote.NewReader(c, s.router, s.resolveRetries, s.resolveTimeout, s.metricsRecorder),
 	}
 
 	if p2pcontext.IsRequestFromAPeer(c) {

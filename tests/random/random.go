@@ -17,7 +17,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/azure/peerd/internal/math"
+	"github.com/azure/peerd/tests/random/math"
 	"github.com/rs/zerolog"
 	"golang.org/x/sync/errgroup"
 )

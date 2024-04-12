@@ -9,18 +9,19 @@ import (
 	"time"
 
 	p2pcontext "github.com/azure/peerd/internal/context"
-	"github.com/azure/peerd/internal/metrics"
 	"github.com/azure/peerd/internal/oci"
-	"github.com/azure/peerd/internal/oci/distribution"
 	"github.com/azure/peerd/pkg/containerd"
 	"github.com/azure/peerd/pkg/discovery/routing"
+	"github.com/azure/peerd/pkg/metrics"
+	"github.com/azure/peerd/pkg/oci/distribution"
 	"github.com/gin-gonic/gin"
 )
 
 // V2Handler describes a handler for OCI content.
 type V2Handler struct {
-	mirror   *oci.Mirror
-	registry *oci.Registry
+	mirror          *oci.Mirror
+	registry        *oci.Registry
+	metricsRecorder metrics.Metrics
 }
 
 var _ gin.HandlerFunc = (&V2Handler{}).Handle
@@ -32,7 +33,7 @@ func (h *V2Handler) Handle(c *gin.Context) {
 	s := time.Now()
 	defer func() {
 		dur := time.Since(s)
-		metrics.Global.RecordRequest(c.Request.Method, "oci", dur.Seconds())
+		h.metricsRecorder.RecordRequest(c.Request.Method, "oci", dur.Seconds())
 		l.Debug().Dur("duration", dur).Str("ns", c.GetString(p2pcontext.NamespaceCtxKey)).Str("ref", c.GetString(p2pcontext.ReferenceCtxKey)).Str("digest", c.GetString(p2pcontext.DigestCtxKey)).Msg("v2 handler stop")
 	}()
 
@@ -89,7 +90,8 @@ func (h *V2Handler) fill(c *gin.Context) error {
 // New creates a new OCI content handler.
 func New(ctx context.Context, router routing.Router, containerdStore containerd.Store) (*V2Handler, error) {
 	return &V2Handler{
-		mirror:   oci.NewMirror(router),
-		registry: oci.NewRegistry(containerdStore),
+		mirror:          oci.NewMirror(router),
+		registry:        oci.NewRegistry(containerdStore),
+		metricsRecorder: metrics.FromContext(ctx),
 	}, nil
 }

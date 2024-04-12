@@ -77,7 +77,7 @@ func Logger(c *gin.Context) zerolog.Logger {
 		l = *ctxLog
 	}
 
-	return l.With().Str("correlationid", c.GetString(CorrelationIdCtxKey)).Str("url", c.Request.URL.String()).Str("range", c.Request.Header.Get("Range")).Bool("p2p", IsRequestFromAPeer(c)).Str("ip", c.ClientIP()).Str("peer", c.Request.Header.Get(NodeHeaderKey)).Logger()
+	return l.With().Str("correlationid", c.GetString(CorrelationIdCtxKey)).Str("url", c.Request.URL.String()).Str("range", c.Request.Header.Get("Range")).Bool("requestfrompeer", IsRequestFromAPeer(c)).Str("clientip", c.ClientIP()).Str("clientname", c.Request.Header.Get(NodeHeaderKey)).Logger()
 }
 
 // BlobUrl extracts the blob URL from the incoming request URL.

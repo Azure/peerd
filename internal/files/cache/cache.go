@@ -13,7 +13,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	syncmap "github.com/azure/peerd/internal/cache"
 	"github.com/azure/peerd/internal/files"
 	"github.com/dgraph-io/ristretto"
 	"github.com/rs/zerolog"
@@ -22,7 +21,7 @@ import (
 // fileCache implements FileCache.
 type fileCache struct {
 	fileCache     *ristretto.Cache
-	metadataCache *syncmap.SyncMap
+	metadataCache *SyncMap
 	path          string
 	lock          sync.RWMutex
 	log           zerolog.Logger
@@ -162,7 +161,7 @@ func New(ctx context.Context) Cache {
 	cache := &fileCache{
 		log:           log,
 		path:          Path,
-		metadataCache: syncmap.MakeSyncMap(1e7),
+		metadataCache: NewSyncMap(1e7),
 	}
 
 	var err error

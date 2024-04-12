@@ -6,9 +6,9 @@ import (
 	"sync"
 )
 
-const defaultEvictionPercentage int = 5 //The default eviction percentage used when map reaches its capacity at insertion
+const defaultEvictionPercentage int = 5 // The default eviction percentage. Used when the map reaches its capacity at insertion.
 
-// SyncMap is a map with synchronized access support
+// SyncMap is a map that can be safely accessed concurrently.
 type SyncMap struct {
 	mapObj             *map[string]interface{}
 	lock               *sync.RWMutex
@@ -32,14 +32,15 @@ func (sm *SyncMap) Get(key string) (entry interface{}, ok bool) {
 func (sm *SyncMap) Set(key string, entry interface{}) {
 	sm.lock.Lock()
 	defer sm.lock.Unlock()
-	if _, ok := (*sm.mapObj)[key]; !ok { //We will need to add an entry
-		if numEntries := len(*sm.mapObj); numEntries >= sm.capacity { //exceeding capacity, remove evictionPercentage of the entries
+
+	if _, ok := (*sm.mapObj)[key]; !ok {
+		if numEntries := len(*sm.mapObj); numEntries >= sm.capacity {
 			numToEvict := numEntries * sm.evictionPercentage / 100
-			if numToEvict <= 1 { //We will evict one as the minimum
+			if numToEvict <= 1 {
 				numToEvict = 1
 			}
 			numEvicted := 0
-			for k := range *sm.mapObj { // GO map iterator will randomize the order. We just delete the first in the iterator
+			for k := range *sm.mapObj {
 				delete(*sm.mapObj, k)
 				numEvicted++
 				if numEvicted >= numToEvict {
@@ -60,9 +61,9 @@ func (sm *SyncMap) Delete(key string) {
 	delete(*sm.mapObj, key)
 }
 
-// MakeSyncMap creates a new SyncMap with the specified maximum number of entries.
+// NewSyncMap creates a new SyncMap with the specified maximum number of entries.
 // If the maximum number of entries is less than or equal to 0, it will be set to 1.
-func MakeSyncMap(maxEntries int) *SyncMap {
+func NewSyncMap(maxEntries int) *SyncMap {
 	if maxEntries <= 0 {
 		maxEntries = 1
 	}
