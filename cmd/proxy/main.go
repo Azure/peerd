@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/alexflint/go-arg"
-	intcontainerd "github.com/azure/peerd/internal/containerd"
 	p2pcontext "github.com/azure/peerd/internal/context"
 	"github.com/azure/peerd/internal/files/store"
 	"github.com/azure/peerd/internal/handlers"
@@ -128,7 +127,7 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 			}
 		}
 
-		err = intcontainerd.AddMirrorConfiguration(ctx, fs, args.ContainerdHostsConfigPath, hosts, mirrors, false)
+		err = containerd.AddHostsConfiguration(ctx, fs, args.ContainerdHostsConfigPath, hosts, mirrors, false)
 		if err != nil {
 			return err
 		}
