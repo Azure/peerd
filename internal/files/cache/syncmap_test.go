@@ -9,7 +9,7 @@ import (
 )
 
 func TestSyncMapAddEvict(t *testing.T) {
-	sm := MakeSyncMap(100)
+	sm := NewSyncMap(100)
 	sm.evictionPercentage = 10
 	var wg sync.WaitGroup
 	addEntry := func(key string, value int) {
@@ -34,7 +34,7 @@ func TestSyncMapAddEvict(t *testing.T) {
 }
 
 func TestSyncMapAddDelete(t *testing.T) {
-	sm := MakeSyncMap(10)
+	sm := NewSyncMap(10)
 	var wg sync.WaitGroup
 
 	addEntry := func(key string, value int) {
@@ -67,7 +67,7 @@ func TestSyncMapAddDelete(t *testing.T) {
 }
 
 func TestSyncMapUpdate(t *testing.T) {
-	sm := MakeSyncMap(10)
+	sm := NewSyncMap(10)
 	var wg sync.WaitGroup
 	addEntry := func(key string, value int) {
 		sm.Set(key, value)

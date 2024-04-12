@@ -10,7 +10,7 @@ import (
 
 func TestPromMetrics_RecordPeerDiscovery(t *testing.T) {
 	reg := prometheus.NewPedanticRegistry()
-	m := NewPromMetrics(reg)
+	m := NewPromMetrics(reg, "test", "peerd")
 
 	ip := "192.168.0.1"
 	duration := 0.001
@@ -47,7 +47,7 @@ func TestPromMetrics_RecordPeerDiscovery(t *testing.T) {
 
 func TestPromMetrics_RecordPeerResponse(t *testing.T) {
 	reg := prometheus.NewPedanticRegistry()
-	m := NewPromMetrics(reg)
+	m := NewPromMetrics(reg, "test", "peerd")
 
 	ip := "192.168.0.1"
 	key := "key"
@@ -90,7 +90,7 @@ func TestPromMetrics_RecordPeerResponse(t *testing.T) {
 
 func TestPromMetrics_RecordRequest(t *testing.T) {
 	reg := prometheus.NewPedanticRegistry()
-	m := NewPromMetrics(reg)
+	m := NewPromMetrics(reg, "test", "peerd")
 
 	method := "GET"
 	handler := "files"
@@ -129,7 +129,7 @@ func TestPromMetrics_RecordRequest(t *testing.T) {
 
 func TestPromMetrics_RecordUpstreamResponse(t *testing.T) {
 	reg := prometheus.NewPedanticRegistry()
-	m := NewPromMetrics(reg)
+	m := NewPromMetrics(reg, "test", "peerd")
 
 	hostname := "localhost"
 	key := "key"

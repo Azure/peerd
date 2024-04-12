@@ -7,17 +7,22 @@ import (
 	"testing"
 
 	p2pcontext "github.com/azure/peerd/internal/context"
-	"github.com/azure/peerd/internal/oci/distribution"
 	"github.com/azure/peerd/pkg/containerd"
 	"github.com/azure/peerd/pkg/discovery/routing/tests"
+	"github.com/azure/peerd/pkg/metrics"
+	"github.com/azure/peerd/pkg/oci/distribution"
 	"github.com/gin-gonic/gin"
+)
+
+var (
+	ctxWithMetrics, _ = metrics.WithContext(context.Background(), "test", "peerd")
 )
 
 func TestNew(t *testing.T) {
 	mr := tests.NewMockRouter(nil)
 	ms := containerd.NewMockContainerdStore(nil)
 
-	h, err := New(context.Background(), mr, ms)
+	h, err := New(ctxWithMetrics, mr, ms)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -31,7 +36,7 @@ func TestFillDefault(t *testing.T) {
 	mr := tests.NewMockRouter(nil)
 	ms := containerd.NewMockContainerdStore(nil)
 
-	h, err := New(context.Background(), mr, ms)
+	h, err := New(ctxWithMetrics, mr, ms)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
