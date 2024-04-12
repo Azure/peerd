@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
-package handlers
+package files
 
 import (
 	"crypto/rand"
@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/azure/peerd/internal/files/cache"
+	"github.com/azure/peerd/pkg/cache"
 )
 
 func TestMain(m *testing.M) {
