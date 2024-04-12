@@ -19,9 +19,26 @@ in a Kubernetes cluster. The source of the content could be another node in the 
 This is **work in progress** and not yet production ready. We are actively working on this project and would love to
 hear your feedback. Please feel free to open an issue or a pull request.
 
+## Usage
+
+Peerd is designed to be deployed as a daemonset on every node in a Kubernetes cluster and acts as a registry mirror. It 
+discovers and serves content from other nodes in the cluster, and can also download content from an upstream source.
+
+This is useful in the following scenarios:
+
+1. **Increased Throughput**: For downloading large images or deploying large clusters, the registry can become a 
+   bottleneck. Peerd can be used to download images from other nodes in the cluster that have already downloaded it,
+   increasing throughput.
+
+2. **Improved Fault Tolerance**: If the registry is unavailable, Peerd can still serve images from other nodes in the
+   cluster.
+
+3. **Firewall configuration**: Peerd can be used to download images from other nodes in the cluster. This can be useful
+    in scenarios where outbound internet access is restricted on some nodes.
+
 ## Features
 
-* **Peer to Peer File Sharing**: Peerd allows a node to act as a mirror for files obtained from any HTTP upstream source
+* **Peer to Peer Streaming**: Peerd allows a node to act as a mirror for files obtained from any HTTP upstream source
   (such as an [Azure Blob] using a [SAS URL]), and can discover and serve a specified byte range of the file to/from
   other nodes in the cluster. Peerd will first attempt to discover and serve this range from its peers. If not found, it
   will  fallback to download the range from the upstream URL. Peerd caches downloaded ranges as well as optionally, can
@@ -36,7 +53,10 @@ hear your feedback. Please feel free to open an issue or a pull request.
   }
   ```
 
-* **Peer to Peer Container Image Sharing**: Pulling a container image to a node in Kubernetes is often a time consuming
+  Peerd is compatible with Azure Container Registry's [Artifact Streaming][ACR Artifact Streaming] feature, and can be
+  used to improve performance further.
+
+* **Peer to Peer Container Image Pulls**: Pulling a container image to a node in Kubernetes is often a time consuming
   process, especially in scenarios where the registry becomes a bottleneck, such as deploying a large cluster or scaling
   out in response to bursty traffic. To increase throughput, nodes in the cluster which already have the image can be
   used as an alternate image source. Peerd subscribes to events in the containerd content store, and advertises local
