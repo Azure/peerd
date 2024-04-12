@@ -14,7 +14,7 @@ import (
 
 	p2pcontext "github.com/azure/peerd/internal/context"
 	"github.com/azure/peerd/internal/metrics"
-	"github.com/azure/peerd/internal/routing"
+	"github.com/azure/peerd/pkg/discovery/routing"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 )

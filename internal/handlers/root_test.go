@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/azure/peerd/internal/files/store"
-	storetests "github.com/azure/peerd/internal/oci/store/tests"
-	"github.com/azure/peerd/internal/routing/tests"
+	"github.com/azure/peerd/pkg/containerd"
+	"github.com/azure/peerd/pkg/discovery/routing/tests"
 	"github.com/gin-gonic/gin"
 )
 
@@ -99,7 +99,7 @@ func TestNewEngine(t *testing.T) {
 func TestHandler(t *testing.T) {
 	ctx := context.Background()
 	mr := tests.NewMockRouter(map[string][]string{})
-	ms := storetests.NewMockContainerdStore(nil)
+	ms := containerd.NewMockContainerdStore(nil)
 	mfs, err := store.NewMockStore(ctx, mr)
 	if err != nil {
 		t.Fatal(err)

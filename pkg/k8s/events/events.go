@@ -5,7 +5,6 @@ package events
 import (
 	"context"
 
-	p2pcontext "github.com/azure/peerd/internal/context"
 	"github.com/azure/peerd/pkg/k8s"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -21,13 +20,13 @@ var (
 )
 
 // NewRecorder creates a new event recorder.
-func NewRecorder(ctx context.Context, k *k8s.ClientSet, k8sNamespace string) (EventRecorder, error) {
+func NewRecorder(ctx context.Context, k *k8s.ClientSet) (EventRecorder, error) {
 	clientset := k.Interface
 	inPod := k.InPod
 
 	var objRef *v1.ObjectReference
 	if !inPod {
-		node, err := clientset.CoreV1().Nodes().Get(ctx, p2pcontext.NodeName, metav1.GetOptions{})
+		node, err := clientset.CoreV1().Nodes().Get(ctx, k.Name, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -38,7 +37,7 @@ func NewRecorder(ctx context.Context, k *k8s.ClientSet, k8sNamespace string) (Ev
 			APIVersion: node.APIVersion,
 		}
 	} else {
-		pod, err := clientset.CoreV1().Pods(k8sNamespace).Get(ctx, p2pcontext.NodeName, metav1.GetOptions{})
+		pod, err := clientset.CoreV1().Pods(k.Namespace).Get(ctx, k.Name, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -53,7 +52,7 @@ func NewRecorder(ctx context.Context, k *k8s.ClientSet, k8sNamespace string) (Ev
 
 	broadcaster := record.NewBroadcaster()
 	broadcaster.StartStructuredLogging(4)
-	broadcaster.StartRecordingToSink(&typedv1core.EventSinkImpl{Interface: clientset.CoreV1().Events(k8sNamespace)})
+	broadcaster.StartRecordingToSink(&typedv1core.EventSinkImpl{Interface: clientset.CoreV1().Events(k.Namespace)})
 
 	return &eventRecorder{
 		recorder: broadcaster.NewRecorder(
@@ -65,8 +64,8 @@ func NewRecorder(ctx context.Context, k *k8s.ClientSet, k8sNamespace string) (Ev
 }
 
 // WithContext returns a new context with an event recorder.
-func WithContext(ctx context.Context, clientset *k8s.ClientSet, k8sNamespace string) (context.Context, error) {
-	er, err := NewRecorder(ctx, clientset, k8sNamespace)
+func WithContext(ctx context.Context, clientset *k8s.ClientSet) (context.Context, error) {
+	er, err := NewRecorder(ctx, clientset)
 	if err != nil {
 		return nil, err
 	}

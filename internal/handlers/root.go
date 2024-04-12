@@ -11,8 +11,8 @@ import (
 	filesStore "github.com/azure/peerd/internal/files/store"
 	filesHandler "github.com/azure/peerd/internal/handlers/files"
 	ociHandler "github.com/azure/peerd/internal/handlers/v2"
-	"github.com/azure/peerd/internal/routing"
 	"github.com/azure/peerd/pkg/containerd"
+	"github.com/azure/peerd/pkg/discovery/routing"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 )

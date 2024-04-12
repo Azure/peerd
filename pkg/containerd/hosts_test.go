@@ -185,7 +185,7 @@ skip_verify = true
 				require.NoError(t, err)
 			}
 
-			err := AddMirrorConfiguration(context.TODO(), fs, registryConfigPath, tt.registries, tt.mirrors, tt.resolveTags)
+			err := AddHostsConfiguration(context.TODO(), fs, registryConfigPath, tt.registries, tt.mirrors, tt.resolveTags)
 			require.NoError(t, err)
 
 			if len(tt.existingFiles) == 0 {
@@ -215,19 +215,19 @@ func TestMirrorConfigurationInvalidMirrorURL(t *testing.T) {
 	mirrors := stringListToUrlList(t, []string{"http://127.0.0.1:5000"})
 
 	registries := stringListToUrlList(t, []string{"ftp://docker.io"})
-	err := AddMirrorConfiguration(context.TODO(), fs, "/etc/containerd/certs.d", registries, mirrors, true)
+	err := AddHostsConfiguration(context.TODO(), fs, "/etc/containerd/certs.d", registries, mirrors, true)
 	require.EqualError(t, err, "invalid registry url, scheme must be http or https, got: ftp://docker.io")
 
 	registries = stringListToUrlList(t, []string{"https://docker.io/foo/bar"})
-	err = AddMirrorConfiguration(context.TODO(), fs, "/etc/containerd/certs.d", registries, mirrors, true)
+	err = AddHostsConfiguration(context.TODO(), fs, "/etc/containerd/certs.d", registries, mirrors, true)
 	require.EqualError(t, err, "invalid registry url, path has to be empty, got: https://docker.io/foo/bar")
 
 	registries = stringListToUrlList(t, []string{"https://docker.io?foo=bar"})
-	err = AddMirrorConfiguration(context.TODO(), fs, "/etc/containerd/certs.d", registries, mirrors, true)
+	err = AddHostsConfiguration(context.TODO(), fs, "/etc/containerd/certs.d", registries, mirrors, true)
 	require.EqualError(t, err, "invalid registry url, query has to be empty, got: https://docker.io?foo=bar")
 
 	registries = stringListToUrlList(t, []string{"https://foo@docker.io"})
-	err = AddMirrorConfiguration(context.TODO(), fs, "/etc/containerd/certs.d", registries, mirrors, true)
+	err = AddHostsConfiguration(context.TODO(), fs, "/etc/containerd/certs.d", registries, mirrors, true)
 	require.EqualError(t, err, "invalid registry url, user has to be empty, got: https://foo@docker.io")
 }
 

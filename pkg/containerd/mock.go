@@ -1,22 +1,21 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
-package tests
+package containerd
 
 import (
 	"context"
 	"io"
 
-	"github.com/azure/peerd/pkg/containerd"
 	"github.com/opencontainers/go-digest"
 )
 
 type MockContainerdStore struct {
-	refs []containerd.Reference
+	refs []Reference
 }
 
-var _ containerd.Store = &MockContainerdStore{}
+var _ Store = &MockContainerdStore{}
 
-func NewMockContainerdStore(refs []containerd.Reference) *MockContainerdStore {
+func NewMockContainerdStore(refs []Reference) *MockContainerdStore {
 	return &MockContainerdStore{
 		refs: refs,
 	}
@@ -26,15 +25,15 @@ func (m *MockContainerdStore) Verify(ctx context.Context) error {
 	return nil
 }
 
-func (m *MockContainerdStore) Subscribe(ctx context.Context) (<-chan containerd.Reference, <-chan error) {
+func (m *MockContainerdStore) Subscribe(ctx context.Context) (<-chan Reference, <-chan error) {
 	return nil, nil
 }
 
-func (m *MockContainerdStore) List(ctx context.Context) ([]containerd.Reference, error) {
+func (m *MockContainerdStore) List(ctx context.Context) ([]Reference, error) {
 	return m.refs, nil
 }
 
-func (m *MockContainerdStore) All(ctx context.Context, ref containerd.Reference) ([]string, error) {
+func (m *MockContainerdStore) All(ctx context.Context, ref Reference) ([]string, error) {
 	return []string{ref.Digest().String()}, nil
 }
 

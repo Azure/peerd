@@ -8,14 +8,14 @@ import (
 
 	p2pcontext "github.com/azure/peerd/internal/context"
 	"github.com/azure/peerd/internal/oci/distribution"
-	storetests "github.com/azure/peerd/internal/oci/store/tests"
-	"github.com/azure/peerd/internal/routing/tests"
+	"github.com/azure/peerd/pkg/containerd"
+	"github.com/azure/peerd/pkg/discovery/routing/tests"
 	"github.com/gin-gonic/gin"
 )
 
 func TestNew(t *testing.T) {
 	mr := tests.NewMockRouter(nil)
-	ms := storetests.NewMockContainerdStore(nil)
+	ms := containerd.NewMockContainerdStore(nil)
 
 	h, err := New(context.Background(), mr, ms)
 	if err != nil {
@@ -29,7 +29,7 @@ func TestNew(t *testing.T) {
 
 func TestFillDefault(t *testing.T) {
 	mr := tests.NewMockRouter(nil)
-	ms := storetests.NewMockContainerdStore(nil)
+	ms := containerd.NewMockContainerdStore(nil)
 
 	h, err := New(context.Background(), mr, ms)
 	if err != nil {

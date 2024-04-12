@@ -4,9 +4,9 @@ package events
 
 import (
 	"context"
+	"os"
 	"testing"
 
-	p2pcontext "github.com/azure/peerd/internal/context"
 	"github.com/azure/peerd/pkg/k8s"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -15,21 +15,25 @@ import (
 	"k8s.io/client-go/tools/record"
 )
 
+var (
+	nodeName, _ = os.Hostname()
+)
+
 func TestWithContext(t *testing.T) {
 	ns := "test-ns"
 	fcs := fake.NewSimpleClientset([]runtime.Object{
 		&v1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      p2pcontext.NodeName,
+				Name:      nodeName,
 				Namespace: ns,
 				UID:       "test-uid",
 			},
 		},
 	}...)
 
-	cs := &k8s.ClientSet{Interface: fcs, InPod: true}
+	cs := &k8s.ClientSet{Interface: fcs, InPod: true, Namespace: ns, Name: nodeName}
 
-	ctx, err := WithContext(context.Background(), cs, ns)
+	ctx, err := WithContext(context.Background(), cs)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,15 +54,15 @@ func TestNewRecorderInNode(t *testing.T) {
 	fcs := fake.NewSimpleClientset([]runtime.Object{
 		&v1.Node{
 			ObjectMeta: metav1.ObjectMeta{
-				Name: p2pcontext.NodeName,
+				Name: nodeName,
 				UID:  "test-uid",
 			},
 		},
 	}...)
 
-	cs := &k8s.ClientSet{Interface: fcs, InPod: false}
+	cs := &k8s.ClientSet{Interface: fcs, InPod: false, Namespace: ns, Name: nodeName}
 
-	r, err := NewRecorder(context.Background(), cs, ns)
+	r, err := NewRecorder(context.Background(), cs)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,8 +75,8 @@ func TestNewRecorderInNode(t *testing.T) {
 	if er.objRef.Kind != "Node" {
 		t.Errorf("expected kind to be Node, got %s", er.objRef.Kind)
 	}
-	if er.objRef.Name != p2pcontext.NodeName {
-		t.Errorf("expected name to be %s, got %s", p2pcontext.NodeName, er.objRef.Name)
+	if er.objRef.Name != nodeName {
+		t.Errorf("expected name to be %s, got %s", nodeName, er.objRef.Name)
 	}
 	if er.objRef.UID != "test-uid" {
 		t.Errorf("expected uid to be test-uid, got %s", er.objRef.UID)
@@ -85,16 +89,16 @@ func TestNewRecorderInPod(t *testing.T) {
 	fcs := fake.NewSimpleClientset([]runtime.Object{
 		&v1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      p2pcontext.NodeName,
+				Name:      nodeName,
 				Namespace: ns,
 				UID:       "test-uid",
 			},
 		},
 	}...)
 
-	cs := &k8s.ClientSet{Interface: fcs, InPod: true}
+	cs := &k8s.ClientSet{Interface: fcs, InPod: true, Namespace: ns, Name: nodeName}
 
-	r, err := NewRecorder(context.Background(), cs, ns)
+	r, err := NewRecorder(context.Background(), cs)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -107,8 +111,8 @@ func TestNewRecorderInPod(t *testing.T) {
 	if er.objRef.Kind != "Pod" {
 		t.Errorf("expected kind to be Pod, got %s", er.objRef.Kind)
 	}
-	if er.objRef.Name != p2pcontext.NodeName {
-		t.Errorf("expected name to be %s, got %s", p2pcontext.NodeName, er.objRef.Name)
+	if er.objRef.Name != nodeName {
+		t.Errorf("expected name to be %s, got %s", nodeName, er.objRef.Name)
 	}
 	if er.objRef.Namespace != ns {
 		t.Errorf("expected namespace to be %s, got %s", ns, er.objRef.Namespace)
@@ -123,7 +127,7 @@ func TestExpectedEvents(t *testing.T) {
 		recorder: &testRecorder{t},
 		objRef: &v1.ObjectReference{
 			Kind:       "Node",
-			Name:       "node-name",
+			Name:       nodeName,
 			UID:        "node.UID",
 			APIVersion: "node.APIVersion",
 		},
@@ -141,7 +145,7 @@ func TestFromContext(t *testing.T) {
 		recorder: &testRecorder{t},
 		objRef: &v1.ObjectReference{
 			Kind:       "Node",
-			Name:       "node-name",
+			Name:       nodeName,
 			UID:        "node.UID",
 			APIVersion: "node.APIVersion",
 		},

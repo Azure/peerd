@@ -29,11 +29,11 @@ type hostConfig struct {
 	SkipVerify   bool     `toml:"skip_verify"`
 }
 
-// AddMirrorConfiguration adds mirror configuration to containerd host configuration.
+// AddHostsConfiguration adds mirror configuration to containerd for the specified URLs.
 // Refer to containerd registry configuration documentation for mor information about required configuration.
 // https://github.com/containerd/containerd/blob/main/docs/cri/config.md#registry-configuration
 // https://github.com/containerd/containerd/blob/main/docs/hosts.md#registry-configuration---examples
-func AddMirrorConfiguration(ctx context.Context, fs afero.Fs, configPath string, registryURLs, mirrorURLs []url.URL, resolveTags bool) error {
+func AddHostsConfiguration(ctx context.Context, fs afero.Fs, configPath string, registryURLs, mirrorURLs []url.URL, resolveTags bool) error {
 	log := zerolog.Ctx(ctx).With().Str("component", "containerd-mirror").Logger()
 
 	if err := validate(registryURLs); err != nil {

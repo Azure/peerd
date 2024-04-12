@@ -9,10 +9,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	p2pcontext "github.com/azure/peerd/internal/context"
-	"github.com/azure/peerd/internal/k8s/events"
 	"github.com/azure/peerd/pkg/k8s"
 	"github.com/azure/peerd/pkg/k8s/election"
+	"github.com/azure/peerd/pkg/k8s/events"
 	"github.com/azure/peerd/pkg/peernet"
 	"github.com/dgraph-io/ristretto"
 	cid "github.com/ipfs/go-cid"
@@ -53,9 +52,6 @@ type router struct {
 	// k8sClient is the k8s client.
 	k8sClient *k8s.ClientSet
 
-	// k8sNamespace is the k8s namespace used for leader election and event recording.
-	k8sNamespace string
-
 	// active is a flag that indicates if this host is actively discovering content on the network.
 	active atomic.Bool
 }
@@ -82,7 +78,7 @@ func NewRouter(ctx context.Context, clientset *k8s.ClientSet, hostAddr, peerRegi
 	self := fmt.Sprintf("%s/p2p/%s", host.Addrs()[0].String(), host.ID().String())
 	log.Debug().Str("id", self).Msg("starting p2p router")
 
-	leaderElection := election.New(clientset.Namespace, "peerd-leader-election", p2pcontext.KubeConfigPath)
+	leaderElection := election.New("peerd-leader-election", clientset)
 
 	err = leaderElection.RunOrDie(ctx, self)
 	if err != nil {
@@ -145,7 +141,6 @@ func NewRouter(ctx context.Context, clientset *k8s.ClientSet, hostAddr, peerRegi
 		content:          rd,
 		peerRegistryPort: peerRegistryPort,
 		lookupCache:      c,
-		k8sNamespace:     clientset.Namespace,
 	}, nil
 }
 
@@ -204,7 +199,7 @@ func (r *router) Resolve(ctx context.Context, key string, allowSelf bool, count 
 			peersCh <- PeerInfo{info.ID, fmt.Sprintf("https://%s:%s", v, r.peerRegistryPort)}
 
 			if r.active.CompareAndSwap(false, true) {
-				er, err := events.NewRecorder(ctx, r.k8sClient, r.k8sNamespace)
+				er, err := events.NewRecorder(ctx, r.k8sClient)
 				if err != nil {
 					log.Error().Err(err).Msg("failed to create event recorder")
 				} else {

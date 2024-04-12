@@ -8,7 +8,7 @@ import (
 )
 
 func TestEmptyConfigOutsidePod(t *testing.T) {
-	_, err := NewKubernetesInterface("")
+	_, err := NewKubernetesInterface("", "test-node")
 	if err == nil {
 		t.Error("Expected non-nil error, got nil")
 	}

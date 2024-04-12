@@ -12,7 +12,7 @@ import (
 
 	p2pcontext "github.com/azure/peerd/internal/context"
 	"github.com/azure/peerd/internal/files"
-	"github.com/azure/peerd/internal/routing/tests"
+	"github.com/azure/peerd/pkg/discovery/routing/tests"
 	"github.com/gin-gonic/gin"
 	"github.com/opencontainers/go-digest"
 )
