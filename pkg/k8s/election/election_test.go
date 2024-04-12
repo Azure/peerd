@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
-	"k8s.io/client-go/kubernetes"
+	"github.com/azure/peerd/pkg/k8s"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 )
 
 func TestLeader(t *testing.T) {
-	cs := &kubernetes.Clientset{}
-	le := newLeaderElection("test", "test", cs)
+	cs := &k8s.ClientSet{Namespace: "test"}
+	le := New("test", cs).(*leaderElection)
 	if le == nil {
 		t.Fatal("expected leader election")
 	}
@@ -87,8 +87,8 @@ func TestLeader(t *testing.T) {
 }
 
 func TestLeaderElectionConfig(t *testing.T) {
-	cs := &kubernetes.Clientset{}
-	le := newLeaderElection("test", "test", cs)
+	cs := &k8s.ClientSet{Namespace: "test"}
+	le := New("test", cs).(*leaderElection)
 	if le == nil {
 		t.Fatal("expected leader election")
 	}
@@ -104,8 +104,8 @@ func TestLeaderElectionConfig(t *testing.T) {
 }
 
 func TestUnexpectedLeaderId(t *testing.T) {
-	cs := &kubernetes.Clientset{}
-	le := newLeaderElection("test", "test", cs)
+	cs := &k8s.ClientSet{Namespace: "test"}
+	le := New("test", cs).(*leaderElection)
 	if le == nil {
 		t.Fatal("expected leader election")
 	}

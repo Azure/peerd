@@ -23,13 +23,16 @@ type ClientSet struct {
 
 	// Namespace is the namespace in which to run the leader election.
 	Namespace string
+
+	// Name is the name of this pod or node.
+	Name string
 }
 
 // NewKubernetesInterface creates a new interface for k8s API server.
 // The current runtime environment is first assumed to be a pod and its identity is used to create the interface.
 // If a pod is not detected, the given kubeConfigPath is used to create the interface.
-func NewKubernetesInterface(kubeConfigPath string) (*ClientSet, error) {
-	k := &ClientSet{}
+func NewKubernetesInterface(kubeConfigPath, name string) (*ClientSet, error) {
+	k := &ClientSet{Name: name}
 
 	config, err := rest.InClusterConfig() // Assume run in a Pod or an environment with appropriate env variables set.
 	if err != nil {

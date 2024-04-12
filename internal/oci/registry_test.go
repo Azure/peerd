@@ -9,14 +9,13 @@ import (
 
 	p2pcontext "github.com/azure/peerd/internal/context"
 	"github.com/azure/peerd/internal/oci/distribution"
-	"github.com/azure/peerd/internal/oci/store/tests"
 	"github.com/azure/peerd/pkg/containerd"
 	"github.com/gin-gonic/gin"
 )
 
 func TestNewRegistry(t *testing.T) {
 	// Create a new registry
-	r := NewRegistry(tests.NewMockContainerdStore(nil))
+	r := NewRegistry(containerd.NewMockContainerdStore(nil))
 
 	if r == nil {
 		t.Fatal("expected registry")
@@ -30,7 +29,7 @@ func TestHandleManifest(t *testing.T) {
 	}
 	refs := []containerd.Reference{img}
 
-	ms := tests.NewMockContainerdStore(refs)
+	ms := containerd.NewMockContainerdStore(refs)
 
 	r := NewRegistry(ms)
 
@@ -70,7 +69,7 @@ func TestHandleBlob(t *testing.T) {
 	}
 	refs := []containerd.Reference{img}
 
-	ms := tests.NewMockContainerdStore(refs)
+	ms := containerd.NewMockContainerdStore(refs)
 
 	r := NewRegistry(ms)
 
@@ -110,7 +109,7 @@ func TestHandle(t *testing.T) {
 	}
 	refs := []containerd.Reference{img}
 
-	ms := tests.NewMockContainerdStore(refs)
+	ms := containerd.NewMockContainerdStore(refs)
 
 	r := NewRegistry(ms)
 

@@ -13,8 +13,6 @@ nodes:
     labels:
       p2p-nodepool: "true"
     extraMounts:
-      - hostPath: $GIT_ROOT/bin/kind/metrics1
-        containerPath: /var/log/
       - hostPath: $GIT_ROOT/build/ci/configs/containerd.toml
         containerPath: /etc/containerd/config.toml
       - hostPath: $GIT_ROOT/build/ci/configs/certs.d
@@ -24,8 +22,6 @@ nodes:
     labels:
       p2p-nodepool: "true"
     extraMounts:
-      - hostPath: $GIT_ROOT/bin/kind/metrics2
-        containerPath: /var/log/
       - hostPath: $GIT_ROOT/build/ci/configs/containerd.toml
         containerPath: /etc/containerd/config.toml
       - hostPath: $GIT_ROOT/build/ci/configs/certs.d
@@ -35,8 +31,6 @@ nodes:
     labels:
       p2p-nodepool: "true"
     extraMounts:
-      - hostPath: $GIT_ROOT/bin/kind/metrics3
-        containerPath: /var/log/
       - hostPath: $GIT_ROOT/build/ci/configs/containerd.toml
         containerPath: /etc/containerd/config.toml
       - hostPath: $GIT_ROOT/build/ci/configs/certs.d

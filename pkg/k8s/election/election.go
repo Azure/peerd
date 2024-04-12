@@ -105,20 +105,10 @@ func (le *leaderElection) onNewLeader(identity string) {
 	le.id = identity
 }
 
-// New build a new LeaderElection instance in the given namespace, with the given name.
-// The kubeConfigPath is used to create the kubernetes interface. It may be empty if the runtime environment is a pod.
-func New(namespace, name, kubeConfigPath string) LeaderElection {
-	cs, err := k8s.NewKubernetesInterface(kubeConfigPath)
-	if err != nil {
-		panic(err)
-	}
-
-	return newLeaderElection(namespace, name, cs)
-}
-
-func newLeaderElection(namespace, name string, cs kubernetes.Interface) *leaderElection {
+// New build a new LeaderElection instance with the given name.
+func New(name string, cs *k8s.ClientSet) LeaderElection {
 	return &leaderElection{
-		ns:       namespace,
+		ns:       cs.Namespace,
 		name:     name,
 		cs:       cs,
 		initChan: make(chan interface{}),
