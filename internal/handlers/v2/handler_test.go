@@ -7,10 +7,10 @@ import (
 	"testing"
 
 	p2pcontext "github.com/azure/peerd/internal/context"
-	"github.com/azure/peerd/internal/oci/distribution"
 	"github.com/azure/peerd/pkg/containerd"
 	"github.com/azure/peerd/pkg/discovery/routing/tests"
 	"github.com/azure/peerd/pkg/metrics"
+	"github.com/azure/peerd/pkg/oci/distribution"
 	"github.com/gin-gonic/gin"
 )
 
