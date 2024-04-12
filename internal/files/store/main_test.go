@@ -3,12 +3,18 @@
 package store
 
 import (
+	"context"
 	"crypto/rand"
 	"fmt"
 	"os"
 	"testing"
 
 	"github.com/azure/peerd/internal/files/cache"
+	"github.com/azure/peerd/pkg/metrics"
+)
+
+var (
+	ctxWithMetrics, _ = metrics.WithContext(context.Background(), "test", "peerd")
 )
 
 func TestMain(m *testing.M) {

@@ -23,6 +23,7 @@ import (
 	"github.com/azure/peerd/pkg/discovery/routing"
 	"github.com/azure/peerd/pkg/k8s"
 	"github.com/azure/peerd/pkg/k8s/events"
+	"github.com/azure/peerd/pkg/metrics"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 	"github.com/spf13/afero"
@@ -44,6 +45,12 @@ func main() {
 
 	l := zerolog.New(os.Stdout).With().Timestamp().Str("self", p2pcontext.NodeName).Str("version", version).Logger()
 	ctx := l.WithContext(context.Background())
+
+	ctx, err = metrics.WithContext(ctx, p2pcontext.NodeName, "peerd")
+	if err != nil {
+		l.Error().Err(err).Msg("failed to initialize metrics")
+		os.Exit(1)
+	}
 
 	err = run(ctx, args)
 	if err != nil {

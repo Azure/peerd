@@ -10,13 +10,14 @@ import (
 
 	p2pcontext "github.com/azure/peerd/internal/context"
 	"github.com/azure/peerd/internal/files/store"
-	"github.com/azure/peerd/internal/metrics"
+	"github.com/azure/peerd/pkg/metrics"
 	"github.com/gin-gonic/gin"
 )
 
 // FilesHandler describes a handler for files.
 type FilesHandler struct {
-	store store.FilesStore
+	store           store.FilesStore
+	metricsRecorder metrics.Metrics
 }
 
 var _ gin.HandlerFunc = (&FilesHandler{}).Handle
@@ -28,7 +29,7 @@ func (h *FilesHandler) Handle(c *gin.Context) {
 	s := time.Now()
 	defer func() {
 		dur := time.Since(s)
-		metrics.Global.RecordRequest(c.Request.Method, "files", float64(dur.Milliseconds()))
+		h.metricsRecorder.RecordRequest(c.Request.Method, "files", float64(dur.Milliseconds()))
 		log.Debug().Dur("duration", dur).Msg("files handler stop")
 	}()
 
@@ -80,5 +81,5 @@ func (h *FilesHandler) fill(c *gin.Context) error {
 
 // New creates a new files handler.
 func New(ctx context.Context, fs store.FilesStore) *FilesHandler {
-	return &FilesHandler{fs}
+	return &FilesHandler{fs, metrics.FromContext(ctx)}
 }

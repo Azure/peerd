@@ -13,8 +13,8 @@ import (
 	"time"
 
 	p2pcontext "github.com/azure/peerd/internal/context"
-	"github.com/azure/peerd/internal/metrics"
 	"github.com/azure/peerd/pkg/discovery/routing"
+	"github.com/azure/peerd/pkg/metrics"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 )
@@ -36,6 +36,8 @@ type reader struct {
 	router            routing.Router
 	resolveRetries    int
 	defaultHttpClient *http.Client
+
+	metricsRecorder metrics.Metrics
 }
 
 var _ Reader = &reader{}
@@ -68,7 +70,7 @@ func (r *reader) PreadRemote(buf []byte, offset int64) (int, error) {
 
 	count32 := int(0)
 	defer func() {
-		metrics.Global.RecordUpstreamResponse(originReq.URL.Hostname(), key, "pread", time.Since(startTime).Seconds(), int64(count32))
+		r.metricsRecorder.RecordUpstreamResponse(originReq.URL.Hostname(), key, "pread", time.Since(startTime).Seconds(), int64(count32))
 	}()
 	count32, err = r.preadRemote(log, originReq, r.defaultHttpClient, buf)
 	return count32, err
@@ -90,7 +92,7 @@ func (r *reader) FstatRemote() (int64, error) {
 
 	var count int64
 	defer func() {
-		metrics.Global.RecordUpstreamResponse(originReq.URL.Hostname(), key, "fstat", time.Since(startTime).Seconds(), count)
+		r.metricsRecorder.RecordUpstreamResponse(originReq.URL.Hostname(), key, "fstat", time.Since(startTime).Seconds(), count)
 	}()
 	count, err = r.fstatRemote(log, originReq, r.defaultHttpClient)
 	return count, err
@@ -139,7 +141,7 @@ peerLoop:
 
 			if peerCount == 0 {
 				// Only report the time it took to discover the first peer.
-				metrics.Global.RecordPeerDiscovery(peer.HttpHost, time.Since(startTime).Seconds())
+				r.metricsRecorder.RecordPeerDiscovery(peer.HttpHost, time.Since(startTime).Seconds())
 				peerCount++
 			}
 
@@ -172,7 +174,7 @@ peerLoop:
 				if o == operationPreadRemote {
 					op = "pread"
 				}
-				metrics.Global.RecordPeerResponse(peer.HttpHost, fileChunkKey, op, time.Since(startTime).Seconds(), count)
+				r.metricsRecorder.RecordPeerResponse(peer.HttpHost, fileChunkKey, op, time.Since(startTime).Seconds(), count)
 				return count, nil
 			}
 		}
@@ -275,7 +277,7 @@ func (r *reader) remoteRequest(u string, start, end int64) (*http.Request, error
 }
 
 // NewReader creates a new remote reader.
-func NewReader(c *gin.Context, router routing.Router, resolveRetries int, resolveTimeout time.Duration) Reader {
+func NewReader(c *gin.Context, router routing.Router, resolveRetries int, resolveTimeout time.Duration, metricsRecorder metrics.Metrics) Reader {
 	cc := c.Copy()
 	return &reader{
 		context:           cc,
@@ -283,5 +285,6 @@ func NewReader(c *gin.Context, router routing.Router, resolveRetries int, resolv
 		router:            router,
 		resolveRetries:    resolveRetries,
 		defaultHttpClient: router.Net().HTTPClientFor(""),
+		metricsRecorder:   metricsRecorder,
 	}
 }

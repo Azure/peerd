@@ -3,7 +3,6 @@
 package store
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -44,7 +43,7 @@ func TestOpenP2p(t *testing.T) {
 	ctx.Set(p2pcontext.FileChunkCtxKey, expK)
 
 	PrefetchWorkers = 0 // turn off prefetching
-	s, err := NewFilesStore(context.Background(), tests.NewMockRouter(make(map[string][]string)))
+	s, err := NewFilesStore(ctxWithMetrics, tests.NewMockRouter(make(map[string][]string)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,7 +74,7 @@ func TestOpenNonP2p(t *testing.T) {
 	ctx.Set(p2pcontext.FileChunkCtxKey, expK)
 
 	PrefetchWorkers = 0 // turn off prefetching
-	s, err := NewMockStore(context.Background(), tests.NewMockRouter(make(map[string][]string)))
+	s, err := NewMockStore(ctxWithMetrics, tests.NewMockRouter(make(map[string][]string)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -106,7 +105,7 @@ func TestKey(t *testing.T) {
 		{Key: "url", Value: hostAndPath},
 	}
 
-	s, err := NewFilesStore(context.Background(), tests.NewMockRouter(make(map[string][]string)))
+	s, err := NewFilesStore(ctxWithMetrics, tests.NewMockRouter(make(map[string][]string)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -126,7 +125,7 @@ func TestKey(t *testing.T) {
 }
 
 func TestSubscribe(t *testing.T) {
-	s, err := NewFilesStore(context.Background(), tests.NewMockRouter(make(map[string][]string)))
+	s, err := NewFilesStore(ctxWithMetrics, tests.NewMockRouter(make(map[string][]string)))
 	if err != nil {
 		t.Fatal(err)
 	}

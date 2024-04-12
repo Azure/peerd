@@ -3,7 +3,6 @@
 package store
 
 import (
-	"context"
 	"crypto/rand"
 	"io"
 	"os"
@@ -17,12 +16,11 @@ import (
 )
 
 func TestReadAtWithChunkOffset(t *testing.T) {
-	ctx := context.Background()
 	data := []byte("hello world")
 
 	files.CacheBlockSize = 1 // 1 byte
 
-	s, err := NewFilesStore(ctx, tests.NewMockRouter(make(map[string][]string)))
+	s, err := NewFilesStore(ctxWithMetrics, tests.NewMockRouter(make(map[string][]string)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -76,12 +74,11 @@ func TestReadAtWithChunkOffset(t *testing.T) {
 }
 
 func TestReadAt(t *testing.T) {
-	ctx := context.Background()
 	data := []byte("hello world")
 
 	files.CacheBlockSize = 1 // 1 byte
 
-	s, err := NewFilesStore(ctx, tests.NewMockRouter(make(map[string][]string)))
+	s, err := NewFilesStore(ctxWithMetrics, tests.NewMockRouter(make(map[string][]string)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -129,11 +126,9 @@ func TestReadAt(t *testing.T) {
 }
 
 func TestSeek(t *testing.T) {
-	ctx := context.Background()
-
 	data := []byte("hello world")
 
-	s, err := NewFilesStore(ctx, tests.NewMockRouter(make(map[string][]string)))
+	s, err := NewFilesStore(ctxWithMetrics, tests.NewMockRouter(make(map[string][]string)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -192,14 +187,12 @@ func TestSeek(t *testing.T) {
 }
 
 func TestFstat(t *testing.T) {
-	ctx := context.Background()
-
 	data, err := randomBytesN(100)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	s, err := NewFilesStore(ctx, tests.NewMockRouter(make(map[string][]string)))
+	s, err := NewFilesStore(ctxWithMetrics, tests.NewMockRouter(make(map[string][]string)))
 	if err != nil {
 		t.Fatal(err)
 	}
