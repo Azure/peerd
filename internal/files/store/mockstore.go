@@ -5,7 +5,7 @@ package store
 import (
 	"context"
 
-	"github.com/azure/peerd/internal/files/cache"
+	"github.com/azure/peerd/pkg/cache"
 	"github.com/azure/peerd/pkg/discovery/routing"
 )
 

@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 package cache
 
-// Cache describes the cache of files.
+// Cache describes a cache of files.
 type Cache interface {
 	// Size gets the size of the file.
 	Size(path string) (int64, bool)
@@ -18,12 +18,12 @@ type Cache interface {
 }
 
 var (
-	// FilesCacheMaxCost is the capacity of the files cache in any unit.
+	// FilesCacheMaxCost is the capacity of the files cache.
 	FilesCacheMaxCost int64 = 4 * 1024 * 1024 * 1024 // 4 Gib
 
-	// MemoryCacheMaxCost is the capacity of the memory cache in any unit.
+	// MemoryCacheMaxCost is the capacity of the memory cache.
 	MemoryCacheMaxCost int64 = 1 * 1024 * 1024 * 1024 // 1 Gib
 
 	// Path is the path to the cache directory.
-	Path string = "/tmp/distribution/p2p/cache"
+	Path string = "/tmp/distribution/peerd/cache"
 )

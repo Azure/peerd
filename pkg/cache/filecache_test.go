@@ -18,10 +18,14 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+var (
+	cacheBlockSize = int64(1 * 1024 * 1024)
+)
+
 func TestGetKey(t *testing.T) {
 	name := newRandomStringN(10)
 	offset := int64(100)
-	c := New(context.Background())
+	c := New(context.Background(), cacheBlockSize)
 	got := c.(*fileCache).getKey(name, offset)
 	want := fmt.Sprintf("%v/%v/%v", Path, name, offset)
 	if got != want {
@@ -30,7 +34,7 @@ func TestGetKey(t *testing.T) {
 }
 
 func TestExists(t *testing.T) {
-	c := New(context.Background())
+	c := New(context.Background(), cacheBlockSize)
 
 	filesThatExist := []string{}
 	for i := 0; i < 5; i++ {
@@ -113,7 +117,7 @@ func TestExists(t *testing.T) {
 }
 
 func TestPutAndGetSize(t *testing.T) {
-	c := New(context.Background())
+	c := New(context.Background(), cacheBlockSize)
 	var eg errgroup.Group
 
 	for i := 0; i < 1000; i++ {
@@ -150,7 +154,7 @@ func TestPutAndGetSize(t *testing.T) {
 func TestGetOrCreate(t *testing.T) {
 	zerolog.TimeFieldFormat = time.RFC3339
 	//c := New(zerolog.New(os.Stdout).With().Timestamp().Logger().WithContext(context.Background()))
-	c := New(context.Background())
+	c := New(context.Background(), cacheBlockSize)
 	var eg errgroup.Group
 
 	fileNames := new(sync.Map)

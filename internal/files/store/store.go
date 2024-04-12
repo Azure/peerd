@@ -11,8 +11,8 @@ import (
 
 	p2pcontext "github.com/azure/peerd/internal/context"
 	"github.com/azure/peerd/internal/files"
-	"github.com/azure/peerd/internal/files/cache"
 	"github.com/azure/peerd/internal/remote"
+	"github.com/azure/peerd/pkg/cache"
 	"github.com/azure/peerd/pkg/discovery/routing"
 	"github.com/azure/peerd/pkg/metrics"
 	"github.com/azure/peerd/pkg/urlparser"
@@ -25,7 +25,7 @@ import (
 func NewFilesStore(ctx context.Context, r routing.Router) (FilesStore, error) {
 	fs := &store{
 		metricsRecorder: metrics.FromContext(ctx),
-		cache:           cache.New(ctx),
+		cache:           cache.New(ctx, int64(files.CacheBlockSize)),
 		prefetchChan:    make(chan prefetchableSegment, PrefetchWorkers),
 		prefetchable:    PrefetchWorkers > 0,
 		router:          r,

@@ -9,7 +9,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/azure/peerd/internal/files/cache"
+	"github.com/azure/peerd/pkg/cache"
 	"github.com/azure/peerd/pkg/metrics"
 )
 

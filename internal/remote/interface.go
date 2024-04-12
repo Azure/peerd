@@ -20,7 +20,7 @@ type Reader interface {
 	Log() *zerolog.Logger
 }
 
-// Error describes an error that occured during a remote operation.
+// Error describes an error that occurred during a remote operation.
 type Error struct {
 	*http.Response
 	error
