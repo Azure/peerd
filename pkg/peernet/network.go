@@ -48,7 +48,7 @@ type network struct {
 var _ Network = &network{}
 
 // DefaultTLSConfig creates a TLS config to use for this server.
-// This config does not require client certificate verification and is resuable.
+// This config does not require client certificate verification and is reusable.
 func (n *network) DefaultTLSConfig() *tls.Config {
 	return n.defaultTLSConfig
 }

@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
-package handlers
+package v2
 
 import (
 	"context"
@@ -9,7 +9,6 @@ import (
 	"time"
 
 	p2pcontext "github.com/azure/peerd/internal/context"
-	"github.com/azure/peerd/internal/oci"
 	"github.com/azure/peerd/pkg/containerd"
 	"github.com/azure/peerd/pkg/discovery/routing"
 	"github.com/azure/peerd/pkg/metrics"
@@ -19,8 +18,8 @@ import (
 
 // V2Handler describes a handler for OCI content.
 type V2Handler struct {
-	mirror          *oci.Mirror
-	registry        *oci.Registry
+	mirror          *Mirror
+	registry        *Registry
 	metricsRecorder metrics.Metrics
 }
 
@@ -90,8 +89,8 @@ func (h *V2Handler) fill(c *gin.Context) error {
 // New creates a new OCI content handler.
 func New(ctx context.Context, router routing.Router, containerdStore containerd.Store) (*V2Handler, error) {
 	return &V2Handler{
-		mirror:          oci.NewMirror(router),
-		registry:        oci.NewRegistry(containerdStore),
+		mirror:          NewMirror(router),
+		registry:        NewRegistry(containerdStore),
 		metricsRecorder: metrics.FromContext(ctx),
 	}, nil
 }

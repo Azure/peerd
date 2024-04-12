@@ -13,7 +13,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/azure/peerd/internal/files"
 	"github.com/dgraph-io/ristretto"
 	"github.com/rs/zerolog"
 )
@@ -149,7 +148,8 @@ func waitForSet() {
 }
 
 // New creates a new cache of files.
-func New(ctx context.Context) Cache {
+// cacheBlockSize is the fixed size of the cache block in bytes, and is used to evaluate the cost of each item in the cache.
+func New(ctx context.Context, cacheBlockSize int64) Cache {
 	log := zerolog.Ctx(ctx).With().Str("component", "cache").Logger()
 
 	atomic.StoreInt32(&fdCnt, 0)
@@ -176,7 +176,7 @@ func New(ctx context.Context) Cache {
 		},
 
 		Cost: func(val interface{}) int64 {
-			return int64(files.CacheBlockSize)
+			return cacheBlockSize
 		},
 	}); err != nil {
 		// This will call os.Exit(1)

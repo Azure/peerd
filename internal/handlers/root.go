@@ -9,23 +9,23 @@ import (
 
 	p2pcontext "github.com/azure/peerd/internal/context"
 	filesStore "github.com/azure/peerd/internal/files/store"
-	filesHandler "github.com/azure/peerd/internal/handlers/files"
-	ociHandler "github.com/azure/peerd/internal/handlers/v2"
+	"github.com/azure/peerd/internal/handlers/files"
+	v2 "github.com/azure/peerd/internal/handlers/v2"
 	"github.com/azure/peerd/pkg/containerd"
 	"github.com/azure/peerd/pkg/discovery/routing"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 )
 
-var fh *filesHandler.FilesHandler
-var v2h *ociHandler.V2Handler
+var fh *files.FilesHandler
+var v2h *v2.V2Handler
 
 // Server creates a new HTTP server.
 func Handler(ctx context.Context, r routing.Router, containerdStore containerd.Store, fs filesStore.FilesStore) (http.Handler, error) {
 	var err error
-	fh = filesHandler.New(ctx, fs)
+	fh = files.New(ctx, fs)
 
-	v2h, err = ociHandler.New(ctx, r, containerdStore)
+	v2h, err = v2.New(ctx, r, containerdStore)
 	if err != nil {
 		return nil, err
 	}
