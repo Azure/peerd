@@ -27,7 +27,9 @@ func TestLogger(t *testing.T) {
 	c, _ := gin.CreateTestContext(httptest.NewRecorder())
 	c.Request = req
 
-	l := Logger(c)
+	pc := FromContext(c)
+
+	l := Logger(pc)
 	if l.Info().Enabled() {
 		t.Fatal("expected logger to be disabled")
 	}
@@ -35,7 +37,7 @@ func TestLogger(t *testing.T) {
 	testL := zerolog.New(os.Stdout).With().Timestamp().Logger()
 	c.Set(LoggerCtxKey, &testL)
 
-	l = Logger(c)
+	l = Logger(pc)
 	if !l.Info().Enabled() {
 		t.Fatal("expected logger to be enabled")
 	}
@@ -51,9 +53,12 @@ func TestSetOutboundHeaders(t *testing.T) {
 	// Create a new context with the request.
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 	ctx.Request = req
-	FillCorrelationId(ctx)
 
-	SetOutboundHeaders(req, ctx)
+	pc := FromContext(ctx)
+
+	FillCorrelationId(pc)
+
+	SetOutboundHeaders(req, pc)
 
 	if req.Header.Get(P2PHeaderKey) != "true" {
 		t.Errorf("expected: %v, got: %v", "true", req.Header.Get(P2PHeaderKey))
@@ -82,8 +87,10 @@ func TestBlobUrl(t *testing.T) {
 		{Key: "url", Value: hostAndPath},
 	}
 
+	pc := FromContext(ctx)
+
 	// Call BlobUrl and verify the result.
-	got := BlobUrl(ctx)
+	got := BlobUrl(pc)
 	if got != u {
 		t.Errorf("expected: %v, got: %v", u, got)
 	}
@@ -99,8 +106,10 @@ func TestFillCorrelationId(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 	ctx.Request = req
 
-	FillCorrelationId(ctx)
-	cid, ok := ctx.Get(CorrelationIdCtxKey)
+	pc := FromContext(ctx)
+
+	FillCorrelationId(pc)
+	cid, ok := pc.Get(CorrelationIdCtxKey)
 	if !ok || cid == "" {
 		t.Fatal("expected correlation ID to be set")
 	}
@@ -110,8 +119,11 @@ func TestFillCorrelationId(t *testing.T) {
 	ctx, _ = gin.CreateTestContext(httptest.NewRecorder())
 	ctx.Request = req
 	ctx.Request.Header.Set(CorrelationHeaderKey, sample)
-	FillCorrelationId(ctx)
-	cid, ok = ctx.Get(CorrelationIdCtxKey)
+
+	pc = FromContext(ctx)
+
+	FillCorrelationId(pc)
+	cid, ok = pc.Get(CorrelationIdCtxKey)
 	if !ok || cid == "" {
 		t.Fatal("expected correlation ID to be set")
 	} else if cid != sample {
@@ -129,12 +141,14 @@ func TestIsRequestFromPeer(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 	ctx.Request = req
 
-	if IsRequestFromAPeer(ctx) {
+	pc := FromContext(ctx)
+
+	if IsRequestFromAPeer(pc) {
 		t.Fatal("expected request to not be from a peer")
 	}
 
 	ctx.Request.Header.Set(P2PHeaderKey, "true")
-	if !IsRequestFromAPeer(ctx) {
+	if !IsRequestFromAPeer(pc) {
 		t.Fatal("expected request to be from a peer")
 	}
 }

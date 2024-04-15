@@ -8,6 +8,7 @@ import (
 
 	"github.com/azure/peerd/pkg/discovery/routing"
 	"github.com/azure/peerd/pkg/peernet"
+	"github.com/azure/peerd/pkg/peernet/mocks"
 	"github.com/libp2p/go-libp2p/core/peer"
 )
 
@@ -37,7 +38,7 @@ func (m *MockRouter) ResolveWithNegativeCacheCallback(ctx context.Context, key s
 var _ routing.Router = &MockRouter{}
 
 func NewMockRouter(resolver map[string][]string) *MockRouter {
-	n, err := peernet.New(&MockHost{PeerStore: &MockPeerstore{}})
+	n, err := peernet.New(&mocks.MockHost{PeerStore: &mocks.MockPeerstore{}})
 	if err != nil {
 		panic(err)
 	}

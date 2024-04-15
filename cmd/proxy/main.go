@@ -15,10 +15,10 @@ import (
 	"time"
 
 	"github.com/alexflint/go-arg"
-	p2pcontext "github.com/azure/peerd/internal/context"
 	"github.com/azure/peerd/internal/files/store"
 	"github.com/azure/peerd/internal/handlers"
 	"github.com/azure/peerd/pkg/containerd"
+	pcontext "github.com/azure/peerd/pkg/context"
 	"github.com/azure/peerd/pkg/discovery/content/provider"
 	"github.com/azure/peerd/pkg/discovery/routing"
 	"github.com/azure/peerd/pkg/k8s"
@@ -43,10 +43,10 @@ func main() {
 	zerolog.SetGlobalLevel(ll)
 	zerolog.TimeFieldFormat = time.RFC3339Nano
 
-	l := zerolog.New(os.Stdout).With().Timestamp().Str("self", p2pcontext.NodeName).Str("version", version).Logger()
+	l := zerolog.New(os.Stdout).With().Timestamp().Str("self", pcontext.NodeName).Str("version", version).Logger()
 	ctx := l.WithContext(context.Background())
 
-	ctx, err = metrics.WithContext(ctx, p2pcontext.NodeName, "peerd")
+	ctx, err = metrics.WithContext(ctx, pcontext.NodeName, "peerd")
 	if err != nil {
 		l.Error().Err(err).Msg("failed to initialize metrics")
 		os.Exit(1)
@@ -86,7 +86,7 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 		return err
 	}
 
-	clientset, err := k8s.NewKubernetesInterface(p2pcontext.KubeConfigPath, p2pcontext.NodeName)
+	clientset, err := k8s.NewKubernetesInterface(pcontext.KubeConfigPath, pcontext.NodeName)
 	if err != nil {
 		return err
 	}

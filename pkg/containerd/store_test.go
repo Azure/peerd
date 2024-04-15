@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/azure/peerd/pkg/mocks"
+	"github.com/azure/peerd/pkg/containerd/mocks"
 	"github.com/containerd/containerd"
 	eventtypes "github.com/containerd/containerd/api/events"
 	"github.com/containerd/containerd/events"

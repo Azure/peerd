@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/azure/peerd/pkg/containerd"
-	"github.com/azure/peerd/pkg/discovery/routing/tests"
+	"github.com/azure/peerd/pkg/discovery/routing/mocks"
 	"github.com/stretchr/testify/require"
 )
 
@@ -33,7 +33,7 @@ func TestContainerdStoreAds(t *testing.T) {
 	}
 
 	containerdStore := containerd.NewMockContainerdStore(refs)
-	router := tests.NewMockRouter(map[string][]string{})
+	router := mocks.NewMockRouter(map[string][]string{})
 
 	ctx, cancel := context.WithCancel(context.TODO())
 	go func() {

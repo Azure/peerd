@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/azure/peerd/pkg/mocks"
+	"github.com/azure/peerd/pkg/peernet/mocks"
 )
 
 func TestNew(t *testing.T) {
