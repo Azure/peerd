@@ -1,13 +1,12 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
-package tests
+package mocks
 
 import (
 	"context"
 	"sync"
 
 	"github.com/azure/peerd/pkg/discovery/routing"
-	"github.com/azure/peerd/pkg/mocks"
 	"github.com/azure/peerd/pkg/peernet"
 	"github.com/libp2p/go-libp2p/core/peer"
 )
@@ -38,7 +37,7 @@ func (m *MockRouter) ResolveWithNegativeCacheCallback(ctx context.Context, key s
 var _ routing.Router = &MockRouter{}
 
 func NewMockRouter(resolver map[string][]string) *MockRouter {
-	n, err := peernet.New(&mocks.MockHost{PeerStore: &mocks.MockPeerstore{}})
+	n, err := peernet.New(&MockHost{PeerStore: &MockPeerstore{}})
 	if err != nil {
 		panic(err)
 	}

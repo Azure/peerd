@@ -19,7 +19,7 @@ import (
 	"github.com/azure/peerd/internal/files/store"
 	"github.com/azure/peerd/internal/handlers"
 	"github.com/azure/peerd/pkg/containerd"
-	"github.com/azure/peerd/pkg/discovery"
+	"github.com/azure/peerd/pkg/discovery/content/provider"
 	"github.com/azure/peerd/pkg/discovery/routing"
 	"github.com/azure/peerd/pkg/k8s"
 	"github.com/azure/peerd/pkg/k8s/events"
@@ -157,7 +157,7 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 	g, ctx := errgroup.WithContext(ctx)
 
 	g.Go(func() error {
-		discovery.Provide(ctx, r, containerdStore, filesStore.Subscribe())
+		provider.Provide(ctx, r, containerdStore, filesStore.Subscribe())
 		return nil
 	})
 

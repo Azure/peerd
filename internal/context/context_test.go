@@ -3,11 +3,9 @@
 package context
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -67,62 +65,6 @@ func TestSetOutboundHeaders(t *testing.T) {
 
 	if req.Header.Get(NodeHeaderKey) != NodeName {
 		t.Errorf("expected: %v, got: %v", NodeName, req.Header.Get(NodeHeaderKey))
-	}
-}
-
-func TestMerge(t *testing.T) {
-
-	ch1 := make(chan string, 10)
-	ch2 := make(chan string)
-	ch3 := make(chan string, 100)
-	ch4 := make(chan string, 1000)
-
-	mergedChan := Merge(ch1, ch2, ch3, ch4)
-
-	// Write to the channels.
-	go func() {
-		for i := 0; i < 100; i++ {
-			ch1 <- fmt.Sprintf("ch1-%d", i)
-		}
-		close(ch1)
-	}()
-
-	go func() {
-		for i := 0; i < 100; i++ {
-			ch2 <- fmt.Sprintf("ch2-%d", i)
-		}
-		close(ch2)
-	}()
-
-	go func() {
-		for i := 0; i < 100; i++ {
-			ch3 <- fmt.Sprintf("ch3-%d", i)
-		}
-		close(ch3)
-	}()
-
-	go func() {
-		for i := 0; i < 100; i++ {
-			ch4 <- fmt.Sprintf("ch4-%d", i)
-		}
-		close(ch4)
-	}()
-
-	// Read from the merged channel.
-	total := 0
-	for val := range mergedChan {
-		if strings.HasPrefix(val, "ch1-") ||
-			strings.HasPrefix(val, "ch2-") ||
-			strings.HasPrefix(val, "ch3-") ||
-			strings.HasPrefix(val, "ch4-") {
-			total++
-		} else {
-			t.Errorf("unexpected value: %v", val)
-		}
-	}
-
-	if total != 400 {
-		t.Errorf("expected: %v, got: %v", 400, total)
 	}
 }
 

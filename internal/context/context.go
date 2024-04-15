@@ -9,7 +9,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -90,32 +89,6 @@ func SetOutboundHeaders(r *http.Request, c *gin.Context) {
 	r.Header.Set(P2PHeaderKey, "true")
 	r.Header.Set(CorrelationHeaderKey, c.GetString(CorrelationIdCtxKey))
 	r.Header.Set(NodeHeaderKey, NodeName)
-}
-
-// Merge merges multiple input channels into a single output channel.
-// It starts a goroutine for each input channel and sends the values from each input channel to the output channel.
-// Once all input channels are closed, it closes the output channel.
-// The function returns the output channel.
-func Merge[T any](cs ...<-chan T) <-chan T {
-	var wg sync.WaitGroup
-	out := make(chan T)
-
-	output := func(c <-chan T) {
-		for n := range c {
-			out <- n
-		}
-		wg.Done()
-	}
-	wg.Add(len(cs))
-	for _, c := range cs {
-		go output(c)
-	}
-
-	go func() {
-		wg.Wait()
-		close(out)
-	}()
-	return out
 }
 
 // RangeStartIndex returns the start index of a byte range specified in the given range header value.
