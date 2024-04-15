@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
-package v2
+package registry
 
 import (
 	"context"
@@ -24,7 +24,7 @@ var (
 	ResolveTimeout = 1 * time.Second
 )
 
-// Mirror is a handler that handles requests to this registry Mirror.
+// Mirror is a handler that handles requests to this registry proxy.
 type Mirror struct {
 	resolveTimeout time.Duration
 	router         routing.Router
@@ -118,8 +118,8 @@ func (m *Mirror) Handle(c pcontext.Context) {
 	}
 }
 
-// NewMirror creates a new mirror handler.
-func NewMirror(router routing.Router) *Mirror {
+// New creates a new mirror handler.
+func New(router routing.Router) *Mirror {
 	return &Mirror{
 		resolveTimeout: ResolveTimeout,
 		router:         router,

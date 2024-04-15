@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
-package v2
+package containerd
 
 import (
 	"fmt"
@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/azure/peerd/pkg/containerd"
 	pcontext "github.com/azure/peerd/pkg/context"
 	"github.com/azure/peerd/pkg/oci/distribution"
 	"github.com/opencontainers/go-digest"
@@ -24,7 +23,7 @@ const (
 
 // Registry is a handler that handles requests to this registry.
 type Registry struct {
-	containerdStore containerd.Store
+	containerdStore Store
 }
 
 // Handle handles a request to this registry.
@@ -138,7 +137,7 @@ func (r *Registry) handleBlob(c pcontext.Context, dgst digest.Digest) {
 }
 
 // NewRegistry creates a new registry handler.
-func NewRegistry(containerdStore containerd.Store) *Registry {
+func NewRegistry(containerdStore Store) *Registry {
 	return &Registry{
 		containerdStore: containerdStore,
 	}

@@ -15,12 +15,12 @@ import (
 	"time"
 
 	"github.com/alexflint/go-arg"
-	"github.com/azure/peerd/internal/handlers"
 	"github.com/azure/peerd/pkg/containerd"
 	pcontext "github.com/azure/peerd/pkg/context"
 	"github.com/azure/peerd/pkg/discovery/content/provider"
 	"github.com/azure/peerd/pkg/discovery/routing"
 	"github.com/azure/peerd/pkg/files/store"
+	"github.com/azure/peerd/pkg/handlers"
 	"github.com/azure/peerd/pkg/k8s"
 	"github.com/azure/peerd/pkg/k8s/events"
 	"github.com/azure/peerd/pkg/metrics"
