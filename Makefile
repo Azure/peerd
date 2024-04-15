@@ -10,7 +10,7 @@ GOLINT = golangci-lint run
 # Source repository variables.
 ROOT_DIR := $(shell git rev-parse --show-toplevel)
 BIN_DIR = $(ROOT_DIR)/bin
-TEST_PKGS = $(shell go list ./... | grep -v 'github.com/azure/peerd/api\|github.com/azure/peerd/pkg/mocks') # Exclude generated and mock code.
+TEST_PKGS = $(shell go list ./... | grep -v 'github.com/azure/peerd/api\|github.com/azure/peerd/pkg/discovery/routing/mocks') # Exclude generated and mock code.
 TESTS_BIN_DIR = $(BIN_DIR)/tests
 COVERAGE_DIR=$(BIN_DIR)/coverage
 SCRIPTS_DIR=$(ROOT_DIR)/build/ci/scripts

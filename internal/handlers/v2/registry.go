@@ -8,10 +8,9 @@ import (
 	"strconv"
 	"time"
 
-	p2pcontext "github.com/azure/peerd/internal/context"
 	"github.com/azure/peerd/pkg/containerd"
+	pcontext "github.com/azure/peerd/pkg/context"
 	"github.com/azure/peerd/pkg/oci/distribution"
-	"github.com/gin-gonic/gin"
 	"github.com/opencontainers/go-digest"
 )
 
@@ -28,16 +27,14 @@ type Registry struct {
 	containerdStore containerd.Store
 }
 
-var _ gin.HandlerFunc = (&Registry{}).Handle
-
 // Handle handles a request to this registry.
-func (r *Registry) Handle(c *gin.Context) {
-	dgstStr := c.GetString(p2pcontext.DigestCtxKey)
-	ref := c.GetString(p2pcontext.ReferenceCtxKey)
+func (r *Registry) Handle(c pcontext.Context) {
+	dgstStr := c.GetString(pcontext.DigestCtxKey)
+	ref := c.GetString(pcontext.ReferenceCtxKey)
 	var d digest.Digest
 	var err error
 
-	l := p2pcontext.Logger(c).With().Str("handler", "registry").Str("ref", ref).Str("digest", dgstStr).Logger()
+	l := pcontext.Logger(c).With().Str("handler", "registry").Str("ref", ref).Str("digest", dgstStr).Logger()
 	l.Debug().Msg("registry handler start")
 	s := time.Now()
 	defer func() {
@@ -61,7 +58,7 @@ func (r *Registry) Handle(c *gin.Context) {
 		}
 	}
 
-	refType, ok := c.Get(p2pcontext.RefTypeCtxKey)
+	refType, ok := c.Get(pcontext.RefTypeCtxKey)
 	if !ok {
 		//nolint
 		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("ref type not found in context"))
@@ -83,7 +80,7 @@ func (r *Registry) Handle(c *gin.Context) {
 }
 
 // handleManifest handles a manifest request.
-func (r *Registry) handleManifest(c *gin.Context, dgst digest.Digest) {
+func (r *Registry) handleManifest(c pcontext.Context, dgst digest.Digest) {
 	size, err := r.containerdStore.Size(c, dgst)
 	if err != nil {
 		//nolint
@@ -118,7 +115,7 @@ func (r *Registry) handleManifest(c *gin.Context, dgst digest.Digest) {
 }
 
 // handleBlob handles a blob request.
-func (r *Registry) handleBlob(c *gin.Context, dgst digest.Digest) {
+func (r *Registry) handleBlob(c pcontext.Context, dgst digest.Digest) {
 	size, err := r.containerdStore.Size(c, dgst)
 	if err != nil {
 		//nolint

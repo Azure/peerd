@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"time"
 
-	p2pcontext "github.com/azure/peerd/internal/context"
-	filesStore "github.com/azure/peerd/internal/files/store"
 	"github.com/azure/peerd/internal/handlers/files"
 	v2 "github.com/azure/peerd/internal/handlers/v2"
 	"github.com/azure/peerd/pkg/containerd"
+	pcontext "github.com/azure/peerd/pkg/context"
 	"github.com/azure/peerd/pkg/discovery/routing"
+	filesStore "github.com/azure/peerd/pkg/files/store"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 )
@@ -44,10 +44,13 @@ func newEngine(ctx context.Context) *gin.Engine {
 	baseLog := zerolog.Ctx(ctx)
 
 	engine.Use(func(c *gin.Context) {
-		p2pcontext.FillCorrelationId(c)
-		c.Set(p2pcontext.LoggerCtxKey, baseLog)
 
-		l := p2pcontext.Logger(c)
+		pc := pcontext.FromContext(c)
+
+		pcontext.FillCorrelationId(pc)
+		c.Set(pcontext.LoggerCtxKey, baseLog)
+
+		l := pcontext.Logger(pc)
 		l.Debug().Msg("request start")
 		s := time.Now()
 
@@ -94,7 +97,7 @@ func registerRoutes(engine *gin.Engine, f, v gin.HandlerFunc) {
 // @Failure 404 {string} string "Not Found"
 // @Router /blobs/{url} [get]
 func fileHandler(c *gin.Context) {
-	fh.Handle(c)
+	fh.Handle(pcontext.FromContext(c))
 }
 
 // v2Handler is a handler function for the /v2 API
@@ -107,5 +110,5 @@ func fileHandler(c *gin.Context) {
 // @Router /v2/{repo}/manifests/{reference} [get]
 // @Router /v2/{repo}/blobs/{digest} [get]
 func v2Handler(c *gin.Context) {
-	v2h.Handle(c)
+	v2h.Handle(pcontext.FromContext(c))
 }

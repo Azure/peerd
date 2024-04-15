@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/azure/peerd/internal/remote"
+	"github.com/azure/peerd/pkg/discovery/content/reader"
 	"github.com/rs/zerolog"
 )
 
@@ -83,4 +83,4 @@ func (m *mockReader) PreadRemote(buf []byte, offset int64) (int, error) {
 	}
 }
 
-var _ remote.Reader = &mockReader{}
+var _ reader.Reader = &mockReader{}

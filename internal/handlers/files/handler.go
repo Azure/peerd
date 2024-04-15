@@ -8,10 +8,9 @@ import (
 	"os"
 	"time"
 
-	p2pcontext "github.com/azure/peerd/internal/context"
-	"github.com/azure/peerd/internal/files/store"
+	pcontext "github.com/azure/peerd/pkg/context"
+	"github.com/azure/peerd/pkg/files/store"
 	"github.com/azure/peerd/pkg/metrics"
-	"github.com/gin-gonic/gin"
 )
 
 // FilesHandler describes a handler for files.
@@ -20,11 +19,9 @@ type FilesHandler struct {
 	metricsRecorder metrics.Metrics
 }
 
-var _ gin.HandlerFunc = (&FilesHandler{}).Handle
-
 // Handle handles a request for a file.
-func (h *FilesHandler) Handle(c *gin.Context) {
-	log := p2pcontext.Logger(c).With().Str("blob", p2pcontext.BlobUrl(c)).Bool("p2p", p2pcontext.IsRequestFromAPeer(c)).Logger()
+func (h *FilesHandler) Handle(c pcontext.Context) {
+	log := pcontext.Logger(c).With().Str("blob", pcontext.BlobUrl(c)).Bool("p2p", pcontext.IsRequestFromAPeer(c)).Logger()
 	log.Debug().Msg("files handler start")
 	s := time.Now()
 	defer func() {
@@ -56,14 +53,14 @@ func (h *FilesHandler) Handle(c *gin.Context) {
 
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Header().Del("Content-Length")
-	w.Header().Set(p2pcontext.NodeHeaderKey, p2pcontext.NodeName)
-	w.Header().Set(p2pcontext.CorrelationHeaderKey, c.GetString(p2pcontext.CorrelationIdCtxKey))
+	w.Header().Set(pcontext.NodeHeaderKey, pcontext.NodeName)
+	w.Header().Set(pcontext.CorrelationHeaderKey, c.GetString(pcontext.CorrelationIdCtxKey))
 
 	http.ServeContent(w, c.Request, "file", time.Now(), f)
 }
 
 // fill fills the context with handler specific information.
-func (h *FilesHandler) fill(c *gin.Context) error {
+func (h *FilesHandler) fill(c pcontext.Context) error {
 	c.Set("handler", "files")
 
 	key, d, err := h.store.Key(c)
@@ -71,10 +68,10 @@ func (h *FilesHandler) fill(c *gin.Context) error {
 		return err
 	}
 
-	c.Set(p2pcontext.DigestCtxKey, d.String())
-	c.Set(p2pcontext.FileChunkCtxKey, key)
-	c.Set(p2pcontext.BlobUrlCtxKey, p2pcontext.BlobUrl(c))
-	c.Set(p2pcontext.BlobRangeCtxKey, c.Request.Header.Get("Range"))
+	c.Set(pcontext.DigestCtxKey, d.String())
+	c.Set(pcontext.FileChunkCtxKey, key)
+	c.Set(pcontext.BlobUrlCtxKey, pcontext.BlobUrl(c))
+	c.Set(pcontext.BlobRangeCtxKey, c.Request.Header.Get("Range"))
 
 	return nil
 }

@@ -9,9 +9,9 @@ import (
 	"os"
 	"testing"
 
-	p2pcontext "github.com/azure/peerd/internal/context"
-	"github.com/azure/peerd/internal/files"
-	"github.com/azure/peerd/pkg/discovery/routing/tests"
+	pcontext "github.com/azure/peerd/pkg/context"
+	"github.com/azure/peerd/pkg/discovery/routing/mocks"
+	"github.com/azure/peerd/pkg/files"
 	"github.com/gin-gonic/gin"
 	"github.com/opencontainers/go-digest"
 )
@@ -29,7 +29,7 @@ func TestOpenP2p(t *testing.T) {
 		t.Fatal(err)
 	}
 	req.Header.Set("Range", fmt.Sprintf("bytes=%v-%v", files.CacheBlockSize, files.CacheBlockSize+172))
-	req.Header.Set(p2pcontext.P2PHeaderKey, "true")
+	req.Header.Set(pcontext.P2PHeaderKey, "true")
 
 	expD := "sha256:d18c7a64c5158179bdee531a663c5b487de57ff17cff3af29a51c7e70b491d9d"
 	expK := fmt.Sprintf("%v%v%v", expD, files.FileChunkKeySep, files.CacheBlockSize)
@@ -40,15 +40,15 @@ func TestOpenP2p(t *testing.T) {
 	ctx.Params = []gin.Param{
 		{Key: "url", Value: hostAndPath},
 	}
-	ctx.Set(p2pcontext.FileChunkCtxKey, expK)
+	ctx.Set(pcontext.FileChunkCtxKey, expK)
 
 	PrefetchWorkers = 0 // turn off prefetching
-	s, err := NewFilesStore(ctxWithMetrics, tests.NewMockRouter(make(map[string][]string)))
+	s, err := NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = s.Open(ctx)
+	_, err = s.Open(pcontext.Context{Context: ctx})
 	if err != os.ErrNotExist {
 		t.Errorf("expected %v, got %v", os.ErrNotExist, err)
 	}
@@ -71,17 +71,17 @@ func TestOpenNonP2p(t *testing.T) {
 	ctx.Params = []gin.Param{
 		{Key: "url", Value: hostAndPath},
 	}
-	ctx.Set(p2pcontext.FileChunkCtxKey, expK)
+	ctx.Set(pcontext.FileChunkCtxKey, expK)
 
 	PrefetchWorkers = 0 // turn off prefetching
-	s, err := NewMockStore(ctxWithMetrics, tests.NewMockRouter(make(map[string][]string)))
+	s, err := NewMockStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)))
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	s.Cache().PutSize(expD, 200)
 
-	_, err = s.Open(ctx)
+	_, err = s.Open(pcontext.Context{Context: ctx})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -105,12 +105,12 @@ func TestKey(t *testing.T) {
 		{Key: "url", Value: hostAndPath},
 	}
 
-	s, err := NewFilesStore(ctxWithMetrics, tests.NewMockRouter(make(map[string][]string)))
+	s, err := NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	k, d, err := s.Key(ctx)
+	k, d, err := s.Key(pcontext.Context{Context: ctx})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -125,7 +125,7 @@ func TestKey(t *testing.T) {
 }
 
 func TestSubscribe(t *testing.T) {
-	s, err := NewFilesStore(ctxWithMetrics, tests.NewMockRouter(make(map[string][]string)))
+	s, err := NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)))
 	if err != nil {
 		t.Fatal(err)
 	}

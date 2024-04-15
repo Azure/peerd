@@ -10,7 +10,7 @@ import (
 	"syscall"
 
 	"github.com/alexflint/go-arg"
-	p2pcontext "github.com/azure/peerd/internal/context"
+	pcontext "github.com/azure/peerd/pkg/context"
 	"github.com/azure/peerd/tests/random"
 	"github.com/azure/peerd/tests/scanner"
 	"github.com/rs/zerolog"
@@ -21,7 +21,7 @@ func main() {
 	arg.MustParse(args)
 
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	l := zerolog.New(os.Stdout).With().Timestamp().Str("node", p2pcontext.NodeName).Str("version", version).Logger()
+	l := zerolog.New(os.Stdout).With().Timestamp().Str("node", pcontext.NodeName).Str("version", version).Logger()
 	ctx := l.WithContext(context.Background())
 
 	err := run(ctx, args)

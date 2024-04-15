@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	p2pcontext "github.com/azure/peerd/internal/context"
 	"github.com/azure/peerd/pkg/containerd"
+	pcontext "github.com/azure/peerd/pkg/context"
 	"github.com/azure/peerd/pkg/oci/distribution"
 	"github.com/gin-gonic/gin"
 )
@@ -43,7 +43,9 @@ func TestHandleManifest(t *testing.T) {
 
 	mc.Request = req
 
-	r.handleManifest(mc, "sha256:bb863d6b95453b6b10dfaa1a52cb53f453d9a97ee775808ebaf6533bb4c9bb30")
+	pmc := pcontext.Context{Context: mc}
+
+	r.handleManifest(pmc, "sha256:bb863d6b95453b6b10dfaa1a52cb53f453d9a97ee775808ebaf6533bb4c9bb30")
 
 	if mr.Code != 200 {
 		t.Fatalf("expected 200, got %d", mr.Code)
@@ -83,7 +85,9 @@ func TestHandleBlob(t *testing.T) {
 
 	mc.Request = req
 
-	r.handleBlob(mc, "sha256:blob")
+	pmc := pcontext.Context{Context: mc}
+
+	r.handleBlob(pmc, "sha256:blob")
 
 	if mr.Code != 200 {
 		t.Fatalf("expected 200, got %d", mr.Code)
@@ -122,11 +126,13 @@ func TestHandle(t *testing.T) {
 	}
 
 	mc.Request = req
-	mc.Set(p2pcontext.DigestCtxKey, "sha256:bb863d6b95453b6b10dfaa1a52cb53f453d9a97ee775808ebaf6533bb4c9bb30")
-	mc.Set(p2pcontext.ReferenceCtxKey, "library/alpine:3.18.0")
-	mc.Set(p2pcontext.RefTypeCtxKey, distribution.ReferenceType(distribution.ReferenceTypeManifest))
+	mc.Set(pcontext.DigestCtxKey, "sha256:bb863d6b95453b6b10dfaa1a52cb53f453d9a97ee775808ebaf6533bb4c9bb30")
+	mc.Set(pcontext.ReferenceCtxKey, "library/alpine:3.18.0")
+	mc.Set(pcontext.RefTypeCtxKey, distribution.ReferenceType(distribution.ReferenceTypeManifest))
 
-	r.Handle(mc)
+	pmc := pcontext.Context{Context: mc}
+
+	r.Handle(pmc)
 
 	if mr.Code != 200 {
 		t.Fatalf("expected 200, got %d", mr.Code)

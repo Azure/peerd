@@ -6,9 +6,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/azure/peerd/internal/files/store"
 	"github.com/azure/peerd/pkg/containerd"
-	"github.com/azure/peerd/pkg/discovery/routing/tests"
+	"github.com/azure/peerd/pkg/discovery/routing/mocks"
+	"github.com/azure/peerd/pkg/files/store"
 	"github.com/azure/peerd/pkg/metrics"
 	"github.com/gin-gonic/gin"
 )
@@ -102,7 +102,7 @@ func TestNewEngine(t *testing.T) {
 }
 
 func TestHandler(t *testing.T) {
-	mr := tests.NewMockRouter(map[string][]string{})
+	mr := mocks.NewMockRouter(map[string][]string{})
 	ms := containerd.NewMockContainerdStore(nil)
 	mfs, err := store.NewMockStore(ctxWithMetrics, mr)
 	if err != nil {

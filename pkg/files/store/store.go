@@ -9,14 +9,13 @@ import (
 	"strings"
 	"time"
 
-	p2pcontext "github.com/azure/peerd/internal/context"
-	"github.com/azure/peerd/internal/files"
-	"github.com/azure/peerd/internal/remote"
 	"github.com/azure/peerd/pkg/cache"
+	pcontext "github.com/azure/peerd/pkg/context"
+	"github.com/azure/peerd/pkg/discovery/content/reader"
 	"github.com/azure/peerd/pkg/discovery/routing"
+	"github.com/azure/peerd/pkg/files"
 	"github.com/azure/peerd/pkg/metrics"
 	"github.com/azure/peerd/pkg/urlparser"
-	"github.com/gin-gonic/gin"
 	"github.com/opencontainers/go-digest"
 	"github.com/rs/zerolog"
 )
@@ -58,7 +57,7 @@ type prefetchableSegment struct {
 	offset int64
 	count  int
 
-	reader remote.Reader
+	reader reader.Reader
 }
 
 // store describes a content store whose contents can come from disk or a remote source.
@@ -82,15 +81,15 @@ func (s *store) Subscribe() chan string {
 }
 
 // Open opens the requested file and starts prefetching it.
-func (s *store) Open(c *gin.Context) (File, error) {
+func (s *store) Open(c pcontext.Context) (File, error) {
 
-	chunkKey := c.GetString(p2pcontext.FileChunkCtxKey)
+	chunkKey := c.GetString(pcontext.FileChunkCtxKey)
 	tokens := strings.Split(chunkKey, files.FileChunkKeySep)
 	name := tokens[0]
 	alignedOff, _ := strconv.ParseInt(tokens[1], 10, 64)
 
-	log := p2pcontext.Logger(c)
-	if p2pcontext.IsRequestFromAPeer(c) {
+	log := pcontext.Logger(c)
+	if pcontext.IsRequestFromAPeer(c) {
 		// This request came from a peer. Don't serve it unless we have the requested range cached.
 		if ok := s.cache.Exists(name, alignedOff); !ok {
 			log.Info().Str("name", name).Msg("peer request not cached")
@@ -103,10 +102,10 @@ func (s *store) Open(c *gin.Context) (File, error) {
 		store:  s,
 		cur:    0,
 		size:   0,
-		reader: remote.NewReader(c, s.router, s.resolveRetries, s.resolveTimeout, s.metricsRecorder),
+		reader: reader.NewReader(c, s.router, s.resolveRetries, s.resolveTimeout, s.metricsRecorder),
 	}
 
-	if p2pcontext.IsRequestFromAPeer(c) {
+	if pcontext.IsRequestFromAPeer(c) {
 		// Ensure this file can only serve the requested chunk.
 		// This is to prevent infinite loops when a peer requests a file that is not cached.
 		f.chunkOffset = alignedOff
@@ -122,10 +121,10 @@ func (s *store) Open(c *gin.Context) (File, error) {
 }
 
 // Key tries to find the cache key for the requested content or returns empty.
-func (s *store) Key(c *gin.Context) (string, digest.Digest, error) {
-	log := p2pcontext.Logger(c)
+func (s *store) Key(c pcontext.Context) (string, digest.Digest, error) {
+	log := pcontext.Logger(c)
 
-	blobUrl := p2pcontext.BlobUrl(c)
+	blobUrl := pcontext.BlobUrl(c)
 	d, err := s.parser.ParseDigest(blobUrl)
 	if err != nil {
 		log.Error().Err(err).Msg("store key")
@@ -133,7 +132,7 @@ func (s *store) Key(c *gin.Context) (string, digest.Digest, error) {
 
 	startIndex := int64(0) // Default to 0 for HEADs.
 	if c.Request.Method == "GET" {
-		startIndex, err = p2pcontext.RangeStartIndex(c.Request.Header.Get("Range"))
+		startIndex, err = pcontext.RangeStartIndex(c.Request.Header.Get("Range"))
 		if err != nil {
 			return "", "", err
 		}

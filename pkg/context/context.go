@@ -9,11 +9,15 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
+)
+
+const (
+	// KubeConfigPath is the path of the kubeconfig file.
+	KubeConfigPath = "/opt/peerd/kubeconfig"
 )
 
 // Context keys.
@@ -31,9 +35,9 @@ const (
 
 // Request headers.
 const (
-	P2PHeaderKey         = "X-MS-Cluster-P2P-RequestFromPeer"
-	CorrelationHeaderKey = "X-MS-Cluster-P2P-CorrelationId"
-	NodeHeaderKey        = "X-MS-Cluster-P2P-Node"
+	P2PHeaderKey         = "X-MS-Peerd-RequestFromPeer"
+	CorrelationHeaderKey = "X-MS-Peerd-CorrelationId"
+	NodeHeaderKey        = "X-MS-Peerd-Node"
 )
 
 // Log messages.
@@ -47,17 +51,31 @@ const (
 
 var (
 	NodeName, _ = os.Hostname()
-
-	// KubeConfigPath is the path of the kubeconfig file.
-	KubeConfigPath = "/opt/peerd/kubeconfig"
 )
 
+// Context is the request context that can be passed around to various components to provide request specific information.
+type Context struct {
+	*gin.Context
+}
+
+// FromContext creates a new context from the given gin context.
+func FromContext(c *gin.Context) Context {
+	return Context{Context: c}
+}
+
+// Copy creates a copy of the context that can be safely used outside the request's scope.
+func (c Context) Copy() Context {
+	cc := c.Context.Copy()
+	return Context{Context: cc}
+}
+
 // IsRequestFromAPeer indicates if the current request is from a peer.
-func IsRequestFromAPeer(c *gin.Context) bool {
+func IsRequestFromAPeer(c Context) bool {
 	return c.Request.Header.Get(P2PHeaderKey) == "true"
 }
 
-func FillCorrelationId(c *gin.Context) {
+// FillCorrelationId fills the correlation ID in the context.
+func FillCorrelationId(c Context) {
 	correlationId := c.Request.Header.Get(CorrelationHeaderKey)
 	if correlationId == "" {
 		correlationId = uuid.New().String()
@@ -65,8 +83,15 @@ func FillCorrelationId(c *gin.Context) {
 	c.Set(CorrelationIdCtxKey, correlationId)
 }
 
+// SetOutboundHeaders sets the mandatory headers for all outbound requests.
+func SetOutboundHeaders(r *http.Request, c Context) {
+	r.Header.Set(P2PHeaderKey, "true")
+	r.Header.Set(CorrelationHeaderKey, c.GetString(CorrelationIdCtxKey))
+	r.Header.Set(NodeHeaderKey, NodeName)
+}
+
 // Logger gets the logger with request specific fields.
-func Logger(c *gin.Context) zerolog.Logger {
+func Logger(c Context) zerolog.Logger {
 	var l zerolog.Logger
 	obj, ok := c.Get(LoggerCtxKey)
 	if !ok {
@@ -81,41 +106,8 @@ func Logger(c *gin.Context) zerolog.Logger {
 }
 
 // BlobUrl extracts the blob URL from the incoming request URL.
-func BlobUrl(c *gin.Context) string {
+func BlobUrl(c Context) string {
 	return strings.TrimPrefix(c.Param("url"), "/") + "?" + c.Request.URL.RawQuery
-}
-
-// SetOutboundHeaders sets the mandatory headers for all outbound requests.
-func SetOutboundHeaders(r *http.Request, c *gin.Context) {
-	r.Header.Set(P2PHeaderKey, "true")
-	r.Header.Set(CorrelationHeaderKey, c.GetString(CorrelationIdCtxKey))
-	r.Header.Set(NodeHeaderKey, NodeName)
-}
-
-// Merge merges multiple input channels into a single output channel.
-// It starts a goroutine for each input channel and sends the values from each input channel to the output channel.
-// Once all input channels are closed, it closes the output channel.
-// The function returns the output channel.
-func Merge[T any](cs ...<-chan T) <-chan T {
-	var wg sync.WaitGroup
-	out := make(chan T)
-
-	output := func(c <-chan T) {
-		for n := range c {
-			out <- n
-		}
-		wg.Done()
-	}
-	wg.Add(len(cs))
-	for _, c := range cs {
-		go output(c)
-	}
-
-	go func() {
-		wg.Wait()
-		close(out)
-	}()
-	return out
 }
 
 // RangeStartIndex returns the start index of a byte range specified in the given range header value.

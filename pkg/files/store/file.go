@@ -8,8 +8,8 @@ import (
 
 	"sync"
 
-	"github.com/azure/peerd/internal/files"
-	"github.com/azure/peerd/internal/remote"
+	"github.com/azure/peerd/pkg/discovery/content/reader"
+	"github.com/azure/peerd/pkg/files"
 	"github.com/azure/peerd/pkg/math"
 )
 
@@ -27,7 +27,7 @@ type file struct {
 
 	chunkOffset int64
 
-	reader remote.Reader
+	reader reader.Reader
 	store  *store
 }
 

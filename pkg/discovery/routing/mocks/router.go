@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
-package tests
+package mocks
 
 import (
 	"context"
 	"sync"
 
 	"github.com/azure/peerd/pkg/discovery/routing"
-	"github.com/azure/peerd/pkg/mocks"
 	"github.com/azure/peerd/pkg/peernet"
+	"github.com/azure/peerd/pkg/peernet/mocks"
 	"github.com/libp2p/go-libp2p/core/peer"
 )
 

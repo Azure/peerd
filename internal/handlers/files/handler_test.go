@@ -10,10 +10,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	p2pcontext "github.com/azure/peerd/internal/context"
-	"github.com/azure/peerd/internal/files"
-	"github.com/azure/peerd/internal/files/store"
-	"github.com/azure/peerd/pkg/discovery/routing/tests"
+	pcontext "github.com/azure/peerd/pkg/context"
+	"github.com/azure/peerd/pkg/discovery/routing/mocks"
+	"github.com/azure/peerd/pkg/files"
+	"github.com/azure/peerd/pkg/files/store"
 	"github.com/azure/peerd/pkg/metrics"
 	"github.com/gin-gonic/gin"
 )
@@ -34,7 +34,7 @@ func TestPartialContentResponseInP2PMode(t *testing.T) {
 	}
 	expRange := fmt.Sprintf("bytes=%v-%v", 12, 100)
 	req.Header.Set("Range", expRange)
-	req.Header.Set(p2pcontext.P2PHeaderKey, "true")
+	req.Header.Set(pcontext.P2PHeaderKey, "true")
 
 	expD := "sha256:d18c7a64c5158179bdee531a663c5b487de57ff17cff3af29a51c7e70b491d9d"
 
@@ -47,7 +47,7 @@ func TestPartialContentResponseInP2PMode(t *testing.T) {
 	}
 
 	store.PrefetchWorkers = 0 // turn off prefetching
-	s, err := store.NewMockStore(ctxWithMetrics, tests.NewMockRouter(make(map[string][]string)))
+	s, err := store.NewMockStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -63,11 +63,13 @@ func TestPartialContentResponseInP2PMode(t *testing.T) {
 		return []byte(content), nil
 	})
 
-	h.Handle(ctx)
+	pctx := pcontext.FromContext(ctx)
+
+	h.Handle(pctx)
 	resp := recorder.Result()
 
 	if resp.StatusCode != http.StatusPartialContent {
-		t.Errorf("expected %v, got %v", http.StatusOK, ctx.Writer.Status())
+		t.Errorf("expected %v, got %v", http.StatusOK, pctx.Writer.Status())
 	}
 
 	ret, err := io.ReadAll(resp.Body)
@@ -87,7 +89,7 @@ func TestNotFoundInP2PMode(t *testing.T) {
 	}
 	expRange := fmt.Sprintf("bytes=%v-%v", files.CacheBlockSize, files.CacheBlockSize+172)
 	req.Header.Set("Range", expRange)
-	req.Header.Set(p2pcontext.P2PHeaderKey, "true")
+	req.Header.Set(pcontext.P2PHeaderKey, "true")
 
 	// Create a new context with the request.
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
@@ -97,14 +99,16 @@ func TestNotFoundInP2PMode(t *testing.T) {
 	}
 
 	store.PrefetchWorkers = 0 // turn off prefetching
-	s, err := store.NewFilesStore(ctxWithMetrics, tests.NewMockRouter(make(map[string][]string)))
+	s, err := store.NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)))
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	h := New(ctxWithMetrics, s)
 
-	h.Handle(ctx)
+	pmc := pcontext.FromContext(ctx)
+
+	h.Handle(pmc)
 	if ctx.Writer.Status() != http.StatusNotFound {
 		t.Errorf("expected %v, got %v", http.StatusNotFound, ctx.Writer.Status())
 	}
@@ -118,7 +122,7 @@ func TestFill(t *testing.T) {
 	}
 	expRange := fmt.Sprintf("bytes=%v-%v", files.CacheBlockSize, files.CacheBlockSize+172)
 	req.Header.Set("Range", expRange)
-	req.Header.Set(p2pcontext.P2PHeaderKey, "true")
+	req.Header.Set(pcontext.P2PHeaderKey, "true")
 
 	expD := "sha256:d18c7a64c5158179bdee531a663c5b487de57ff17cff3af29a51c7e70b491d9d"
 	expK := fmt.Sprintf("%v_%v", expD, files.CacheBlockSize)
@@ -131,26 +135,28 @@ func TestFill(t *testing.T) {
 	}
 
 	store.PrefetchWorkers = 0 // turn off prefetching
-	s, err := store.NewFilesStore(ctxWithMetrics, tests.NewMockRouter(make(map[string][]string)))
+	s, err := store.NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)))
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	h := New(ctxWithMetrics, s)
 
-	err = h.fill(ctx)
+	pmc := pcontext.FromContext(ctx)
+
+	err = h.fill(pmc)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if ctx.GetString(p2pcontext.FileChunkCtxKey) != expK {
-		t.Errorf("expected %v, got %v", expK, ctx.GetString(p2pcontext.FileChunkCtxKey))
+	if ctx.GetString(pcontext.FileChunkCtxKey) != expK {
+		t.Errorf("expected %v, got %v", expK, ctx.GetString(pcontext.FileChunkCtxKey))
 	}
 
-	if ctx.GetString(p2pcontext.BlobRangeCtxKey) != expRange {
-		t.Errorf("expected %v, got %v", expRange, ctx.GetString(p2pcontext.BlobRangeCtxKey))
+	if ctx.GetString(pcontext.BlobRangeCtxKey) != expRange {
+		t.Errorf("expected %v, got %v", expRange, ctx.GetString(pcontext.BlobRangeCtxKey))
 	}
 
-	if ctx.GetString(p2pcontext.BlobUrlCtxKey) != hostAndPath+query {
-		t.Errorf("expected %v, got %v", hostAndPath+query, ctx.GetString(p2pcontext.BlobUrlCtxKey))
+	if ctx.GetString(pcontext.BlobUrlCtxKey) != hostAndPath+query {
+		t.Errorf("expected %v, got %v", hostAndPath+query, ctx.GetString(pcontext.BlobUrlCtxKey))
 	}
 }
