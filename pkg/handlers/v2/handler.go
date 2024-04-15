@@ -10,6 +10,7 @@ import (
 
 	"github.com/azure/peerd/pkg/containerd"
 	pcontext "github.com/azure/peerd/pkg/context"
+	"github.com/azure/peerd/pkg/discovery/content/registry"
 	"github.com/azure/peerd/pkg/discovery/routing"
 	"github.com/azure/peerd/pkg/metrics"
 	"github.com/azure/peerd/pkg/oci/distribution"
@@ -17,8 +18,8 @@ import (
 
 // V2Handler describes a handler for OCI content.
 type V2Handler struct {
-	mirror          *Mirror
-	registry        *Registry
+	proxy           *registry.Mirror
+	registry        *containerd.Registry
 	metricsRecorder metrics.Metrics
 }
 
@@ -55,7 +56,7 @@ func (h *V2Handler) Handle(c pcontext.Context) {
 		h.registry.Handle(c)
 		return
 	} else {
-		h.mirror.Handle(c)
+		h.proxy.Handle(c)
 		return
 	}
 }
@@ -86,8 +87,8 @@ func (h *V2Handler) fill(c pcontext.Context) error {
 // New creates a new OCI content handler.
 func New(ctx context.Context, router routing.Router, containerdStore containerd.Store) (*V2Handler, error) {
 	return &V2Handler{
-		mirror:          NewMirror(router),
-		registry:        NewRegistry(containerdStore),
+		proxy:           registry.New(router),
+		registry:        containerd.NewRegistry(containerdStore),
 		metricsRecorder: metrics.FromContext(ctx),
 	}, nil
 }
