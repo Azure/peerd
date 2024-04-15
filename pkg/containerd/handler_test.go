@@ -1,13 +1,12 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
-package v2
+package containerd
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/azure/peerd/pkg/containerd"
 	pcontext "github.com/azure/peerd/pkg/context"
 	"github.com/azure/peerd/pkg/oci/distribution"
 	"github.com/gin-gonic/gin"
@@ -15,7 +14,7 @@ import (
 
 func TestNewRegistry(t *testing.T) {
 	// Create a new registry
-	r := NewRegistry(containerd.NewMockContainerdStore(nil))
+	r := NewRegistry(NewMockContainerdStore(nil))
 
 	if r == nil {
 		t.Fatal("expected registry")
@@ -23,13 +22,13 @@ func TestNewRegistry(t *testing.T) {
 }
 
 func TestHandleManifest(t *testing.T) {
-	img, err := containerd.ParseReference("library/alpine:3.18.0", "sha256:bb863d6b95453b6b10dfaa1a52cb53f453d9a97ee775808ebaf6533bb4c9bb30")
+	img, err := ParseReference("library/alpine:3.18.0", "sha256:bb863d6b95453b6b10dfaa1a52cb53f453d9a97ee775808ebaf6533bb4c9bb30")
 	if err != nil {
 		t.Fatal(err)
 	}
-	refs := []containerd.Reference{img}
+	refs := []Reference{img}
 
-	ms := containerd.NewMockContainerdStore(refs)
+	ms := NewMockContainerdStore(refs)
 
 	r := NewRegistry(ms)
 
@@ -65,13 +64,13 @@ func TestHandleManifest(t *testing.T) {
 }
 
 func TestHandleBlob(t *testing.T) {
-	img, err := containerd.ParseReference("library/alpine:3.18.0", "sha256:blob")
+	img, err := ParseReference("library/alpine:3.18.0", "sha256:blob")
 	if err != nil {
 		t.Fatal(err)
 	}
-	refs := []containerd.Reference{img}
+	refs := []Reference{img}
 
-	ms := containerd.NewMockContainerdStore(refs)
+	ms := NewMockContainerdStore(refs)
 
 	r := NewRegistry(ms)
 
@@ -107,13 +106,13 @@ func TestHandleBlob(t *testing.T) {
 }
 
 func TestHandle(t *testing.T) {
-	img, err := containerd.ParseReference("library/alpine:3.18.0", "sha256:bb863d6b95453b6b10dfaa1a52cb53f453d9a97ee775808ebaf6533bb4c9bb30")
+	img, err := ParseReference("library/alpine:3.18.0", "sha256:bb863d6b95453b6b10dfaa1a52cb53f453d9a97ee775808ebaf6533bb4c9bb30")
 	if err != nil {
 		t.Fatal(err)
 	}
-	refs := []containerd.Reference{img}
+	refs := []Reference{img}
 
-	ms := containerd.NewMockContainerdStore(refs)
+	ms := NewMockContainerdStore(refs)
 
 	r := NewRegistry(ms)
 
