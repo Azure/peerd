@@ -8,8 +8,8 @@ import (
 
 	"sync"
 
-	"github.com/azure/peerd/internal/files"
 	"github.com/azure/peerd/pkg/discovery/content/reader"
+	"github.com/azure/peerd/pkg/files"
 	"github.com/azure/peerd/pkg/math"
 )
 

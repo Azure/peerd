@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/azure/peerd/internal/files"
 	"github.com/azure/peerd/pkg/cache"
 	pcontext "github.com/azure/peerd/pkg/context"
 	"github.com/azure/peerd/pkg/discovery/content/reader"
 	"github.com/azure/peerd/pkg/discovery/routing"
+	"github.com/azure/peerd/pkg/files"
 	"github.com/azure/peerd/pkg/metrics"
 	"github.com/azure/peerd/pkg/urlparser"
 	"github.com/opencontainers/go-digest"

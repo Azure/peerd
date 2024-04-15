@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"time"
 
-	filesStore "github.com/azure/peerd/internal/files/store"
 	"github.com/azure/peerd/internal/handlers/files"
 	v2 "github.com/azure/peerd/internal/handlers/v2"
 	"github.com/azure/peerd/pkg/containerd"
 	pcontext "github.com/azure/peerd/pkg/context"
 	"github.com/azure/peerd/pkg/discovery/routing"
+	filesStore "github.com/azure/peerd/pkg/files/store"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 )

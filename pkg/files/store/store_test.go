@@ -9,9 +9,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/azure/peerd/internal/files"
 	pcontext "github.com/azure/peerd/pkg/context"
 	"github.com/azure/peerd/pkg/discovery/routing/mocks"
+	"github.com/azure/peerd/pkg/files"
 	"github.com/gin-gonic/gin"
 	"github.com/opencontainers/go-digest"
 )

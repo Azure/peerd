@@ -8,8 +8,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/azure/peerd/internal/files/store"
 	pcontext "github.com/azure/peerd/pkg/context"
+	"github.com/azure/peerd/pkg/files/store"
 	"github.com/azure/peerd/pkg/metrics"
 )
 

@@ -10,10 +10,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/azure/peerd/internal/files"
-	"github.com/azure/peerd/internal/files/store"
 	pcontext "github.com/azure/peerd/pkg/context"
 	"github.com/azure/peerd/pkg/discovery/routing/mocks"
+	"github.com/azure/peerd/pkg/files"
+	"github.com/azure/peerd/pkg/files/store"
 	"github.com/azure/peerd/pkg/metrics"
 	"github.com/gin-gonic/gin"
 )

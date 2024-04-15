@@ -9,10 +9,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/azure/peerd/internal/files"
 	"github.com/azure/peerd/pkg/cache"
 	readermocks "github.com/azure/peerd/pkg/discovery/content/reader/mocks"
 	"github.com/azure/peerd/pkg/discovery/routing/mocks"
+	"github.com/azure/peerd/pkg/files"
 )
 
 func TestReadAtWithChunkOffset(t *testing.T) {
