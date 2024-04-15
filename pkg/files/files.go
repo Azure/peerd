@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/azure/peerd/internal/remote"
+	"github.com/azure/peerd/pkg/discovery/content/reader"
 	"github.com/azure/peerd/pkg/math"
 )
 
@@ -23,7 +23,7 @@ func FileChunkKey(name string, offset, cacheBlockSize int64) string {
 }
 
 // Fetchfile gets the content of a file from the given offset using a remote reader.
-func FetchFile(r remote.Reader, name string, offset int64, count int) ([]byte, error) {
+func FetchFile(r reader.Reader, name string, offset int64, count int) ([]byte, error) {
 	d := make([]byte, count)
 	l := r.Log().With().Str("name", name).Int64("offset", offset).Int("count", count).Logger()
 	l.Debug().Msg("fetch file start")

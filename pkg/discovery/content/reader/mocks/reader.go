@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
-package tests
+package mocks
 
 import (
-	"github.com/azure/peerd/internal/remote"
+	"github.com/azure/peerd/pkg/discovery/content/reader"
 	"github.com/rs/zerolog"
 )
 
@@ -13,7 +13,7 @@ type mockReader struct {
 	data []byte
 }
 
-var _ remote.Reader = &mockReader{}
+var _ reader.Reader = &mockReader{}
 
 // FstatRemote implements remote.Reader.
 func (m *mockReader) FstatRemote() (int64, error) {
@@ -34,6 +34,6 @@ func (m *mockReader) PreadRemote(buf []byte, offset int64) (int, error) {
 }
 
 // NewMockReader creates a new mock reader for testing purposes.
-func NewMockReader(data []byte) remote.Reader {
+func NewMockReader(data []byte) reader.Reader {
 	return &mockReader{data: data}
 }

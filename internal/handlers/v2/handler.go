@@ -8,12 +8,11 @@ import (
 	"path"
 	"time"
 
-	p2pcontext "github.com/azure/peerd/internal/context"
 	"github.com/azure/peerd/pkg/containerd"
+	pcontext "github.com/azure/peerd/pkg/context"
 	"github.com/azure/peerd/pkg/discovery/routing"
 	"github.com/azure/peerd/pkg/metrics"
 	"github.com/azure/peerd/pkg/oci/distribution"
-	"github.com/gin-gonic/gin"
 )
 
 // V2Handler describes a handler for OCI content.
@@ -23,17 +22,15 @@ type V2Handler struct {
 	metricsRecorder metrics.Metrics
 }
 
-var _ gin.HandlerFunc = (&V2Handler{}).Handle
-
 // Handle handles a request for a file.
-func (h *V2Handler) Handle(c *gin.Context) {
-	l := p2pcontext.Logger(c).With().Bool("p2p", p2pcontext.IsRequestFromAPeer(c)).Logger()
+func (h *V2Handler) Handle(c pcontext.Context) {
+	l := pcontext.Logger(c).With().Bool("p2p", pcontext.IsRequestFromAPeer(c)).Logger()
 	l.Debug().Msg("v2 handler start")
 	s := time.Now()
 	defer func() {
 		dur := time.Since(s)
 		h.metricsRecorder.RecordRequest(c.Request.Method, "oci", dur.Seconds())
-		l.Debug().Dur("duration", dur).Str("ns", c.GetString(p2pcontext.NamespaceCtxKey)).Str("ref", c.GetString(p2pcontext.ReferenceCtxKey)).Str("digest", c.GetString(p2pcontext.DigestCtxKey)).Msg("v2 handler stop")
+		l.Debug().Dur("duration", dur).Str("ns", c.GetString(pcontext.NamespaceCtxKey)).Str("ref", c.GetString(pcontext.ReferenceCtxKey)).Str("digest", c.GetString(pcontext.DigestCtxKey)).Msg("v2 handler stop")
 	}()
 
 	p := path.Clean(c.Request.URL.Path)
@@ -54,7 +51,7 @@ func (h *V2Handler) Handle(c *gin.Context) {
 		return
 	}
 
-	if p2pcontext.IsRequestFromAPeer(c) {
+	if pcontext.IsRequestFromAPeer(c) {
 		h.registry.Handle(c)
 		return
 	} else {
@@ -64,7 +61,7 @@ func (h *V2Handler) Handle(c *gin.Context) {
 }
 
 // fill fills the context with handler specific information.
-func (h *V2Handler) fill(c *gin.Context) error {
+func (h *V2Handler) fill(c pcontext.Context) error {
 	c.Set("handler", "v2")
 
 	ns := c.Query("ns")
@@ -72,16 +69,16 @@ func (h *V2Handler) fill(c *gin.Context) error {
 		ns = "docker.io"
 	}
 
-	c.Set(p2pcontext.NamespaceCtxKey, ns)
+	c.Set(pcontext.NamespaceCtxKey, ns)
 
 	ref, dgst, refType, err := distribution.ParsePathComponents(ns, c.Request.URL.Path)
 	if err != nil {
 		return err
 	}
 
-	c.Set(p2pcontext.ReferenceCtxKey, ref)
-	c.Set(p2pcontext.DigestCtxKey, dgst.String())
-	c.Set(p2pcontext.RefTypeCtxKey, refType)
+	c.Set(pcontext.ReferenceCtxKey, ref)
+	c.Set(pcontext.DigestCtxKey, dgst.String())
+	c.Set(pcontext.RefTypeCtxKey, refType)
 
 	return nil
 }

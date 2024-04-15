@@ -3,11 +3,9 @@
 package context
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -29,7 +27,9 @@ func TestLogger(t *testing.T) {
 	c, _ := gin.CreateTestContext(httptest.NewRecorder())
 	c.Request = req
 
-	l := Logger(c)
+	pc := FromContext(c)
+
+	l := Logger(pc)
 	if l.Info().Enabled() {
 		t.Fatal("expected logger to be disabled")
 	}
@@ -37,7 +37,7 @@ func TestLogger(t *testing.T) {
 	testL := zerolog.New(os.Stdout).With().Timestamp().Logger()
 	c.Set(LoggerCtxKey, &testL)
 
-	l = Logger(c)
+	l = Logger(pc)
 	if !l.Info().Enabled() {
 		t.Fatal("expected logger to be enabled")
 	}
@@ -53,9 +53,12 @@ func TestSetOutboundHeaders(t *testing.T) {
 	// Create a new context with the request.
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 	ctx.Request = req
-	FillCorrelationId(ctx)
 
-	SetOutboundHeaders(req, ctx)
+	pc := FromContext(ctx)
+
+	FillCorrelationId(pc)
+
+	SetOutboundHeaders(req, pc)
 
 	if req.Header.Get(P2PHeaderKey) != "true" {
 		t.Errorf("expected: %v, got: %v", "true", req.Header.Get(P2PHeaderKey))
@@ -67,62 +70,6 @@ func TestSetOutboundHeaders(t *testing.T) {
 
 	if req.Header.Get(NodeHeaderKey) != NodeName {
 		t.Errorf("expected: %v, got: %v", NodeName, req.Header.Get(NodeHeaderKey))
-	}
-}
-
-func TestMerge(t *testing.T) {
-
-	ch1 := make(chan string, 10)
-	ch2 := make(chan string)
-	ch3 := make(chan string, 100)
-	ch4 := make(chan string, 1000)
-
-	mergedChan := Merge(ch1, ch2, ch3, ch4)
-
-	// Write to the channels.
-	go func() {
-		for i := 0; i < 100; i++ {
-			ch1 <- fmt.Sprintf("ch1-%d", i)
-		}
-		close(ch1)
-	}()
-
-	go func() {
-		for i := 0; i < 100; i++ {
-			ch2 <- fmt.Sprintf("ch2-%d", i)
-		}
-		close(ch2)
-	}()
-
-	go func() {
-		for i := 0; i < 100; i++ {
-			ch3 <- fmt.Sprintf("ch3-%d", i)
-		}
-		close(ch3)
-	}()
-
-	go func() {
-		for i := 0; i < 100; i++ {
-			ch4 <- fmt.Sprintf("ch4-%d", i)
-		}
-		close(ch4)
-	}()
-
-	// Read from the merged channel.
-	total := 0
-	for val := range mergedChan {
-		if strings.HasPrefix(val, "ch1-") ||
-			strings.HasPrefix(val, "ch2-") ||
-			strings.HasPrefix(val, "ch3-") ||
-			strings.HasPrefix(val, "ch4-") {
-			total++
-		} else {
-			t.Errorf("unexpected value: %v", val)
-		}
-	}
-
-	if total != 400 {
-		t.Errorf("expected: %v, got: %v", 400, total)
 	}
 }
 
@@ -140,8 +87,10 @@ func TestBlobUrl(t *testing.T) {
 		{Key: "url", Value: hostAndPath},
 	}
 
+	pc := FromContext(ctx)
+
 	// Call BlobUrl and verify the result.
-	got := BlobUrl(ctx)
+	got := BlobUrl(pc)
 	if got != u {
 		t.Errorf("expected: %v, got: %v", u, got)
 	}
@@ -157,8 +106,10 @@ func TestFillCorrelationId(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 	ctx.Request = req
 
-	FillCorrelationId(ctx)
-	cid, ok := ctx.Get(CorrelationIdCtxKey)
+	pc := FromContext(ctx)
+
+	FillCorrelationId(pc)
+	cid, ok := pc.Get(CorrelationIdCtxKey)
 	if !ok || cid == "" {
 		t.Fatal("expected correlation ID to be set")
 	}
@@ -168,8 +119,11 @@ func TestFillCorrelationId(t *testing.T) {
 	ctx, _ = gin.CreateTestContext(httptest.NewRecorder())
 	ctx.Request = req
 	ctx.Request.Header.Set(CorrelationHeaderKey, sample)
-	FillCorrelationId(ctx)
-	cid, ok = ctx.Get(CorrelationIdCtxKey)
+
+	pc = FromContext(ctx)
+
+	FillCorrelationId(pc)
+	cid, ok = pc.Get(CorrelationIdCtxKey)
 	if !ok || cid == "" {
 		t.Fatal("expected correlation ID to be set")
 	} else if cid != sample {
@@ -187,12 +141,14 @@ func TestIsRequestFromPeer(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 	ctx.Request = req
 
-	if IsRequestFromAPeer(ctx) {
+	pc := FromContext(ctx)
+
+	if IsRequestFromAPeer(pc) {
 		t.Fatal("expected request to not be from a peer")
 	}
 
 	ctx.Request.Header.Set(P2PHeaderKey, "true")
-	if !IsRequestFromAPeer(ctx) {
+	if !IsRequestFromAPeer(pc) {
 		t.Fatal("expected request to be from a peer")
 	}
 }

@@ -5,17 +5,17 @@ package store
 import (
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/azure/peerd/pkg/context"
 	"github.com/opencontainers/go-digest"
 )
 
 // FilesStore describes a store for files.
 type FilesStore interface {
 	// Key tries to find the cache key for the requested content or returns empty.
-	Key(c *gin.Context) (key string, d digest.Digest, err error)
+	Key(c context.Context) (key string, d digest.Digest, err error)
 
 	// Open opens the requested file and starts prefetching it. It also returns the size of the file.
-	Open(c *gin.Context) (File, error)
+	Open(c context.Context) (File, error)
 
 	// Subscribe returns a channel that will be notified when a blob is added to the store.
 	Subscribe() chan string

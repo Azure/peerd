@@ -9,10 +9,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/azure/peerd/internal/files"
-	remotetests "github.com/azure/peerd/internal/remote/tests"
 	"github.com/azure/peerd/pkg/cache"
-	"github.com/azure/peerd/pkg/discovery/routing/tests"
+	readermocks "github.com/azure/peerd/pkg/discovery/content/reader/mocks"
+	"github.com/azure/peerd/pkg/discovery/routing/mocks"
+	"github.com/azure/peerd/pkg/files"
 )
 
 func TestReadAtWithChunkOffset(t *testing.T) {
@@ -20,14 +20,14 @@ func TestReadAtWithChunkOffset(t *testing.T) {
 
 	files.CacheBlockSize = 1 // 1 byte
 
-	s, err := NewFilesStore(ctxWithMetrics, tests.NewMockRouter(make(map[string][]string)))
+	s, err := NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)))
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	fWithChunkOffset := &file{
 		Name:        "test",
-		reader:      remotetests.NewMockReader(data),
+		reader:      readermocks.NewMockReader(data),
 		store:       s.(*store),
 		chunkOffset: 4,
 	}
@@ -78,14 +78,14 @@ func TestReadAt(t *testing.T) {
 
 	files.CacheBlockSize = 1 // 1 byte
 
-	s, err := NewFilesStore(ctxWithMetrics, tests.NewMockRouter(make(map[string][]string)))
+	s, err := NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)))
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	f := &file{
 		Name:   "test",
-		reader: remotetests.NewMockReader(data),
+		reader: readermocks.NewMockReader(data),
 		store:  s.(*store),
 	}
 	size, err := f.Fstat()
@@ -128,14 +128,14 @@ func TestReadAt(t *testing.T) {
 func TestSeek(t *testing.T) {
 	data := []byte("hello world")
 
-	s, err := NewFilesStore(ctxWithMetrics, tests.NewMockRouter(make(map[string][]string)))
+	s, err := NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)))
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	f := &file{
 		Name:   "test",
-		reader: remotetests.NewMockReader(data),
+		reader: readermocks.NewMockReader(data),
 		store:  s.(*store),
 	}
 	size, err := f.Fstat()
@@ -192,14 +192,14 @@ func TestFstat(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s, err := NewFilesStore(ctxWithMetrics, tests.NewMockRouter(make(map[string][]string)))
+	s, err := NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)))
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	f := &file{
 		Name:   "test",
-		reader: remotetests.NewMockReader(data),
+		reader: readermocks.NewMockReader(data),
 		store:  s.(*store),
 	}
 
@@ -212,7 +212,7 @@ func TestFstat(t *testing.T) {
 
 	f = &file{
 		Name:        "test2",
-		reader:      remotetests.NewMockReader(data),
+		reader:      readermocks.NewMockReader(data),
 		store:       s.(*store),
 		chunkOffset: 14,
 	}

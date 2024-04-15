@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
-package discovery
+package provider
 
 import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
-	p2pcontext "github.com/azure/peerd/internal/context"
 	"github.com/azure/peerd/pkg/containerd"
 	"github.com/azure/peerd/pkg/discovery/routing"
 	"github.com/rs/zerolog"
@@ -41,7 +41,7 @@ func Provide(ctx context.Context, r routing.Router, containerdStore containerd.S
 	expirationTicker := time.NewTicker(routing.MaxRecordAge - time.Minute)
 	defer expirationTicker.Stop()
 
-	ticker := p2pcontext.Merge(immediate, expirationTicker.C)
+	ticker := merge(immediate, expirationTicker.C)
 
 	for {
 		select {
@@ -123,4 +123,30 @@ func provideRef(ctx context.Context, l zerolog.Logger, containerdStore container
 	}
 
 	return len(keys), nil
+}
+
+// Merge merges multiple input channels into a single output channel.
+// It starts a goroutine for each input channel and sends the values from each input channel to the output channel.
+// Once all input channels are closed, it closes the output channel.
+// The function returns the output channel.
+func merge[T any](cs ...<-chan T) <-chan T {
+	var wg sync.WaitGroup
+	out := make(chan T)
+
+	output := func(c <-chan T) {
+		for n := range c {
+			out <- n
+		}
+		wg.Done()
+	}
+	wg.Add(len(cs))
+	for _, c := range cs {
+		go output(c)
+	}
+
+	go func() {
+		wg.Wait()
+		close(out)
+	}()
+	return out
 }

@@ -9,8 +9,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	p2pcontext "github.com/azure/peerd/internal/context"
-	"github.com/azure/peerd/pkg/discovery/routing/tests"
+	pcontext "github.com/azure/peerd/pkg/context"
+	"github.com/azure/peerd/pkg/discovery/routing/mocks"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 )
@@ -62,7 +62,7 @@ func TestMirrorHandler(t *testing.T) {
 		"first-peer-error":  {"foo", goodSvr.URL},
 		"last-peer-working": {badSvr.URL, badSvr.URL, goodSvr.URL},
 	}
-	router := tests.NewMockRouter(resolver)
+	router := mocks.NewMockRouter(resolver)
 	m := &Mirror{
 		router:         router,
 		resolveRetries: ResolveRetries,
@@ -120,8 +120,8 @@ func TestMirrorHandler(t *testing.T) {
 				c, _ := gin.CreateTestContext(rw)
 				target := fmt.Sprintf("http://example.com/%s", tt.key)
 				c.Request = httptest.NewRequest(method, target, nil)
-				c.Set(p2pcontext.DigestCtxKey, tt.key)
-				m.Handle(c)
+				c.Set(pcontext.DigestCtxKey, tt.key)
+				m.Handle(pcontext.FromContext(c))
 
 				resp := rw.Result()
 				defer resp.Body.Close()

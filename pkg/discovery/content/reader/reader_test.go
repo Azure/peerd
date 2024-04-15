@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
-package remote
+package reader
 
 import (
 	"net/http"
@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	p2pcontext "github.com/azure/peerd/internal/context"
-	"github.com/azure/peerd/pkg/discovery/routing/tests"
+	pcontext "github.com/azure/peerd/pkg/context"
+	"github.com/azure/peerd/pkg/discovery/routing/mocks"
 	"github.com/azure/peerd/pkg/metrics"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
@@ -64,17 +64,20 @@ func TestPreadRemoteUpstream(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	router := tests.NewMockRouter(m)
+	router := mocks.NewMockRouter(m)
 	c, _ := gin.CreateTestContext(httptest.NewRecorder())
 	c.Request = req
 	c.Params = []gin.Param{
 		{Key: "url", Value: p},
 	}
-	c.Set(p2pcontext.BlobUrlCtxKey, p2pcontext.BlobUrl(c))
-	c.Set(p2pcontext.BlobRangeCtxKey, "bytes=0-10")
-	c.Set(p2pcontext.FileChunkCtxKey, key)
 
-	r := NewReader(c, router, 3, 500*time.Millisecond, mr).(*reader)
+	pc := pcontext.FromContext(c)
+
+	pc.Set(pcontext.BlobUrlCtxKey, pcontext.BlobUrl(pc))
+	pc.Set(pcontext.BlobRangeCtxKey, "bytes=0-10")
+	pc.Set(pcontext.FileChunkCtxKey, key)
+
+	r := NewReader(pc, router, 3, 500*time.Millisecond, mr).(*reader)
 	b := make([]byte, 10)
 
 	// Test
@@ -113,16 +116,19 @@ func TestFstatRemote(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	router := tests.NewMockRouter(m)
+	router := mocks.NewMockRouter(m)
 	c, _ := gin.CreateTestContext(httptest.NewRecorder())
 	c.Request = req
 	c.Params = []gin.Param{
 		{Key: "url", Value: p},
 	}
-	c.Set(p2pcontext.BlobUrlCtxKey, p2pcontext.BlobUrl(c))
-	c.Set(p2pcontext.BlobRangeCtxKey, "bytes=0-0")
 
-	r := NewReader(c, router, 3, 500*time.Millisecond, mr).(*reader)
+	pc := pcontext.FromContext(c)
+
+	pc.Set(pcontext.BlobUrlCtxKey, pcontext.BlobUrl(pc))
+	pc.Set(pcontext.BlobRangeCtxKey, "bytes=0-0")
+
+	r := NewReader(pc, router, 3, 500*time.Millisecond, mr).(*reader)
 
 	got, err := r.FstatRemote()
 	if err != nil {
@@ -156,16 +162,19 @@ func TestFstatRemotePartialContent(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	router := tests.NewMockRouter(m)
+	router := mocks.NewMockRouter(m)
 	c, _ := gin.CreateTestContext(httptest.NewRecorder())
 	c.Request = req
 	c.Params = []gin.Param{
 		{Key: "url", Value: p},
 	}
-	c.Set(p2pcontext.BlobUrlCtxKey, p2pcontext.BlobUrl(c))
-	c.Set(p2pcontext.BlobRangeCtxKey, "bytes=0-0")
 
-	r := NewReader(c, router, 3, 500*time.Millisecond, mr).(*reader)
+	pc := pcontext.FromContext(c)
+
+	pc.Set(pcontext.BlobUrlCtxKey, pcontext.BlobUrl(pc))
+	pc.Set(pcontext.BlobRangeCtxKey, "bytes=0-0")
+
+	r := NewReader(pc, router, 3, 500*time.Millisecond, mr).(*reader)
 
 	got, err := r.FstatRemote()
 	if err != nil {
@@ -202,10 +211,10 @@ func TestP2pRetries(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	router := tests.NewMockRouter(m)
+	router := mocks.NewMockRouter(m)
 	c, _ := gin.CreateTestContext(httptest.NewRecorder())
 	c.Request = req
-	r := NewReader(c, router, 3, 500*time.Millisecond, mr).(*reader)
+	r := NewReader(pcontext.FromContext(c), router, 3, 500*time.Millisecond, mr).(*reader)
 	b := make([]byte, 10)
 
 	got, err := r.doP2p(l, key, 0, 10, operationPreadRemote, b)
@@ -239,10 +248,10 @@ func TestP2pSuccess(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	router := tests.NewMockRouter(m)
+	router := mocks.NewMockRouter(m)
 	c, _ := gin.CreateTestContext(httptest.NewRecorder())
 	c.Request = req
-	r := NewReader(c, router, 3, 500*time.Millisecond, mr).(*reader)
+	r := NewReader(pcontext.FromContext(c), router, 3, 500*time.Millisecond, mr).(*reader)
 	b := make([]byte, 10)
 
 	got, err := r.doP2p(l, key, 0, 10, operationPreadRemote, b)
@@ -266,11 +275,11 @@ func TestP2pPeerNotFound(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	router := tests.NewMockRouter(m)
+	router := mocks.NewMockRouter(m)
 	c, _ := gin.CreateTestContext(httptest.NewRecorder())
 	c.Request = req
 
-	r := NewReader(c, router, 3, 500*time.Millisecond, mr).(*reader)
+	r := NewReader(pcontext.FromContext(c), router, 3, 500*time.Millisecond, mr).(*reader)
 
 	b := make([]byte, 10)
 	_, err = r.doP2p(l, "key", 0, 10, operationPreadRemote, b)
@@ -295,12 +304,12 @@ func TestP2pNoInfiniteLoops(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	router := tests.NewMockRouter(m)
+	router := mocks.NewMockRouter(m)
 	c, _ := gin.CreateTestContext(httptest.NewRecorder())
 	c.Request = req
-	c.Request.Header.Add(p2pcontext.P2PHeaderKey, "true")
+	c.Request.Header.Add(pcontext.P2PHeaderKey, "true")
 
-	r := NewReader(c, router, 3, 500*time.Millisecond, mr).(*reader)
+	r := NewReader(pcontext.FromContext(c), router, 3, 500*time.Millisecond, mr).(*reader)
 
 	b := make([]byte, 10)
 	_, err = r.doP2p(l, key, 0, 10, operationPreadRemote, b)

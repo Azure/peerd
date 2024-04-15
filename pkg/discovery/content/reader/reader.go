@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
-package remote
+package reader
 
 import (
 	"context"
@@ -12,10 +12,9 @@ import (
 	"strings"
 	"time"
 
-	p2pcontext "github.com/azure/peerd/internal/context"
+	pcontext "github.com/azure/peerd/pkg/context"
 	"github.com/azure/peerd/pkg/discovery/routing"
 	"github.com/azure/peerd/pkg/metrics"
-	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 )
 
@@ -30,7 +29,7 @@ var errPeerNotFound = errors.New("peer not found")
 
 // reader is a Reader implementation.
 type reader struct {
-	context        *gin.Context
+	context        pcontext.Context
 	resolveTimeout time.Duration
 
 	router            routing.Router
@@ -44,13 +43,13 @@ var _ Reader = &reader{}
 
 // Log returns the logger with context for this reader.
 func (r *reader) Log() *zerolog.Logger {
-	l := p2pcontext.Logger(r.context)
+	l := pcontext.Logger(r.context)
 	return &l
 }
 
 // PreadRemote is like pread but to a remote file.
 func (r *reader) PreadRemote(buf []byte, offset int64) (int, error) {
-	key := r.context.GetString(p2pcontext.FileChunkCtxKey)
+	key := r.context.GetString(pcontext.FileChunkCtxKey)
 	start := offset
 	end := int64(len(buf)) + offset - 1
 
@@ -78,7 +77,7 @@ func (r *reader) PreadRemote(buf []byte, offset int64) (int, error) {
 
 // FstatRemote stats a remote file.
 func (r *reader) FstatRemote() (int64, error) {
-	key := r.context.GetString(p2pcontext.FileChunkCtxKey)
+	key := r.context.GetString(pcontext.FileChunkCtxKey)
 	start := int64(0)
 	end := int64(0)
 
@@ -100,13 +99,13 @@ func (r *reader) FstatRemote() (int64, error) {
 
 // doP2p tries to resolve the key in the p2p network and if successful, it will perform the operation on the peer, and return the result.
 func (r *reader) doP2p(log zerolog.Logger, fileChunkKey string, start, end int64, o operation, buf []byte) (int64, error) {
-	if p2pcontext.IsRequestFromAPeer(r.context) {
+	if pcontext.IsRequestFromAPeer(r.context) {
 		log.Warn().Msg("refusing to propagate request from one peer to another")
 		return -1, errPeerNotFound
 	}
 
-	log.Debug().Msg(p2pcontext.PeerResolutionStartLog)
-	defer log.Debug().Msg(p2pcontext.PeerResolutionStopLog)
+	log.Debug().Msg(pcontext.PeerResolutionStartLog)
+	defer log.Debug().Msg(pcontext.PeerResolutionStopLog)
 
 	resolveCtx, cancel := context.WithTimeout(log.WithContext(r.context), r.resolveTimeout)
 	defer cancel()
@@ -116,7 +115,7 @@ func (r *reader) doP2p(log zerolog.Logger, fileChunkKey string, start, end int64
 	peersCh, negCacheCallback, err := r.router.ResolveWithNegativeCacheCallback(resolveCtx, fileChunkKey, false, r.resolveRetries)
 	if err != nil {
 		//nolint:errcheck // ignore
-		log.Error().Err(err).Msg(p2pcontext.PeerRequestErrorLog)
+		log.Error().Err(err).Msg(pcontext.PeerRequestErrorLog)
 		return -1, err
 	}
 
@@ -128,14 +127,14 @@ peerLoop:
 		case <-resolveCtx.Done():
 			// Resolving mirror has timed out.
 			negCacheCallback()
-			log.Info().Msg(p2pcontext.PeerNotFoundLog)
+			log.Info().Msg(pcontext.PeerNotFoundLog)
 			break peerLoop
 
 		case peer, ok := <-peersCh:
 			// Channel closed means no more mirrors will be received and max retries has been reached.
 			if !ok {
 				negCacheCallback()
-				log.Info().Msg(p2pcontext.PeerResolutionExhaustedLog)
+				log.Info().Msg(pcontext.PeerResolutionExhaustedLog)
 				break peerLoop
 			}
 
@@ -147,7 +146,7 @@ peerLoop:
 
 			peerReq, err := r.peerRequest(peer.HttpHost, start, end)
 			if err != nil {
-				log.Error().Err(err).Msg(p2pcontext.PeerRequestErrorLog)
+				log.Error().Err(err).Msg(pcontext.PeerRequestErrorLog)
 				// try next peer
 				break
 			}
@@ -168,7 +167,7 @@ peerLoop:
 
 			if err != nil {
 				// try next peer
-				log.Error().Err(err).Msg(p2pcontext.PeerRequestErrorLog)
+				log.Error().Err(err).Msg(pcontext.PeerRequestErrorLog)
 			} else {
 				op := "fstat"
 				if o == operationPreadRemote {
@@ -249,12 +248,12 @@ func (r *reader) preadRemote(log zerolog.Logger, req *http.Request, client *http
 
 // originRequest will create a new request to origin.
 func (r *reader) originRequest(start, end int64) (*http.Request, error) {
-	return r.remoteRequest(r.context.GetString(p2pcontext.BlobUrlCtxKey), start, end)
+	return r.remoteRequest(r.context.GetString(pcontext.BlobUrlCtxKey), start, end)
 }
 
 // perRequest will create a new request to a peer.
 func (r *reader) peerRequest(peer string, start, end int64) (*http.Request, error) {
-	return r.remoteRequest(fmt.Sprintf("%v/blobs/%v", peer, r.context.GetString(p2pcontext.BlobUrlCtxKey)), start, end)
+	return r.remoteRequest(fmt.Sprintf("%v/blobs/%v", peer, r.context.GetString(pcontext.BlobUrlCtxKey)), start, end)
 }
 
 // remoteRequest creates a new HTTP request to a remote server.
@@ -271,16 +270,15 @@ func (r *reader) remoteRequest(u string, start, end int64) (*http.Request, error
 	}
 
 	req.Header.Set("Range", fmt.Sprintf("bytes=%d-%d", start, end))
-	p2pcontext.SetOutboundHeaders(req, r.context)
+	pcontext.SetOutboundHeaders(req, r.context)
 
 	return req, nil
 }
 
 // NewReader creates a new remote reader.
-func NewReader(c *gin.Context, router routing.Router, resolveRetries int, resolveTimeout time.Duration, metricsRecorder metrics.Metrics) Reader {
-	cc := c.Copy()
+func NewReader(c pcontext.Context, router routing.Router, resolveRetries int, resolveTimeout time.Duration, metricsRecorder metrics.Metrics) Reader {
 	return &reader{
-		context:           cc,
+		context:           c.Copy(),
 		resolveTimeout:    resolveTimeout,
 		router:            router,
 		resolveRetries:    resolveRetries,
