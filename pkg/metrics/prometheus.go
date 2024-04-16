@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
 // Package metrics provides a metrics collector that stores metrics in Prometheus.
 package metrics
 
