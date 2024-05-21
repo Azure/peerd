@@ -89,7 +89,6 @@ By default, some well known registries are mirrored (see [values.yml]), but this
 CLUSTER_CONTEXT=<your-cluster-context> && \
   helm --kube-context=$CLUSTER_CONTEXT install --wait peerd ./build/package/peerd-helm \
     --set peerd.image.ref=ghcr.io/azure/acr/dev/peerd:stable
-    --set peerd.hosts="mcr.microsoft.com ghcr.io docker.io"
 ```
 
 On deployment, each Peerd instance will try to connect to its peers in the cluster. 
