@@ -26,10 +26,13 @@ include $(ROOT_DIR)/tests/Makefile
 .DEFAULT_GOAL := all
 
 .PHONY: all
-all: lint test build ## Runs the peerd build targets in the correct order.
+all: check test build ## Runs the peerd build targets in the correct order.
+
+.PHONY: check
+check: check-format lint vet ## Check the source code.
 
 .PHONY: build
-build: ## Build the peerd packages
+build: ## Build the peerd packages.
 	@echo "+ $@"
 	@( $(GOBUILD) -o $(BIN_DIR)/peerd ./cmd/proxy )
 
@@ -69,6 +72,16 @@ endif
 	$(call build-image-internal,$(ROOT_DIR)/build/package/Dockerfile,peerd,$(ROOT_DIR))
 
 info: header
+
+.PHONY: check-format
+check-format: ## Format the Go code.
+	@echo "+ $@"
+	@( test -z $(gofmt -l .) )
+
+.PHONY: vet
+vet: ## Run go vet.
+	@echo "+ $@"
+	@( go vet ./... )
 
 .PHONY: lint
 lint: ## Run linter.
