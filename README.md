@@ -82,14 +82,8 @@ CLUSTER_CONTEXT=<your-cluster-context> && \
     --set peerd.image.ref=ghcr.io/azure/acr/dev/peerd:stable
 ```
 
-By default, some well known registries are mirrored (see [values.yml]), but this is configurable. For example, to mirror
-`docker.io`, `mcr.microsoft.com` and `ghcr.io`, run the following.
-
-```bash
-CLUSTER_CONTEXT=<your-cluster-context> && \
-  helm --kube-context=$CLUSTER_CONTEXT install --wait peerd ./build/package/peerd-helm \
-    --set peerd.image.ref=ghcr.io/azure/acr/dev/peerd:stable
-```
+By default, some well known registries are mirrored, but this is configurable using the [values.yml] file.
+Update the `peerd.hosts` field to include the registries you want to mirror.
 
 On deployment, each Peerd instance will try to connect to its peers in the cluster. 
 
