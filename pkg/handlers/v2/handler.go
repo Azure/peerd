@@ -87,7 +87,7 @@ func (h *V2Handler) fill(c pcontext.Context) error {
 // New creates a new OCI content handler.
 func New(ctx context.Context, router routing.Router, containerdStore containerd.Store) (*V2Handler, error) {
 	return &V2Handler{
-		proxy:           registry.New(router),
+		proxy:           registry.New(ctx, router),
 		registry:        containerd.NewRegistry(containerdStore),
 		metricsRecorder: metrics.FromContext(ctx),
 	}, nil

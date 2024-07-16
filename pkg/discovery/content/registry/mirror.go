@@ -13,6 +13,7 @@ import (
 
 	pcontext "github.com/azure/peerd/pkg/context"
 	"github.com/azure/peerd/pkg/discovery/routing"
+	"github.com/azure/peerd/pkg/metrics"
 	"github.com/azure/peerd/pkg/peernet"
 )
 
@@ -30,7 +31,8 @@ type Mirror struct {
 	router         routing.Router
 	resolveRetries int
 
-	n peernet.Network
+	n               peernet.Network
+	metricsRecorder metrics.Metrics
 }
 
 // Handle handles a request to this registry mirror.
@@ -56,6 +58,8 @@ func (m *Mirror) Handle(c pcontext.Context) {
 		c.AbortWithError(http.StatusInternalServerError, errors.New("neither digest nor reference provided"))
 	}
 
+	startTime := time.Now()
+	peerCount := 0
 	peersChan, err := m.router.Resolve(resolveCtx, key, false, m.resolveRetries)
 	if err != nil {
 		//nolint
@@ -79,6 +83,12 @@ func (m *Mirror) Handle(c pcontext.Context) {
 				return
 			}
 
+			if peerCount == 0 {
+				// Only report the time it took to discover the first peer.
+				m.metricsRecorder.RecordPeerDiscovery(peer.HttpHost, time.Since(startTime).Seconds())
+				peerCount++
+			}
+
 			succeeded := false
 			u, err := url.Parse(peer.HttpHost)
 			if err != nil {
@@ -94,12 +104,16 @@ func (m *Mirror) Handle(c pcontext.Context) {
 				r.URL.RawQuery = c.Request.URL.RawQuery
 				pcontext.SetOutboundHeaders(r, c)
 			}
+
+			count := int64(0)
+
 			proxy.ModifyResponse = func(resp *http.Response) error {
 				if resp.StatusCode != http.StatusOK {
 					return fmt.Errorf("expected peer to respond with 200, got: %s", resp.Status)
 				}
 
 				succeeded = true
+				count = resp.ContentLength
 				return nil
 			}
 			proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
@@ -112,18 +126,20 @@ func (m *Mirror) Handle(c pcontext.Context) {
 				break
 			}
 
-			l.Info().Str("peer", u.Host).Msg("request served from peer")
+			m.metricsRecorder.RecordPeerResponse(peer.HttpHost, key, "pull", time.Since(startTime).Seconds(), count)
+			l.Info().Str("peer", u.Host).Int64("count", count).Msg("request served from peer")
 			return
 		}
 	}
 }
 
 // New creates a new mirror handler.
-func New(router routing.Router) *Mirror {
+func New(ctx context.Context, router routing.Router) *Mirror {
 	return &Mirror{
-		resolveTimeout: ResolveTimeout,
-		router:         router,
-		resolveRetries: ResolveRetries,
-		n:              router.Net(),
+		metricsRecorder: metrics.FromContext(ctx),
+		resolveTimeout:  ResolveTimeout,
+		router:          router,
+		resolveRetries:  ResolveRetries,
+		n:               router.Net(),
 	}
 }
