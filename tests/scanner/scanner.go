@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -34,12 +35,13 @@ func Scanner(ctx context.Context) error {
 	}, []string{"self", "op"})
 	prometheus.DefaultRegisterer.MustRegister(byteThroughputHist)
 
-	go func() error {
+	errChan := make(chan error, 1)
+
+	go func() {
 		http.Handle("/metrics/prometheus", promhttp.Handler())
 		if err := http.ListenAndServe("0.0.0.0:5004", nil); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			return err
+			errChan <- err
 		}
-		return nil
 	}()
 
 	sleep(l)
@@ -67,10 +69,14 @@ func Scanner(ctx context.Context) error {
 		l.Info().Int64("size", size).Int64("read", w).Msg("complete")
 	}
 
+	if err := <-errChan; err != nil {
+		l.Error().Msg(fmt.Sprintf("prom error: %v", err))
+	}
+
 	l.Info().Msg("sleeping to allow metrics scraping")
 	time.Sleep(24 * 365 * time.Hour)
 
-	return nil
+	return err
 }
 
 func measure(bar *progressbar.ProgressBar, startTime time.Time, l *zerolog.Logger, byteThroughputHist *prometheus.HistogramVec, size float64) {
