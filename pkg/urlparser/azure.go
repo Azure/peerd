@@ -12,7 +12,7 @@ import (
 var (
 	regexes = []*regexp.Regexp{
 		// Azure Container Registry public cloud data endpoints.
-		regexp.MustCompile(`https:\/\/[a-zA-Z0-9\.]+\.azurecr\.[a-z\.]+\?[a-zA-Z0-9\.\&\=\-]+\&d=sha256:([a-zA-Z0-9]{64})[.]*`),
+		regexp.MustCompile(`https:\/\/[a-zA-Z0-9\.]+\.azurecr\.[a-z\.]+\/?\?[a-zA-Z0-9\.\&\=\-]+\&d=sha256:([a-zA-Z0-9]{64})[.]*`),
 
 		// Microsoft Artifact Registry public cloud data endpoints.
 		regexp.MustCompile(`https:\/\/[a-zA-Z0-9]+\.data.mcr.microsoft.com\/[a-zA-Z0-9\-]+\/\/docker\/registry\/v2\/blobs\/sha256\/[a-z0-9]{2}\/([a-zA-Z0-9]{64})\/data.*`),

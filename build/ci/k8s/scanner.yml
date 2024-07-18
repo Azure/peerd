@@ -1,63 +1,49 @@
-# Runs the 'scanner' benchmark scenario on all cluster nodes.
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: tests-scanner-actions
-  namespace: peerd-ns
-  labels:
-    app: tests-scanner
-data:
-  wasm: |
-    #!/usr/bin/env bash
-    set -xe
-
-    nerdctl run \
-      --hosts-dir "/etc/containerd/certs.d" \
-      --snapshotter=overlaybd \
-      --net host -i --rm $TESTS_SCANNER_IMAGE
----
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: &name tests-scanner
+  name: scanner-streaming-ds
   namespace: peerd-ns
-  labels:
-    app: *name
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/path: '/metrics/prometheus'
+    prometheus.io/port: '5004'
 spec:
   selector:
     matchLabels:
-      app: *name
+      app: peerd-test
   template:
     metadata:
       labels:
-        app: *name
+        app: peerd-test
     spec:
-      hostNetwork: true
-      hostPID: true
+      initContainers:
+        - name: sleep
+          image: busybox
+          command: ["sh", "-c", "sleep $(shuf -i 1-10 -n 1)"]
       containers:
-      - image: docker.io/alexeldeib/nsenter:latest # https://github.com/alexeldeib/azbench/blob/main/images/nsenter/entrypoint.sh
-        imagePullPolicy: Always
-        name: *name
-        args: ["wasm"]
-        resources:
-          # requests:
-          #   cpu: 0.5
-          #   memory: 2000Mi
-          # limits:
-          #   cpu: 0.5
-          #   memory: 2000Mi
-        securityContext:
-          privileged: true
-        volumeMounts:
-        - name: actions
-          mountPath: "/opt/actions"
-        - name: hostmount
-          mountPath: "/mnt/actions"
-      volumes:
-      - name: hostmount
-        hostPath:
-          path: /opt/actions
-          type: DirectoryOrCreate
-      - name: actions
-        configMap:
-          name: tests-scanner-actions
+        - name: scanner-streaming
+          image: $TESTS_SCANNER_IMAGE
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5004
+              name: metrics
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scanner-streaming-svc
+  namespace: peerd-ns
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/path: '/metrics/prometheus'
+    prometheus.io/port: '5004'
+spec:
+  type: NodePort
+  selector:
+    app: peerd-test
+  ports:
+    - name: metrics
+      protocol: TCP
+      port: 5004
+      nodePort: 30008
+      targetPort: metrics
