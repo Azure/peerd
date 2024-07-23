@@ -74,7 +74,7 @@ nodepool_deploy() {
     if [ "$DRY_RUN" == "false" ]; then
         echo "creating nodepool '$nodepool' in aks cluster '$aksName' in resource group '$rg'" && \
             az aks nodepool add --cluster-name $aksName --name $nodepool --resource-group $rg \
-                --mode User --labels "p2p-nodepool=$nodepool" --node-count 3 --node-vm-size Standard_D2s_v3
+                --mode User --labels "p2p-nodepool=true" --node-count 3 --node-vm-size Standard_D2s_v3  --enable-artifact-streaming
     else
         echo "[dry run] would have deployed nodepool '$nodepool' to aks cluster '$aksName' in resource group '$rg'"
     fi
@@ -85,8 +85,6 @@ peerd_helm_deploy() {
     local nodepool=$1
     local peerd_image_tag=$2
     local configureMirrors=$3
-
-    ensure_azure_token
     
     echo "deploying peerd to k8s cluster, chart: '$PEERD_HELM_CHART', tag: '$peerd_image_tag'" && \
         kubectl cluster-info
@@ -186,6 +184,8 @@ cmd__nodepool__up () {
     local peerd_image_tag=$PEERD_IMAGE_TAG
     local configureMirrors=$PEERD_CONFIGURE_MIRRORS
 
+    ensure_azure_token
+
     echo "get AKS credentials"
     get_aks_credentials $AKS_NAME $RESOURCE_GROUP
 
@@ -240,15 +240,18 @@ cmd__test__streaming() {
     if [ "$DRY_RUN" == "true" ]; then
         echo "[dry run] would have run test 'streaming'"
     else
-        echo "deploying acr mirror"
-        kubectl apply -f $TELEPORT_DEPLOY_TEMPLATE
-
         echo "waiting 5 minutes" 
         sleep 300
 
-        echo "deploying scanner app and waiting 2 minutes"
+        echo "deploying acr mirror"
+        kubectl apply -f $TELEPORT_DEPLOY_TEMPLATE
+
+        echo "waiting 10 seconds" 
+        sleep 10
+
+        echo "deploying scanner app and waiting 1 minute"
         envsubst < $SCANNER_APP_DEPLOY_TEMPLATE | kubectl apply -f -
-        sleep 120
+        sleep 60
 
         echo "scanner logs"
         kubectl -n peerd-ns logs -l app=tests-scanner

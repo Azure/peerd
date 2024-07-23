@@ -60,8 +60,9 @@ jobs:
       id-token: write # This is required for requesting the JWT from AAD.
     env:
       TAG: ${{ needs.publish.outputs.git_tag }}
+      SUBSCRIPTION: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     steps:
-      - name: 'Az CLI login'
+      - name: "Az CLI login"
         uses: azure/login@v1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -86,7 +87,7 @@ jobs:
         with:
           ref: ${{ env.TAG }}
 
-      - name: 'Make'
+      - name: "Make"
         if: ${{ success() }}
         run: |
           PEERD_IMAGE_TAG=${{ env.TAG }} make tests-deps-install ci-aks-ctr
@@ -100,8 +101,9 @@ jobs:
       id-token: write # This is required for requesting the JWT from AAD.
     env:
       TAG: ${{ needs.publish.outputs.git_tag }}
+      SUBSCRIPTION: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     steps:
-      - name: 'Az CLI login'
+      - name: "Az CLI login"
         uses: azure/login@v1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -125,8 +127,8 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: ${{ env.TAG }}
-  
-      - name: 'Make'
+
+      - name: "Make"
         if: ${{ success() }}
         run: |
           PEERD_IMAGE_TAG=${{ env.TAG }} make tests-deps-install ci-aks-streaming
