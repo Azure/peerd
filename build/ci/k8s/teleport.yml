@@ -11,45 +11,14 @@ data:
     #!/usr/bin/env bash
     set -xe
 
-    sudo apt-get update
-
-    pushd /tmp || exit 1
-
-    wget 'https://acrstreamingpackage.blob.core.windows.net/bin/latest/acr-mirror-2204.deb'
-    sudo apt-get install './acr-mirror-2204.deb' -y --allow-downgrades
-    rm './acr-mirror-2204.deb'
-    popd
-
-    systemctl enable --now acr-mirror
-
-    # These libraries are needed for overlaybd-tcmu
-    sudo /opt/acr/tools/overlaybd/install.sh
-    sudo /opt/acr/tools/overlaybd/enable-http-auth.sh
-    modprobe target_core_user
-
     # Enable overlaybd peer-to-peer
-    jq '.p2pConfig.enable = true' /etc/overlaybd/overlaybd.json > tmp.json
-    sudo mv tmp.json /etc/overlaybd/overlaybd.json
+    /opt/acr/tools/overlaybd/config.sh p2pConfig.enable true
+    /opt/acr/tools/overlaybd/config.sh p2pConfig.address \"http://localhost:30000/blobs\"  
+    /opt/acr/tools/overlaybd/config.sh logConfig.logLevel 0
 
-    jq '.p2pConfig.address = "localhost:30000/blobs"' /etc/overlaybd/overlaybd.json > tmp.json
-    sudo mv tmp.json /etc/overlaybd/overlaybd.json
-
-    jq '.logConfig.logLevel = 0' /etc/overlaybd/overlaybd.json > tmp.json
-    sudo mv tmp.json /etc/overlaybd/overlaybd.json
-
-    cat /etc/overlaybd/overlaybd.json
-
-    # Enabling mirror for teleportmetricstest
-    curl -X PUT 'localhost:8578/config?ns=_default&enable_suffix=azurecr.io&stream_format=overlaybd&enable_containerd=true'
-
-    # Enable overlaybd
-    sudo /opt/acr/tools/overlaybd/enable.sh
-    touch /opt/sentinel
-
-    # Install nerdctl: https://github.com/containerd/nerdctl/releases
-    wget https://github.com/containerd/nerdctl/releases/download/v1.6.0/nerdctl-1.6.0-linux-amd64.tar.gz
-    tar Cxzvvf /usr/local/bin nerdctl-1.6.0-linux-amd64.tar.gz
-    rm nerdctl-1.6.0-linux-amd64.tar.gz
+    # Restart overlaybd
+    sudo systemctl restart overlaybd-tcmu
+    sudo systemctl restart overlaybd-snapshotter
 ---
 apiVersion: apps/v1
 kind: DaemonSet
@@ -67,6 +36,13 @@ spec:
       labels:
         app: *name
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: p2p-nodepool
+                    operator: Exists
       hostNetwork: true
       hostPID: true
       containers:

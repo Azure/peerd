@@ -1,9 +1,12 @@
 #!/bin/bash
 set -e
 
-SUBSCRIPTION=""
-
 ensure_azure_token() {
+    if [ -z "$SUBSCRIPTION" ]; then
+        echo "Error: SUBSCRIPTION is not set."
+        exit 1
+    fi
+
     az account set --subscription $SUBSCRIPTION
 }
 
