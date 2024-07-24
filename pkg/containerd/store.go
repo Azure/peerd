@@ -15,7 +15,7 @@ import (
 	eventtypes "github.com/containerd/containerd/api/events"
 	"github.com/containerd/containerd/content"
 	"github.com/containerd/containerd/images"
-	"github.com/containerd/containerd/platforms"
+	"github.com/containerd/platforms"
 	"github.com/containerd/typeurl/v2"
 	"github.com/distribution/distribution/manifest"
 	"github.com/opencontainers/go-digest"
