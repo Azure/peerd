@@ -9,7 +9,7 @@ WORKDIR /
 
 RUN make install
 
-FROM mcr.microsoft.com/cbl-mariner/base/core:2.0 as runtime
+FROM mcr.microsoft.com/cbl-mariner/base/core:2.0 AS runtime
 
 ARG USER_ID=6191
 
