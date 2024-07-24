@@ -72,6 +72,9 @@ jobs:
       # This is a temporary workaround. See: https://github.com/Azure/azure-cli/issues/28708#issuecomment-2049014471
       - name: Fetch OID token every 4 mins
         run: |
+          az extension add --name aks-preview
+          az extension update --name aks-preview
+
           while true; do
             token_request=$ACTIONS_ID_TOKEN_REQUEST_TOKEN
             token_uri=$ACTIONS_ID_TOKEN_REQUEST_URL
@@ -113,6 +116,9 @@ jobs:
       # This is a temporary workaround. See: https://github.com/Azure/azure-cli/issues/28708#issuecomment-2049014471
       - name: Fetch OID token every 4 mins
         run: |
+          az extension add --name aks-preview
+          az extension update --name aks-preview
+
           while true; do
             token_request=$ACTIONS_ID_TOKEN_REQUEST_TOKEN
             token_uri=$ACTIONS_ID_TOKEN_REQUEST_URL
