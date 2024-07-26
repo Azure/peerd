@@ -16,22 +16,30 @@ in a Kubernetes cluster. The source of the content could be another node in the 
 
 #### Important Disclaimer
 
-This is **work in progress** and not yet production ready. We are actively working on this project and would love to
-hear your feedback. Please feel free to open an issue or a pull request.
+**Work in Progress**: We are actively working on this project and would love to hear your feedback.
+Please feel free to open an issue or a pull request.
 
 ## Usage
 
-Peerd is designed to be deployed as a daemonset on every node in a Kubernetes cluster and acts as a registry mirror. It 
-discovers and serves content from other nodes in the cluster, and can also download content from an upstream source.
+**Peer D**aemon is designed to be deployed as a daemonset on every node in a Kubernetes cluster and acts as a registry
+mirror.
+
+* It discovers other nodes in the cluster and establishes a peer-to-peer overlay network in the cluster using the
+  [Kademlia DHT][white paper] protocol.
+
+* It discovers content such as OCI images in the node's containerd content store as well as streamable container files,
+  such as used in [Azure Artifact Streaming][ACR Artifact Streaming], and advertises them to its peers.
+
+* It can serve discovered/cached content to other nodes in the cluster, acting as a mirror for the content.
 
 This is useful in the following scenarios:
 
-1. **Increased Throughput**: For downloading large images or deploying large clusters, the registry can become a 
-   bottleneck. Peerd can be used to download images from other nodes in the cluster that have already downloaded it,
+1. **Increased Throughput**: For downloading large images or deploying large clusters, the container/artifact registry
+   can become a bottleneck. Peerd can be used to download images from other nodes in the cluster that have already downloaded it,
    increasing throughput.
 
-2. **Improved Fault Tolerance**: If the registry is unavailable, Peerd can still serve images from other nodes in the
-   cluster.
+2. **Improved Fault Tolerance**: If the upstream registry is unavailable, Peerd can still serve images from other nodes
+   in the cluster.
 
 3. **Firewall configuration**: Peerd can be used to download images from other nodes in the cluster. This can be useful
     in scenarios where outbound internet access is restricted on some nodes.
