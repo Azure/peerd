@@ -1,9 +1,25 @@
 # Peerd Design
 
-![cluster-arch]
-
 The design is inspired from the [Spegel] project, which is a peer to peer proxy for container images that uses libp2p.
 In this section, we describe the design and architecture of `peerd`.
+
+#### **DHT Topology**
+
+|                   |
+| ----------------- |
+| ![peerd-dht-topo] |
+
+#### **Image Pulls Description** 
+
+|               |                   |
+| ------------- | ----------------- |
+| ![peerd-pull] | ![peerd-pull-seq] |
+
+#### **Image Streaming Description**
+
+|                    |                        |
+| ------------------ | ---------------------- |
+| ![peerd-streaming] | ![peerd-streaming-seq] |
 
 ### Background
 
@@ -188,6 +204,10 @@ running this container in p2p vs non-p2p mode on a 3 node AKS cluster with Artif
 
 ---
 
-[cluster-arch]: ../assets/images/cluster.png
 [file-system-layout]: ../assets/images/file-system-layout.png
 [Spegel]: https://github.com/XenitAB/spegel
+[peerd-pull]: ../assets/mermaid/rendered/peerd-pull.png
+[peerd-pull-seq]: ../assets/mermaid/rendered/peerd-pull-seq.png
+[peerd-streaming]: ../assets/mermaid/rendered/peerd-streaming.png
+[peerd-streaming-seq]: ../assets/mermaid/rendered/peerd-streaming-seq.png
+[peerd-dht-topo]: ../assets/mermaid/rendered/peerd-dht-topo.png
