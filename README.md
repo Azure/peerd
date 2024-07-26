@@ -1,4 +1,4 @@
-# PeerD
+# Peerd
 
 [![Build Status]][build-status]
 [![Kind CI Status]][kind-ci-status]
@@ -35,21 +35,21 @@ mirror.
 This is useful in the following scenarios:
 
 1. **Increased Throughput**: For downloading large images or deploying large clusters, the container/artifact registry
-   can become a bottleneck. PeerD can be used to download images from other nodes in the cluster that have already downloaded it,
+   can become a bottleneck. Peerd can be used to download images from other nodes in the cluster that have already downloaded it,
    increasing throughput.
 
-2. **Improved Fault Tolerance**: If the upstream registry is unavailable, PeerD can still serve images from other nodes
+2. **Improved Fault Tolerance**: If the upstream registry is unavailable, Peerd can still serve images from other nodes
    in the cluster.
 
-3. **Firewall configuration**: PeerD can be used to download images from other nodes in the cluster. This can be useful
+3. **Firewall configuration**: Peerd can be used to download images from other nodes in the cluster. This can be useful
     in scenarios where outbound internet access is restricted on some nodes.
 
 ## Features
 
-* **Peer to Peer Streaming**: PeerD allows a node to act as a mirror for files obtained from any HTTP upstream source
+* **Peer to Peer Streaming**: Peerd allows a node to act as a mirror for files obtained from any HTTP upstream source
   (such as an [Azure Blob] using a [SAS URL]), and can discover and serve a specified byte range of the file to/from
-  other nodes in the cluster. PeerD will first attempt to discover and serve this range from its peers. If not found, it
-  will  fallback to download the range from the upstream URL. PeerD caches downloaded ranges as well as optionally, can
+  other nodes in the cluster. Peerd will first attempt to discover and serve this range from its peers. If not found, it
+  will  fallback to download the range from the upstream URL. Peerd caches downloaded ranges as well as optionally, can
   prefetch the entire file.
 
   With this facility, `peerd` can be used as the [p2p proxy] for [Overlaybd].
@@ -61,13 +61,13 @@ This is useful in the following scenarios:
   }
   ```
 
-  PeerD is compatible with Azure Container Registry's [Artifact Streaming][ACR Artifact Streaming] feature, and can be
+  Peerd is compatible with Azure Container Registry's [Artifact Streaming][ACR Artifact Streaming] feature, and can be
   used to improve performance further.
 
 * **Peer to Peer Container Image Pulls**: Pulling a container image to a node in Kubernetes is often a time consuming
   process, especially in scenarios where the registry becomes a bottleneck, such as deploying a large cluster or scaling
   out in response to bursty traffic. To increase throughput, nodes in the cluster which already have the image can be
-  used as an alternate image source. PeerD subscribes to events in the containerd content store, and advertises local
+  used as an alternate image source. Peerd subscribes to events in the containerd content store, and advertises local
   images to peers. When a node needs an image, it can query its peers for the image, and download it from them instead
   of the registry. Containerd has a [mirror][containerd hosts] facility that can be used to configure Peerd as the 
   mirror for container images.
