@@ -64,6 +64,10 @@ This is useful in the following scenarios:
   Peerd is compatible with Azure Container Registry's [Artifact Streaming][ACR Artifact Streaming] feature, and can be
   used to improve performance further.
 
+  | **Without Peerd**           | **With Peerd**             |
+  | --------------------------- | -------------------------- |
+  | ![normal-streaming-summary] | ![peerd-streaming-summary] |
+
 * **Peer to Peer Container Image Pulls**: Pulling a container image to a node in Kubernetes is often a time consuming
   process, especially in scenarios where the registry becomes a bottleneck, such as deploying a large cluster or scaling
   out in response to bursty traffic. To increase throughput, nodes in the cluster which already have the image can be
@@ -71,6 +75,10 @@ This is useful in the following scenarios:
   images to peers. When a node needs an image, it can query its peers for the image, and download it from them instead
   of the registry. Containerd has a [mirror][containerd hosts] facility that can be used to configure Peerd as the 
   mirror for container images.
+
+  | **Without Peerd**      | **With Peerd**        |
+  | ---------------------- | --------------------- |
+  | ![normal-pull-summary] | ![peerd-pull-summary] |
 
 The APIs are described in the [swagger.yaml].
 
@@ -178,3 +186,7 @@ integration with [Overlaybd].
 [peerd-pkgs]: https://github.com/Azure/peerd/pkgs/container/acr%2Fdev%2Fpeerd
 [build.md]: ./docs/build.md
 [values.yml]: ./build/package/peerd-helm/values.yaml
+[normal-pull-summary]: ./assets/mermaid/rendered/normal-pull-summary.png
+[peerd-pull-summary]: ./assets/mermaid/rendered/peerd-pull-summary.png
+[normal-streaming-summary]: ./assets/mermaid/rendered/normal-streaming-summary.png
+[peerd-streaming-summary]: ./assets/mermaid/rendered/peerd-streaming-summary.png
