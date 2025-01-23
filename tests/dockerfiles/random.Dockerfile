@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/oss/go/microsoft/golang:1.22-fips-cbl-mariner2.0 as builder
+FROM mcr.microsoft.com/oss/go/microsoft/golang:1.23-fips-azurelinux3.0 as builder
 
 COPY ./ /src/
 
@@ -9,7 +9,7 @@ WORKDIR /src
 
 RUN make tests-build
 
-FROM mcr.microsoft.com/cbl-mariner/base/core:2.0 as runtime
+FROM mcr.microsoft.com/azurelinux/base/core:3.0 as runtime
 
 ARG USER_ID=6192
 

@@ -1,10 +1,10 @@
-FROM mcr.microsoft.com/cbl-mariner/base/core:2.0 AS scannerbase
+FROM mcr.microsoft.com/azurelinux/base/core:3.0 AS scannerbase
 
 ARG FILE_PATH=/usr/local/bin/scannerbase
 
 RUN dd if=/dev/urandom of=$FILE_PATH bs=1 count=$((600 * 1024 * 1024))
 
-FROM mcr.microsoft.com/oss/go/microsoft/golang:1.22-fips-cbl-mariner2.0 as builder
+FROM mcr.microsoft.com/oss/go/microsoft/golang:1.23-fips-azurelinux3.0 as builder
 
 COPY ./ /src/
 
@@ -15,7 +15,7 @@ WORKDIR /src
 
 RUN make tests-build
 
-FROM mcr.microsoft.com/cbl-mariner/base/core:2.0 as scanner
+FROM mcr.microsoft.com/azurelinux/base/core:3.0 as scanner
 
 ARG USER_ID=6190
 

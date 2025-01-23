@@ -115,7 +115,7 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 		defaultHost, _ := url.Parse("https://mcr.microsoft.com")
 		hosts := append([]url.URL{}, *defaultHost)
 
-		if args.Hosts != nil && len(args.Hosts) > 0 {
+		if len(args.Hosts) > 0 {
 			hosts, err = toUrls(args.Hosts)
 			if err != nil {
 				return err
@@ -127,7 +127,7 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 		defaultMirror, _ := url.Parse("https://localhost:30001")
 		mirrors := append([]url.URL{}, *defaultMirror)
 
-		if args.Mirrors != nil && len(args.Mirrors) > 0 {
+		if len(args.Mirrors) > 0 {
 			mirrors, err = toUrls(args.Mirrors)
 			if err != nil {
 				return err
