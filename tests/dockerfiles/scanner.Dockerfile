@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/cbl-mariner/base/core:2.0 AS scannerbase
+FROM mcr.microsoft.com/azurelinux/base/core:3.0 AS scannerbase
 
 ARG FILE_PATH=/usr/local/bin/scannerbase
 
@@ -15,7 +15,7 @@ WORKDIR /src
 
 RUN make tests-build
 
-FROM mcr.microsoft.com/cbl-mariner/base/core:2.0 as scanner
+FROM mcr.microsoft.com/azurelinux/base/core:3.0 as scanner
 
 ARG USER_ID=6190
 

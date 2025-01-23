@@ -9,7 +9,7 @@ WORKDIR /src
 
 RUN make tests-build
 
-FROM mcr.microsoft.com/cbl-mariner/base/core:2.0 as runtime
+FROM mcr.microsoft.com/azurelinux/base/core:3.0 as runtime
 
 ARG USER_ID=6192
 
