@@ -61,7 +61,7 @@ install-gocov: ## Install Go cov.
 .PHONY: install-linter
 install-linter: ## Install Go linter.
 	@echo "+ $@"
-	@( curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v1.54.2 )
+	@( curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v1.63.4 )
 
 .PHONY: build-image
 build-image: ## Build the peerd docker image.
