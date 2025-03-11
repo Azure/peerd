@@ -11,7 +11,9 @@
                 "yzhang.markdown-all-in-one",
                 "ms-vscode.makefile-tools",
                 "GitHub.copilot",
-                "ryanluker.vscode-coverage-gutters"
+                "ryanluker.vscode-coverage-gutters",
+                "bierner.markdown-preview-github-styles",
+                "bierner.markdown-emoji"
             ],
             "settings": {
                 "editor.formatOnSave": true

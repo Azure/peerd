@@ -1,5 +1,53 @@
 # Peerd Design
 
+**Peer D**aemon is designed to be deployed as a daemonset on every node in a Kubernetes cluster and acts as a registry
+mirror.
+
+* It discovers other nodes in the cluster and establishes a peer-to-peer overlay network in the cluster using the
+  [Kademlia DHT][kademlia-white-paper] protocol.
+
+* It discovers content such as OCI images in the node's containerd content store as well as streamable container files,
+  such as used in [Azure Artifact Streaming], and advertises them to its peers.
+
+* It can serve discovered/cached content to other nodes in the cluster, acting as a mirror for the content.
+
+## Features
+
+* **Peer to Peer Streaming**: Peerd allows a node to act as a mirror for files obtained from any HTTP upstream source
+  (such as an [Azure Blob] using a [SAS URL]), and can discover and serve a specified byte range of the file to/from
+  other nodes in the cluster. Peerd will first attempt to discover and serve this range from its peers. If not found, it
+  will  fallback to download the range from the upstream URL. Peerd caches downloaded ranges as well as optionally, can
+  prefetch the entire file.
+
+  With this facility, `peerd` can be used as the [p2p proxy] for [Overlaybd].
+
+  ```json
+  "p2pConfig": {
+    "enable": true,
+    "address": "localhost:30000/blobs"
+  }
+  ```
+
+  Peerd is compatible with [Azure Artifact Streaming], and can be used to improve performance further.
+
+  | **Without Peerd**           | **With Peerd**             |
+  | --------------------------- | -------------------------- |
+  | ![normal-streaming-summary] | ![peerd-streaming-summary] |
+
+* **Peer to Peer Container Image Pulls**: Pulling a container image to a node in Kubernetes is often a time consuming
+  process, especially in scenarios where the registry becomes a bottleneck, such as deploying a large cluster or scaling
+  out in response to bursty traffic. To increase throughput, nodes in the cluster which already have the image can be
+  used as an alternate image source. Peerd subscribes to events in the containerd content store, and advertises local
+  images to peers. When a node needs an image, it can query its peers for the image, and download it from them instead
+  of the registry. Containerd has a [mirror][containerd hosts] facility that can be used to configure Peerd as the 
+  mirror for container images.
+
+  | **Without Peerd**      | **With Peerd**        |
+  | ---------------------- | --------------------- |
+  | ![normal-pull-summary] | ![peerd-pull-summary] |
+
+The APIs are described in the [swagger.yaml].
+
 The design is inspired from the [Spegel] project, which is a peer to peer proxy for container images that uses libp2p.
 In this section, we describe the design and architecture of `peerd`.
 
@@ -204,10 +252,22 @@ running this container in p2p vs non-p2p mode on a 3 node AKS cluster with Artif
 
 ---
 
+[Azure Artifact Streaming]: https://learn.microsoft.com/en-us/azure/container-registry/container-registry-artifact-streaming
+[Azure Blob]: https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction
+[containerd hosts]: https://github.com/containerd/containerd/blob/main/docs/hosts.md
 [file-system-layout]: ../assets/images/file-system-layout.png
-[Spegel]: https://github.com/XenitAB/spegel
+[kademlia-white-paper]: https://pdos.csail.mit.edu/~petar/papers/maymounkov-kademlia-lncs.pdf
+[normal-pull-summary]: ../assets/mermaid/rendered/normal-pull-summary.png
+[normal-streaming-summary]: ../assets/mermaid/rendered/normal-streaming-summary.png
+[Overlaybd]: https://github.com/containerd/overlaybd
+[p2p proxy]: https://github.com/containerd/overlaybd/blob/main/src/example_config/overlaybd.json#L27C5-L30C7
 [peerd-pull]: ../assets/mermaid/rendered/peerd-pull.png
 [peerd-pull-seq]: ../assets/mermaid/rendered/peerd-pull-seq.png
+[peerd-pull-summary]: ../assets/mermaid/rendered/peerd-pull-summary.png
 [peerd-streaming]: ../assets/mermaid/rendered/peerd-streaming.png
 [peerd-streaming-seq]: ../assets/mermaid/rendered/peerd-streaming-seq.png
+[peerd-streaming-summary]: ../assets/mermaid/rendered/peerd-streaming-summary.png
 [peerd-dht-topo]: ../assets/mermaid/rendered/peerd-dht-topo.png
+[SAS URL]: https://learn.microsoft.com/en-us/azure/storage/common/storage-sas-overview
+[Spegel]: https://github.com/XenitAB/spegel
+[swagger.yaml]: ./api/swagger.yaml
