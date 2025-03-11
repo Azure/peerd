@@ -57,10 +57,17 @@ kubectl --context=$CLUSTER_CONTEXT -n peerd-ns logs -l app=peerd -f
 
 ### Metrics
 
-Peerd exposes metrics on the `/metrics/prometheus` endpoint. Metrics are prefixed with `peerd_`. `libp2p` metrics are
-prefixed with `libp2p_`.
+Peerd exposes Prometheus metrics on the `/metrics/prometheus` endpoint. Metrics are prefixed with `peerd_`. `libp2p` metrics
+are prefixed with `libp2p_`.
 
-#### Example
+### Grafana Dashboard
+
+The accompanying [Grafana dashboard] can be used to visualize the metrics emitted by Peerd.
+
+> On AKS, automatic metrics scraping is enabled by setting `--set peerd.metrics.prometheus.aksAutoDiscovery=true` in the
+> helm chart.
+
+##### Example
 
 On a 100 nodes AKS cluster of VM size `Standard_D2s_v3`, sample throughput observed by a single pod is shown below.
 
@@ -69,4 +76,5 @@ On a 100 nodes AKS cluster of VM size `Standard_D2s_v3`, sample throughput obser
 ---
 
 [ci-script-readiness]: ../build/ci/scripts/azure.sh
+[Grafana dashboard]: ../build/package/peerd-grafana/dashboard.json
 [values.yml]: ../build/package/peerd-helm/values.yaml

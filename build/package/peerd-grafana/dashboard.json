@@ -1,0 +1,313 @@
+{
+    "annotations": {
+        "list": [
+            {
+                "builtIn": 1,
+                "datasource": {
+                    "type": "grafana",
+                    "uid": "-- Grafana --"
+                },
+                "enable": true,
+                "hide": true,
+                "iconColor": "rgba(0, 211, 255, 1)",
+                "name": "Annotations & Alerts",
+                "type": "dashboard"
+            }
+        ]
+    },
+    "description": "Peer Daemon is designed to be deployed as a daemonset on every node in a Kubernetes cluster and acts as a registry mirror. https://github.com/Azure/peerd",
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": 36,
+    "links": [],
+    "liveNow": false,
+    "panels": [
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "percentage",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            }
+                        ]
+                    },
+                    "unit": "s"
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Median Peer Discovery Duration"
+                        },
+                        "properties": [
+                            {
+                                "id": "unit",
+                                "value": "s"
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Median Peer to Peer Throughput"
+                        },
+                        "properties": [
+                            {
+                                "id": "unit",
+                                "value": "Mibits"
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Mean Peer Downloads Across Pods"
+                        },
+                        "properties": [
+                            {
+                                "id": "unit",
+                                "value": "none"
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Mean Upstream Downloads Across Pods"
+                        },
+                        "properties": [
+                            {
+                                "id": "unit",
+                                "value": "none"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "gridPos": {
+                "h": 15,
+                "w": 9,
+                "x": 0,
+                "y": 0
+            },
+            "id": 1,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "mean"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "10.4.11",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "$datasource"
+                    },
+                    "editorMode": "code",
+                    "exemplar": false,
+                    "expr": "sum(histogram_quantile($percentile, peerd_peer_discovery_duration_seconds_bucket{self=\"$pod\"})) by (self)",
+                    "format": "table",
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "$datasource"
+                    },
+                    "editorMode": "code",
+                    "exemplar": false,
+                    "expr": "sum(histogram_quantile($percentile, peerd_peer_response_speed_mib_per_second_bucket{self=\"$pod\"})) by (self)",
+                    "format": "table",
+                    "hide": false,
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "$datasource"
+                    },
+                    "editorMode": "code",
+                    "exemplar": false,
+                    "expr": "sum(peerd_peer_response_speed_mib_per_second_count{self=\"$pod\"}) by (self)",
+                    "format": "table",
+                    "hide": false,
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "C"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "$datasource"
+                    },
+                    "editorMode": "code",
+                    "exemplar": false,
+                    "expr": "sum(peerd_upstream_response_speed_mib_per_second_count{self=\"$pod\"}) by (self)",
+                    "format": "table",
+                    "hide": false,
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "D"
+                }
+            ],
+            "title": "Peer Metrics: Pod '$pod' at '$percentile' Percentile",
+            "transformations": [
+                {
+                    "id": "merge",
+                    "options": {}
+                },
+                {
+                    "id": "organize",
+                    "options": {
+                        "excludeByName": {},
+                        "includeByName": {},
+                        "indexByName": {},
+                        "renameByName": {
+                            "Value #A": "Median Peer Discovery Duration",
+                            "Value #B": "Median Peer to Peer Throughput",
+                            "Value #C": "Mean Peer Downloads Across Pods",
+                            "Value #D": "Mean Upstream Downloads Across Pods",
+                            "self": "Pod"
+                        }
+                    }
+                }
+            ],
+            "transparent": true,
+            "type": "stat"
+        }
+    ],
+    "refresh": "1m",
+    "schemaVersion": 39,
+    "tags": [],
+    "templating": {
+        "list": [
+            {
+                "name": "datasource",
+                "label": "Datasource",
+                "type": "datasource",
+                "query": "prometheus",
+                "current": {
+                    "selected": false,
+                    "text": "Select a datasource",
+                    "value": ""
+                },
+                "hide": 0,
+                "includeAll": false,
+                "multi": false,
+                "options": []
+            },
+            {
+                "current": {
+                    "selected": false,
+                    "text": "0.90",
+                    "value": "0.90"
+                },
+                "hide": 0,
+                "includeAll": false,
+                "label": "Percentile",
+                "multi": false,
+                "name": "percentile",
+                "options": [
+                    {
+                        "selected": false,
+                        "text": "0.50",
+                        "value": "0.50"
+                    },
+                    {
+                        "selected": false,
+                        "text": "0.75",
+                        "value": "0.75"
+                    },
+                    {
+                        "selected": true,
+                        "text": "0.90",
+                        "value": "0.90"
+                    },
+                    {
+                        "selected": false,
+                        "text": "0.99",
+                        "value": "0.99"
+                    },
+                    {
+                        "selected": false,
+                        "text": "1.0",
+                        "value": "1.0"
+                    }
+                ],
+                "query": "0.50, 0.75, 0.90, 0.99, 1.0",
+                "queryValue": "",
+                "skipUrlSync": false,
+                "type": "custom"
+            },
+            {
+                "current": {
+                    "selected": false,
+                    "text": "Select a pod",
+                    "value": ""
+                },
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "$datasource"
+                },
+                "definition": "label_values(peerd_peer_discovery_duration_seconds_count,self)",
+                "hide": 0,
+                "includeAll": false,
+                "label": "Peerd Pod",
+                "multi": false,
+                "name": "pod",
+                "options": [],
+                "query": {
+                    "qryType": 1,
+                    "query": "label_values(peerd_peer_discovery_duration_seconds_count,self)",
+                    "refId": "PrometheusVariableQueryEditor-VariableQuery"
+                },
+                "refresh": 1,
+                "regex": "",
+                "skipUrlSync": false,
+                "sort": 0,
+                "type": "query"
+            }
+        ]
+    },
+    "time": {
+        "from": "now-3h",
+        "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "",
+    "title": "Peerd Insights",
+    "uid": "ef57ae53-addd-44e4-b509-a90454975c55",
+    "version": 28,
+    "weekStart": ""
+}
