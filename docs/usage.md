@@ -35,8 +35,7 @@ Wait for Peerd to establish connections with its peers. Each pod will emit an ev
 When the application image is pulled or streamed from a peer, the peerd pod will emit a `P2PActive` event, signalling that
 a peer-to-peer transfer is in progress.
 
-> For best results, ensure that atleast one peer has fully downloaded the image or begun streaming before scaling out.
-
+> For best results, ensure that at least one peer has fully downloaded the image or begun streaming before scaling out.
 ## Observe Peerd
 
 ### Events
