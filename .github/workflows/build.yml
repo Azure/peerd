@@ -28,7 +28,7 @@ jobs:
       run: make coverage
 
     - name: Save Coverage Report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: code-coverage-report
         path: bin/coverage/coverage.html
