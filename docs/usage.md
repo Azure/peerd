@@ -14,6 +14,45 @@ The following sections describe how to use Peerd in your Kubernetes cluster.
 - `helm` installed and configured.
 - `kubectl` installed and configured.
 
+### Overlaybd Peer-to-Peer Configuration for Artifact Streaming
+
+This step is `OPTIONAL` and should be performed only if you are using artifact streaming. Please skip directly to the next
+section if you are pulling images instead.
+
+Artifact streaming leverages the `overlaybd-snapshotter` which is well integrated with `containerd`. More information on
+`overlaybd-snapshotter` can be found [here](overlaybd-snapshotter).
+
+In order to configure `overlaybd-snapshotter` to work with Peerd, its configuration file must be updated. The default
+location of the configuration file is `/etc/overlaybd/overlaybd.json` and the relevant configuration section is as follows:
+
+```json
+"p2pConfig": {
+    "enable": true,
+    "address": "http://localhost:30000/blobs"
+},
+```
+
+#### Example
+
+Since this configuration must be applied to all nodes in the cluster, it is recommended to use a DaemonSet to deploy a
+script that updates the configuration file. For example, the [teleport.yml] file is used in the Peerd CI (see `cmd__test__streaming`
+in [azure.sh]) to configure the `overlaybd-snapshotter` to work with Peerd on AKS. It deploys a DaemonSet that runs the
+following script:
+
+```bash
+#!/usr/bin/env bash
+set -xe
+
+# Enable overlaybd peer-to-peer
+/opt/acr/tools/overlaybd/config.sh p2pConfig.enable true
+/opt/acr/tools/overlaybd/config.sh p2pConfig.address \"http://localhost:30000/blobs\"  
+/opt/acr/tools/overlaybd/config.sh logConfig.logLevel 0
+
+# Restart overlaybd
+sudo systemctl restart overlaybd-tcmu
+sudo systemctl restart overlaybd-snapshotter
+```
+
 ## Deployment
 
 > See [values.yml] for all available options.
@@ -75,6 +114,9 @@ On a 100 nodes AKS cluster of VM size `Standard_D2s_v3`, sample throughput obser
 
 ---
 
+[azure.sh]: ../build/ci/scripts/azure.sh
 [ci-script-readiness]: ../build/ci/scripts/azure.sh
 [Grafana dashboard]: ../build/package/peerd-grafana/dashboard.json
+[overlaybd-snapshotter]: https://github.com/containerd/accelerated-container-image?tab=readme-ov-file#components
+[teleport.yml]: ../build/ci/k8s/teleport.yml
 [values.yml]: ../build/package/peerd-helm/values.yaml
