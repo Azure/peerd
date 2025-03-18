@@ -16,11 +16,12 @@ The following sections describe how to use Peerd in your Kubernetes cluster.
 
 ### Overlaybd Peer-to-Peer Configuration for Artifact Streaming
 
-This step is `OPTIONAL` and should be performed only if you are using artifact streaming. Please skip directly to the next
+This step is `OPTIONAL` and should be performed only if you are using Artifact Streaming. Please skip directly to the next
 section if you are pulling images instead.
 
-Artifact streaming leverages the `overlaybd-snapshotter` which is well integrated with `containerd`. More information on
-`overlaybd-snapshotter` can be found [here](overlaybd-snapshotter).
+Artifact Streaming leverages the `overlaybd-snapshotter` which is well integrated with `containerd`. More information on
+`overlaybd-snapshotter` can be found [here](overlaybd-snapshotter). On AKS, `overlaybd-snapshotter` is already installed
+and ready to use.
 
 In order to configure `overlaybd-snapshotter` to work with Peerd, its configuration file must be updated. The default
 location of the configuration file is `/etc/overlaybd/overlaybd.json` and the relevant configuration section is as follows:
@@ -31,6 +32,10 @@ location of the configuration file is `/etc/overlaybd/overlaybd.json` and the re
     "address": "http://localhost:30000/blobs"
 },
 ```
+
+After the configuration file is updated, the `overlaybd-snapshotter` and `overlaybd-tcmu` services must be restarted for
+the changes to take effect. *Note that this will impact any ongoing streaming and must be done with caution*. The restart
+commands are illustrated in the example below.
 
 #### Example
 
