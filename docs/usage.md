@@ -6,10 +6,10 @@ The following sections describe how to use Peerd in your Kubernetes cluster.
 
 - An existing Kubernetes cluster.
 
-| Environment | Compatibility Verified |
-| ----------- | ---------------------- |
-| AKS         | :white_check_mark:     |
-| Kind        | :white_check_mark:     |
+| Environment                    | Compatibility Verified |
+| ------------------------------ | ---------------------- |
+| Azure Kubernetes Service (AKS) | :white_check_mark:     |
+| Kind                           | :white_check_mark:     |
 
 - `helm` installed and configured.
 - `kubectl` installed and configured.
