@@ -25,12 +25,16 @@ func TestGetPodNamespace(t *testing.T) {
 	}
 
 	// Set NAMESPACE to a custom value.
-	os.Setenv("NAMESPACE", "custom-ns")
+	if err := os.Setenv("NAMESPACE", "custom-ns"); err != nil {
+		t.Fatalf("Failed to set NAMESPACE: %v", err)
+	}
 	namespace = getPodNamespace()
 	if namespace != "custom-ns" {
 		t.Errorf("Expected namespace to be 'custom-ns', got %s", namespace)
 	}
 
 	// Unset NAMESPACE.
-	os.Unsetenv("NAMESPACE")
+	if err := os.Unsetenv("NAMESPACE"); err != nil {
+		t.Fatalf("Failed to unset NAMESPACE: %v", err)
+	}
 }

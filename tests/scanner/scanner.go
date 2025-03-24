@@ -49,7 +49,11 @@ func Scanner(ctx context.Context) error {
 	l.Info().Str("path", path).Msg("starting scanner")
 
 	f, _ := os.OpenFile(path, os.O_RDONLY, 0644)
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			l.Error().Err(err).Msg("failed to close file")
+		}
+	}()
 
 	info, err := f.Stat()
 	if err != nil {

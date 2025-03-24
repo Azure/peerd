@@ -16,7 +16,7 @@ type MockStore struct {
 var _ FilesStore = &MockStore{}
 
 func (m *MockStore) Cache() cache.Cache {
-	return m.store.cache
+	return m.cache
 }
 
 func NewMockStore(ctx context.Context, r routing.Router) (*MockStore, error) {

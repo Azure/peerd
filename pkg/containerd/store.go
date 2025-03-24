@@ -298,7 +298,16 @@ func (c *store) Write(ctx context.Context, dst io.Writer, dgst digest.Digest) er
 	if err != nil {
 		return err
 	}
-	defer ra.Close()
+
+	defer func() {
+		if closeErr := ra.Close(); closeErr != nil {
+			if err != nil {
+				err = fmt.Errorf("multiple errors: %v; %v", err, closeErr)
+			} else {
+				err = closeErr
+			}
+		}
+	}()
 
 	_, err = io.Copy(dst, content.NewReader(ra))
 	if err != nil {

@@ -67,9 +67,10 @@ func TestTransportFor(t *testing.T) {
 	}
 
 	testPeerTransport2 := n.(*network).transportFor("test-peer-2")
-	if testPeerTransport2 == nil {
+	switch testPeerTransport2 {
+	case nil:
 		t.Fatal("expected non-nil transport")
-	} else if testPeerTransport2 == testPeerTransport {
+	case testPeerTransport:
 		t.Fatal("expected different transport")
 	}
 

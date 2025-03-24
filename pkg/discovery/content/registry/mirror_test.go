@@ -127,7 +127,9 @@ func TestMirrorHandler(t *testing.T) {
 				m.Handle(pcontext.FromContext(c))
 
 				resp := rw.Result()
-				defer resp.Body.Close()
+				defer func() {
+					require.NoError(t, resp.Body.Close())
+				}()
 				b, err := io.ReadAll(resp.Body)
 				require.NoError(t, err)
 				require.Equal(t, tt.expectedStatus, resp.StatusCode)

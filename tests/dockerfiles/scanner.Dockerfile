@@ -4,7 +4,7 @@ ARG FILE_PATH=/usr/local/bin/scannerbase
 
 RUN dd if=/dev/urandom of=$FILE_PATH bs=1 count=$((600 * 1024 * 1024))
 
-FROM mcr.microsoft.com/oss/go/microsoft/golang:1.23-fips-azurelinux3.0 as builder
+FROM mcr.microsoft.com/oss/go/microsoft/golang:1.24-fips-azurelinux3.0 as builder
 
 COPY ./ /src/
 

@@ -235,7 +235,11 @@ func downloadSASURL(l *zerolog.Logger, sasURL string, readsPerBlob int) ([]float
 			continue
 		}
 
-		defer resp.Body.Close()
+		defer func() {
+			if err := resp.Body.Close(); err != nil {
+				l2.Error().Err(err).Msg("error closing response body")
+			}
+		}()
 		n, err := io.Copy(io.Discard, resp.Body)
 		if err != nil {
 			l2.Error().Err(err).Msg("error reading response body")

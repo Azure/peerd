@@ -155,13 +155,14 @@ peerLoop:
 
 			var count int64
 			startTime = time.Now()
-			if o == operationFstatRemote {
+			switch o {
+			case operationFstatRemote:
 				count, err = r.fstatRemote(log, peerReq, client)
-			} else if o == operationPreadRemote {
+			case operationPreadRemote:
 				var c int
 				c, err = r.preadRemote(log, peerReq, client, buf)
 				count = int64(c)
-			} else {
+			default:
 				err = fmt.Errorf("unknown operation: %v", o)
 			}
 
@@ -192,7 +193,11 @@ func (r *reader) fstatRemote(log zerolog.Logger, req *http.Request, client *http
 		log.Error().Err(err).Msg("reader fstatRemote error")
 		return 0, Error{resp, err}
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			log.Error().Err(closeErr).Msg("reader fstatRemote body close error")
+		}
+	}()
 
 	if resp.StatusCode == 200 {
 		return resp.ContentLength, nil
@@ -236,7 +241,11 @@ func (r *reader) preadRemote(log zerolog.Logger, req *http.Request, client *http
 		log.Error().Err(detailedErr).Str("url", req.URL.String()).Str("range", req.Header.Get("Range")).Msg("reader preadRemote error")
 		return 0, detailedErr
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			log.Error().Err(closeErr).Msg("reader preadRemote body close error")
+		}
+	}()
 
 	if resp.StatusCode != 200 && resp.StatusCode != 206 {
 		log.Error().Err(err).Int("status", resp.StatusCode).Msg("reader preadRemote error")
