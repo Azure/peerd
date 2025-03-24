@@ -19,7 +19,7 @@ jobs:
         go-version: '1.24'
 
     - name: Prerequisites
-      run: make install-linter install-gocov
+      run: sudo make install-linter install-gocov
 
     - name: All
       run: make all
