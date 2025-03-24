@@ -18,12 +18,12 @@ jobs:
       with:
         go-version: '1.24'
 
-    - name: Prerequisites: install linter
+    - name: Prerequisites - install linter
       run: sudo make install-linter
 
-    - name: Prerequisites: install coverage tools
+    - name: Prerequisites - install coverage tools
       run: make install-gocov
-      
+
     - name: All
       run: make all
 
