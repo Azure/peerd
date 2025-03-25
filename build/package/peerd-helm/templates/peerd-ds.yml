@@ -47,7 +47,24 @@ spec:
             - containerPort: 5004
               name: metrics
           resources:
-            {{- toYaml .Values.peerd.resources | nindent 8 }}
+            {{- toYaml .Values.peerd.resources | nindent 10 }}
+          {{- if or ((.Values.peerd.resources).limits.cpu) ((.Values.peerd.resources).limits.memory) }}
+          env:
+          {{- end }}
+            {{- if ((.Values.peerd.resources).limits).cpu }}
+            - name: GOMAXPROCS
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.cpu
+                  divisor: 1
+            {{- end }}
+            {{- if ((.Values.peerd.resources).limits).memory }}
+            - name: GOMEMLIMIT
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.memory
+                  divisor: 1
+            {{- end }}
           volumeMounts:
             - name: metricsmount
               mountPath: "/var/log/peerdmetrics"
