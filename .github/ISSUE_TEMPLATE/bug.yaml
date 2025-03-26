@@ -40,7 +40,7 @@ body:
       required: true
     attributes:
       label: What is the version of your Peerd?
-      description: "Check the peerd image tag to get the version."
+      description: "Check the Peerd image tag to get the version."
   - type: checkboxes
     id: idea
     attributes:
