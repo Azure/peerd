@@ -3,6 +3,7 @@
 package urlparser
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/opencontainers/go-digest"
@@ -71,5 +72,18 @@ func TestUrls(t *testing.T) {
 				t.Errorf("expected error parsing digest from url %s", test.url)
 			}
 		}
+	}
+}
+
+func BenchmarkParseDigestFromAzureUrl(b *testing.B) {
+	for index, test := range azureTestCases {
+		b.Run(fmt.Sprintf("%v", index), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_, err := parseDigestFromAzureUrl(test.url)
+				if err != nil && test.valid {
+					b.Errorf("expected no error parsing digest from url %s", test.url)
+				}
+			}
+		})
 	}
 }

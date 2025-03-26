@@ -8,6 +8,13 @@ import (
 	"testing"
 )
 
+func TestSyncMapBase(t *testing.T) {
+	sm := NewSyncMap(0)
+	if mapLen := len(*sm.mapObj); mapLen != 0 {
+		t.Fatalf("unexpected length of map: %d", mapLen)
+	}
+}
+
 func TestSyncMapAddEvict(t *testing.T) {
 	sm := NewSyncMap(100)
 	sm.evictionPercentage = 10
@@ -93,4 +100,23 @@ func TestSyncMapUpdate(t *testing.T) {
 	if entry0.(int) != 0 || entry9.(int) != 18 {
 		t.Fatalf("value is not correct")
 	}
+}
+
+func BenchmarkSyncMap(b *testing.B) {
+	sm := NewSyncMap(100)
+	b.Run("Add", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			sm.Set(fmt.Sprintf("%d", i), i)
+		}
+	})
+	b.Run("Get", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			sm.Get(fmt.Sprintf("%d", i))
+		}
+	})
+	b.Run("Delete", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			sm.Delete(fmt.Sprintf("%d", i))
+		}
+	})
 }

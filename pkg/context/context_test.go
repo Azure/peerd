@@ -215,3 +215,24 @@ func TestRangeStartIndex(t *testing.T) {
 		})
 	}
 }
+
+func TestContextCop(t *testing.T) {
+	// Create a new request without any correlation ID headers.
+	req, err := http.NewRequest("GET", "http://127.0.0.1:5000/blobs/fdsfsdsd", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	ctx.Request = req
+
+	pc := FromContext(ctx)
+
+	pcCopy := pc.Copy()
+	if pcCopy.Request == nil {
+		t.Fatal("expected context copy request to not be nil")
+	}
+	if pcCopy.Request != pc.Request {
+		t.Fatal("expected context copy request to be the same as original")
+	}
+}
