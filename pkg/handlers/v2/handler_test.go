@@ -34,6 +34,65 @@ func TestNew(t *testing.T) {
 	}
 }
 
+// TestHandlePeerNotFound tests the Handle method of the handler when the peer is not found.
+// The request is simulated to be a GET manifest request from the local containerd client.
+// The handler is expected to discover a peer and having found none after the timeout, return a 404.
+func TestHandlePeerNotFound(t *testing.T) {
+	mr := mocks.NewMockRouter(nil)
+	ms := containerd.NewMockContainerdStore(nil)
+
+	h, err := New(ctxWithMetrics, mr, ms)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	recorder := httptest.NewRecorder()
+	mc, _ := gin.CreateTestContext(recorder)
+	req, err := http.NewRequest("GET", "http://127.0.0.1:5000/v2/library/alpine/manifests/sha256:bb863d6b95453b6b10dfaa1a52cb53f453d9a97ee775808ebaf6533bb4c9bb30?ns=k8s.io", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	mc.Request = req
+
+	pc := pcontext.FromContext(mc)
+	pcontext.FillCorrelationId(pc)
+	h.Handle(pc)
+
+	if recorder.Code != http.StatusNotFound {
+		t.Fatalf("expected status NotFound, got %d", recorder.Code)
+	}
+}
+
+// TestHandleContentNotFound tests the Handle method of the handler when the content is not found.
+// The request is simulated to be a GET manifest request from a peer peerd pod.
+// The handler should look for the content in the local containerd store and having found none, return a 404.
+func TestHandleContentNotFound(t *testing.T) {
+	mr := mocks.NewMockRouter(nil)
+	ms := containerd.NewMockContainerdStore(nil)
+
+	h, err := New(ctxWithMetrics, mr, ms)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	recorder := httptest.NewRecorder()
+	mc, _ := gin.CreateTestContext(recorder)
+	req, err := http.NewRequest("GET", "http://127.0.0.1:5000/v2/library/alpine/manifests/sha256:bb863d6b95453b6b10dfaa1a52cb53f453d9a97ee775808ebaf6533bb4c9bb30?ns=k8s.io", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set(pcontext.P2PHeaderKey, "true")
+	mc.Request = req
+
+	pc := pcontext.FromContext(mc)
+	pcontext.FillCorrelationId(pc)
+	h.Handle(pc)
+
+	if recorder.Code != http.StatusNotFound {
+		t.Fatalf("expected status NotFound, got %d", recorder.Code)
+	}
+}
+
 func TestFillDefault(t *testing.T) {
 	mr := mocks.NewMockRouter(nil)
 	ms := containerd.NewMockContainerdStore(nil)
