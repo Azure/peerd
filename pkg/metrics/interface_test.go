@@ -29,13 +29,7 @@ func TestWithContext(t *testing.T) {
 
 func TestFromContext(t *testing.T) {
 	ctx := context.Background()
-	name := "test"
-	prefix := "test_prefix"
-
-	ctx, err := WithContext(ctx, name, prefix)
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
+	ctx = context.WithValue(ctx, ctxKey{}, &promMetrics{})
 
 	m := FromContext(ctx)
 	if m == nil {
