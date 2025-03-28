@@ -7,8 +7,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-type ctxKey struct{}
-
 // promMetrics is a metrics collector that stores metrics in Prometheus.
 type promMetrics struct {
 	name                  string

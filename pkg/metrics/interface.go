@@ -9,6 +9,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
+type ctxKey struct{}
+
 // Metrics defines an interface to collect p2p metrics.
 type Metrics interface {
 	// RecordRequest records the time it takes to process a request.
@@ -24,7 +26,7 @@ type Metrics interface {
 	RecordUpstreamResponse(hostname, key, op string, duration float64, count int64)
 }
 
-// WithContext returns a new context with an metrics recorder.
+// WithContext returns a new context with a metrics recorder.
 func WithContext(ctx context.Context, name, prefix string) (context.Context, error) {
 	pm := NewPromMetrics(prometheus.DefaultRegisterer, name, prefix)
 	if pm == nil {
