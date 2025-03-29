@@ -15,6 +15,10 @@ coverage:
 
 ignore:
   - tests/**/*
+  - **/*/mock
+  - **/*/mocks
+  - **/*/mock.go
+  - **/*/mocks.go
 
 comment:
   layout: diff, files
