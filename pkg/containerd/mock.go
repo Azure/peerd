@@ -65,5 +65,5 @@ func (m *MockContainerdStore) Bytes(ctx context.Context, dgst digest.Digest) ([]
 		}
 	}
 
-	return nil, "", fmt.Errorf("not found")
+	return nil, "", fmt.Errorf("digest %s not found", dgst)
 }
