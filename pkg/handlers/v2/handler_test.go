@@ -93,6 +93,55 @@ func TestHandleContentNotFound(t *testing.T) {
 	}
 }
 
+// TestHandleContentFound tests the Handle method of the handler when the content is found.
+// The request is simulated to be a GET manifest request from a peer peerd pod.
+// The handler should look for the content in the local containerd store and having found it, return a 200 with the context.
+func TestHandleContentOk(t *testing.T) {
+	mr := mocks.NewMockRouter(nil)
+	ref, err := containerd.ParseReference("k8s.io/library/alpine/sha256:bb863d6b95453b6b10dfaa1a52cb53f453d9a97ee775808ebaf6533bb4c9bb30", "sha256:bb863d6b95453b6b10dfaa1a52cb53f453d9a97ee775808ebaf6533bb4c9bb30")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	ms := containerd.NewMockContainerdStore([]containerd.Reference{ref})
+
+	h, err := New(ctxWithMetrics, mr, ms)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	recorder := httptest.NewRecorder()
+	mc, _ := gin.CreateTestContext(recorder)
+	req, err := http.NewRequest("GET", "http://127.0.0.1:5000/v2/library/alpine/manifests/sha256:bb863d6b95453b6b10dfaa1a52cb53f453d9a97ee775808ebaf6533bb4c9bb30?ns=k8s.io", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set(pcontext.P2PHeaderKey, "true")
+	mc.Request = req
+
+	pc := pcontext.FromContext(mc)
+	pcontext.FillCorrelationId(pc)
+	h.Handle(pc)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected status OK, got %d", recorder.Code)
+	}
+
+	// Ensure body size is greater than 0
+	if recorder.Body.Len() == 0 {
+		t.Fatalf("expected non-empty body, got empty")
+	}
+
+	// Ensure content type is set to application/vnd.oci.image.manifest.v1+json
+	if recorder.Header().Get("Content-Type") != "application/vnd.oci.image.manifest.v1+json" {
+		t.Fatalf("expected content type application/vnd.oci.image.manifest.v1+json, got %s", recorder.Header().Get("Content-Type"))
+	}
+
+	// Ensure content length is set
+	if recorder.Header().Get("Content-Length") == "" {
+		t.Fatalf("expected content length, got empty")
+	}
+}
+
 func TestFillDefault(t *testing.T) {
 	mr := mocks.NewMockRouter(nil)
 	ms := containerd.NewMockContainerdStore(nil)
