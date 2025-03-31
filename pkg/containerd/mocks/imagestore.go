@@ -48,14 +48,14 @@ func (m *MockImageStore) List(ctx context.Context, filters ...string) ([]images.
 	return result, nil
 }
 
-func (*MockImageStore) Create(ctx context.Context, image images.Image) (images.Image, error) {
-	return images.Image{}, nil
+func (m *MockImageStore) Create(ctx context.Context, image images.Image) (images.Image, error) {
+	panic("not implemented")
 }
 
 func (*MockImageStore) Update(ctx context.Context, image images.Image, fieldpaths ...string) (images.Image, error) {
-	return images.Image{}, nil
+	panic("not implemented")
 }
 
 func (*MockImageStore) Delete(ctx context.Context, name string, opts ...images.DeleteOpt) error {
-	return nil
+	panic("not implemented")
 }
