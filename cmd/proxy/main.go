@@ -81,20 +81,11 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 
 	store.PrefetchWorkers = args.PrefetchWorkers
 
-	_, httpsPort, err := net.SplitHostPort(args.HttpsAddr)
+	r, err := newRouter(ctx, args)
 	if err != nil {
 		return err
 	}
 
-	clientset, err := k8s.NewKubernetesInterface(pcontext.KubeConfigPath, pcontext.NodeName)
-	if err != nil {
-		return err
-	}
-
-	ctx, err = events.WithContext(ctx, clientset)
-	if err != nil {
-		return err
-	}
 	eventsRecorder := events.FromContext(ctx)
 	defer func() {
 		if err != nil {
@@ -104,40 +95,9 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 
 	eventsRecorder.Initializing()
 
-	r, err := routing.NewRouter(ctx, clientset, args.RouterAddr, httpsPort)
+	err = addMirrorConfiguration(ctx, args)
 	if err != nil {
 		return err
-	}
-
-	if args.AddMirrorConfiguration {
-		fs := afero.NewOsFs()
-
-		defaultHost, _ := url.Parse("https://mcr.microsoft.com")
-		hosts := append([]url.URL{}, *defaultHost)
-
-		if len(args.Hosts) > 0 {
-			hosts, err = toUrls(args.Hosts)
-			if err != nil {
-				return err
-			}
-		}
-
-		l.Info().Msg(fmt.Sprintf("mirrors args: %v, hosts: %v", args.Hosts, hosts))
-
-		defaultMirror, _ := url.Parse("https://localhost:30001")
-		mirrors := append([]url.URL{}, *defaultMirror)
-
-		if len(args.Mirrors) > 0 {
-			mirrors, err = toUrls(args.Mirrors)
-			if err != nil {
-				return err
-			}
-		}
-
-		err = containerd.AddHostsConfiguration(ctx, fs, args.ContainerdHostsConfigPath, hosts, mirrors, false)
-		if err != nil {
-			return err
-		}
 	}
 
 	containerdStore, err := containerd.NewDefaultStore(args.Hosts)
@@ -211,6 +171,65 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 
 	l.Info().Str("https", args.HttpsAddr).Str("http", args.HttpAddr).Str("router", args.RouterAddr).Str("prom", args.PromAddr).Msg("server start")
 	err = g.Wait()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func newRouter(ctx context.Context, args *ServerCmd) (routing.Router, error) {
+	_, httpsPort, err := net.SplitHostPort(args.HttpsAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	clientset, err := k8s.NewKubernetesInterface(pcontext.KubeConfigPath, pcontext.NodeName)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, err = events.WithContext(ctx, clientset)
+	if err != nil {
+		return nil, err
+	}
+
+	return routing.NewRouter(ctx, clientset, args.RouterAddr, httpsPort)
+}
+
+func addMirrorConfiguration(ctx context.Context, args *ServerCmd) error {
+	if !args.AddMirrorConfiguration {
+		return nil
+	}
+
+	l := zerolog.Ctx(ctx)
+	fs := afero.NewOsFs()
+
+	defaultHost, _ := url.Parse("https://mcr.microsoft.com")
+	hosts := append([]url.URL{}, *defaultHost)
+
+	var err error
+
+	if len(args.Hosts) > 0 {
+		hosts, err = toUrls(args.Hosts)
+		if err != nil {
+			return err
+		}
+	}
+
+	l.Info().Msg(fmt.Sprintf("mirrors args: %v, hosts: %v", args.Hosts, hosts))
+
+	defaultMirror, _ := url.Parse("https://localhost:30001")
+	mirrors := append([]url.URL{}, *defaultMirror)
+
+	if len(args.Mirrors) > 0 {
+		mirrors, err = toUrls(args.Mirrors)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = containerd.AddHostsConfiguration(ctx, fs, args.ContainerdHostsConfigPath, hosts, mirrors, false)
 	if err != nil {
 		return err
 	}
