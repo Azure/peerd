@@ -14,11 +14,9 @@ coverage:
         target: 55%
 
 ignore:
-  - tests/**/*
-  - **/*/mock
-  - **/*/mocks
-  - **/*/mock.go
-  - **/*/mocks.go
+  - tests/**
+  - **/mock*
+  - **/mocks*
 
 comment:
   layout: diff, files
