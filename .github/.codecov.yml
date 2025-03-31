@@ -15,8 +15,6 @@ coverage:
 
 ignore:
   - tests/**
-  - **/mock*
-  - **/mocks*
 
 comment:
   layout: diff, files

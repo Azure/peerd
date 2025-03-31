@@ -57,7 +57,7 @@ func (m *MockRouter) Close() error {
 func (m *MockRouter) Resolve(ctx context.Context, key string, allowSelf bool, count int) (<-chan routing.PeerInfo, error) {
 	peerCh := make(chan routing.PeerInfo, count)
 	peers, ok := m.resolver[key]
-	// Not found will look forever until timeout.
+	// Not found will look until timeout.
 	if !ok {
 		return peerCh, nil
 	}
