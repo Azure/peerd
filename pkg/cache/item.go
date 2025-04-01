@@ -10,6 +10,7 @@ import (
 	"sync/atomic"
 
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 var fdCnt int32
@@ -61,15 +62,7 @@ func (i *item) fill(log zerolog.Logger, fetch func() ([]byte, error)) (int, erro
 		return 0, err
 	}
 
-	l, err := writeAll(i.file, buffer)
-	if err != nil {
-		if err := os.Remove(i.file.Name()); err != nil {
-			log.Error().Err(err).Str("name", i.file.Name()).Msg("attempted to remove file because the size written did not match the file size")
-		}
-		return 0, err
-	}
-
-	return l, nil
+	return writeAll(i.file, buffer)
 }
 
 // readFromStart reads the entire file from the beginning.
@@ -111,7 +104,15 @@ func writeAll(file *os.File, buff []byte) (int, error) {
 		return 0, err
 	}
 
-	return file.Write(buff[offset:])
+	l, err := file.Write(buff[offset:])
+	if err != nil {
+		if err := os.Remove(file.Name()); err != nil {
+			log.Error().Err(err).Str("name", file.Name()).Msg("attempted to remove file because the size written did not match the file size")
+		}
+		return 0, err
+	}
+
+	return l, nil
 }
 
 // newItem creates a new cache item that is ready to be filled.

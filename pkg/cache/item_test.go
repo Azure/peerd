@@ -13,6 +13,22 @@ import (
 	"github.com/rs/zerolog"
 )
 
+func TestWriteAllTruncateFail(t *testing.T) {
+	td := t.TempDir()
+	filePath := path.Join(td, newRandomStringN(10))
+	f, err := os.OpenFile(filePath, os.O_CREATE, fs.ModePerm)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = writeAll(f, nil)
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+	if err := f.Close(); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestWriteAll(t *testing.T) {
 	// Setup
 	l := zerolog.Nop()
@@ -73,6 +89,29 @@ func TestReadFromStart(t *testing.T) {
 		t.Fatal(err)
 	} else if string(got) != string(data) {
 		t.Fatalf("got %v, expected %v", got, data)
+	}
+}
+
+func TestFillInvalidFetch(t *testing.T) {
+	l := zerolog.Nop()
+	name := newRandomStringN(10)
+	filePath := path.Join(testFileCachePath, name)
+
+	i, err := newItem(filePath, l)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dataFunc := func() ([]byte, error) {
+		return nil, os.ErrInvalid
+	}
+
+	got, err := i.fill(l, dataFunc)
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+	if got != 0 {
+		t.Fatalf("got %v, expected %v", got, 0)
 	}
 }
 
