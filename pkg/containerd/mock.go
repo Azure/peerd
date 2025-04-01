@@ -10,15 +10,19 @@ import (
 	"github.com/opencontainers/go-digest"
 )
 
+const testManifest = `{"schemaVersion": 2, "mediaType": "application/vnd.oci.image.manifest.v1+json", "config": {"digest": sha256:bb863d6b95453b6b10dfaa1a52cb53f453d9a97ee775808ebaf6533bb4c9bb30", "mediaType": "application/vnd.oci.image.config.v1+json", "size": 0}, "layers": []}`
+
 type MockContainerdStore struct {
-	refs []Reference
+	validRefs        []Reference
+	sizeTooLargeRefs []Reference
+	invalidBytesRefs []Reference
 }
 
 var _ Store = &MockContainerdStore{}
 
-func NewMockContainerdStore(refs []Reference) *MockContainerdStore {
+func NewMockContainerdStore(validRefs []Reference) *MockContainerdStore {
 	return &MockContainerdStore{
-		refs: refs,
+		validRefs: validRefs,
 	}
 }
 
@@ -31,7 +35,7 @@ func (m *MockContainerdStore) Subscribe(ctx context.Context) (<-chan Reference, 
 }
 
 func (m *MockContainerdStore) List(ctx context.Context) ([]Reference, error) {
-	return m.refs, nil
+	return m.validRefs, nil
 }
 
 func (m *MockContainerdStore) All(ctx context.Context, ref Reference) ([]string, error) {
@@ -43,9 +47,21 @@ func (m *MockContainerdStore) Resolve(ctx context.Context, ref string) (digest.D
 }
 
 func (m *MockContainerdStore) Size(ctx context.Context, dgst digest.Digest) (int64, error) {
-	for _, r := range m.refs {
+	for _, r := range m.validRefs {
 		if r.Digest() == dgst {
-			return int64(len([]byte("test"))), nil
+			return int64(len([]byte(testManifest))), nil
+		}
+	}
+
+	for _, r := range m.sizeTooLargeRefs {
+		if r.Digest() == dgst {
+			return maxManifestSize + 1, nil
+		}
+	}
+
+	for _, r := range m.invalidBytesRefs {
+		if r.Digest() == dgst {
+			return 100, nil
 		}
 	}
 
@@ -53,15 +69,26 @@ func (m *MockContainerdStore) Size(ctx context.Context, dgst digest.Digest) (int
 }
 
 func (m *MockContainerdStore) Write(ctx context.Context, dst io.Writer, dgst digest.Digest) error {
-	val := []byte("test")
-	_, err := dst.Write(val)
-	return err
+	for _, r := range m.validRefs {
+		if r.Digest() == dgst {
+			_, err := dst.Write([]byte(testManifest))
+			return err
+		}
+	}
+
+	return fmt.Errorf("digest %s not found", dgst)
 }
 
 func (m *MockContainerdStore) Bytes(ctx context.Context, dgst digest.Digest) ([]byte, string, error) {
-	for _, r := range m.refs {
+	for _, r := range m.validRefs {
 		if r.Digest() == dgst {
-			return []byte("test"), "application/vnd.oci.image.manifest.v1+json", nil
+			return []byte(testManifest), "application/vnd.oci.image.manifest.v1+json", nil
+		}
+	}
+
+	for _, r := range m.invalidBytesRefs {
+		if r.Digest() == dgst {
+			return nil, "", fmt.Errorf("unknown error while reading bytes")
 		}
 	}
 

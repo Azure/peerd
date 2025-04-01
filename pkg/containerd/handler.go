@@ -94,7 +94,7 @@ func (r *Registry) handleManifest(c pcontext.Context, dgst digest.Digest) {
 	b, mediaType, err := r.containerdStore.Bytes(c, dgst)
 	if err != nil {
 		//nolint
-		c.AbortWithError(http.StatusNotFound, err)
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
