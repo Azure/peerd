@@ -22,7 +22,7 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	testFileCachePath = os.TempDir() + newRandomStringN(10)
+	testFileCachePath = filepath.Join(os.TempDir(), newRandomStringN(10))
 }
 
 // teardown removes the cache directory.
