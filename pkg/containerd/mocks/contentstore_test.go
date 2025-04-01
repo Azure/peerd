@@ -83,7 +83,10 @@ func TestReaderAt(t *testing.T) {
 				if got.Size() != test.desc.Size {
 					t.Errorf("ReaderAt() got size = %d, want %d", got.Size(), test.desc.Size)
 				}
-				got.Close()
+				err := got.Close()
+				if err != nil {
+					t.Errorf("ReaderAt() error closing reader = %v", err)
+				}
 			}
 		})
 	}
@@ -98,49 +101,70 @@ func TestContentStorePanics(t *testing.T) {
 			name: "TestDelete",
 			fn: func() {
 				m := &MockContentStore{}
-				m.Delete(context.Background(), digest.Digest("sha256:1234567890abcdef"))
+				err := m.Delete(context.Background(), digest.Digest("sha256:1234567890abcdef"))
+				if err != nil {
+					t.Errorf("Delete() error = %v", err)
+				}
 			},
 		},
 		{
 			name: "TestWalk",
 			fn: func() {
 				m := &MockContentStore{}
-				m.Walk(context.Background(), nil)
+				err := m.Walk(context.Background(), nil)
+				if err != nil {
+					t.Errorf("Walk() error = %v", err)
+				}
 			},
 		},
 		{
 			name: "TestStatus",
 			fn: func() {
 				m := &MockContentStore{}
-				m.Status(context.Background(), "test")
+				_, err := m.Status(context.Background(), "test")
+				if err != nil {
+					t.Errorf("Status() error = %v", err)
+				}
 			},
 		},
 		{
 			name: "TestUpdate",
 			fn: func() {
 				m := &MockContentStore{}
-				m.Update(context.Background(), content.Info{}, "")
+				_, err := m.Update(context.Background(), content.Info{}, "")
+				if err != nil {
+					t.Errorf("Update() error = %v", err)
+				}
 			},
 		},
 		{
 			name: "TestListStatuses",
 			fn: func() {
 				m := &MockContentStore{}
-				m.ListStatuses(context.Background(), "")
+				_, err := m.ListStatuses(context.Background(), "")
+				if err != nil {
+					t.Errorf("ListStatuses() error = %v", err)
+				}
 			},
 		},
 		{
 			name: "TestWriter",
 			fn: func() {
 				m := &MockContentStore{}
-				m.Writer(context.Background())
+				_, err := m.Writer(context.Background())
+				if err != nil {
+					t.Errorf("Writer() error = %v", err)
+				}
 			},
 		},
 		{
 			name: "TestAbort",
 			fn: func() {
 				m := &MockContentStore{}
-				m.Abort(context.Background(), "test")
+				err := m.Abort(context.Background(), "test")
+				if err != nil {
+					t.Errorf("Abort() error = %v", err)
+				}
 			},
 		},
 	}

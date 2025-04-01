@@ -30,14 +30,20 @@ func TestEventStorePanics(t *testing.T) {
 			name: "TestForward",
 			fn: func() {
 				m := &MockEventService{}
-				m.Forward(context.Background(), nil)
+				err := m.Forward(context.Background(), nil)
+				if err != nil {
+					t.Errorf("Forward() error = %v", err)
+				}
 			},
 		},
 		{
 			name: "TestPublish",
 			fn: func() {
 				m := &MockEventService{}
-				m.Publish(context.Background(), "", nil)
+				err := m.Publish(context.Background(), "", nil)
+				if err != nil {
+					t.Errorf("Publish() error = %v", err)
+				}
 			},
 		},
 	}

@@ -87,21 +87,30 @@ func TestImageStorePanics(t *testing.T) {
 			name: "TestCreate",
 			fn: func() {
 				m := &MockImageStore{}
-				m.Create(context.Background(), images.Image{})
+				_, err := m.Create(context.Background(), images.Image{})
+				if err != nil {
+					t.Errorf("Create() error = %v", err)
+				}
 			},
 		},
 		{
 			name: "TestUpdate",
 			fn: func() {
 				m := &MockImageStore{}
-				m.Update(context.Background(), images.Image{}, "fieldpath")
+				_, err := m.Update(context.Background(), images.Image{}, "fieldpath")
+				if err != nil {
+					t.Errorf("Update() error = %v", err)
+				}
 			},
 		},
 		{
 			name: "TestDelete",
 			fn: func() {
 				m := &MockImageStore{}
-				m.Delete(context.Background(), "name")
+				err := m.Delete(context.Background(), "name")
+				if err != nil {
+					t.Errorf("Delete() error = %v", err)
+				}
 			},
 		},
 	}
