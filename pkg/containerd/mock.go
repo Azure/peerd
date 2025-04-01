@@ -10,7 +10,7 @@ import (
 	"github.com/opencontainers/go-digest"
 )
 
-const testManifest = `{"schemaVersion": 2, "mediaType": "application/vnd.oci.image.manifest.v1+json", "config": {"digest": sha256:bb863d6b95453b6b10dfaa1a52cb53f453d9a97ee775808ebaf6533bb4c9bb30", "mediaType": "application/vnd.oci.image.config.v1+json", "size": 0}, "layers": []}`
+const testManifestBlob = `{"schemaVersion": 2, "mediaType": "application/vnd.oci.image.manifest.v1+json", "config": {"digest": sha256:bb863d6b95453b6b10dfaa1a52cb53f453d9a97ee775808ebaf6533bb4c9bb30", "mediaType": "application/vnd.oci.image.config.v1+json", "size": 0}, "layers": []}`
 
 type MockContainerdStore struct {
 	validRefs        []Reference
@@ -43,13 +43,19 @@ func (m *MockContainerdStore) All(ctx context.Context, ref Reference) ([]string,
 }
 
 func (m *MockContainerdStore) Resolve(ctx context.Context, ref string) (digest.Digest, error) {
+	for _, r := range m.validRefs {
+		if r.Name() == ref {
+			return r.Digest(), nil
+		}
+	}
+
 	return "", nil
 }
 
 func (m *MockContainerdStore) Size(ctx context.Context, dgst digest.Digest) (int64, error) {
 	for _, r := range m.validRefs {
 		if r.Digest() == dgst {
-			return int64(len([]byte(testManifest))), nil
+			return int64(len([]byte(testManifestBlob))), nil
 		}
 	}
 
@@ -65,13 +71,13 @@ func (m *MockContainerdStore) Size(ctx context.Context, dgst digest.Digest) (int
 		}
 	}
 
-	return -1, nil
+	return -1, fmt.Errorf("digest %s not found", dgst)
 }
 
 func (m *MockContainerdStore) Write(ctx context.Context, dst io.Writer, dgst digest.Digest) error {
 	for _, r := range m.validRefs {
 		if r.Digest() == dgst {
-			_, err := dst.Write([]byte(testManifest))
+			_, err := dst.Write([]byte(testManifestBlob))
 			return err
 		}
 	}
@@ -82,7 +88,7 @@ func (m *MockContainerdStore) Write(ctx context.Context, dst io.Writer, dgst dig
 func (m *MockContainerdStore) Bytes(ctx context.Context, dgst digest.Digest) ([]byte, string, error) {
 	for _, r := range m.validRefs {
 		if r.Digest() == dgst {
-			return []byte(testManifest), "application/vnd.oci.image.manifest.v1+json", nil
+			return []byte(testManifestBlob), "application/vnd.oci.image.manifest.v1+json", nil
 		}
 	}
 

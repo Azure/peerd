@@ -61,6 +61,7 @@ func (r *Registry) Handle(c pcontext.Context) {
 	if !ok {
 		//nolint
 		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("ref type not found in context"))
+		return
 	}
 
 	switch refType.(distribution.ReferenceType) {
