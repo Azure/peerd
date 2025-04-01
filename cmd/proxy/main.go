@@ -81,19 +81,32 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 
 	store.PrefetchWorkers = args.PrefetchWorkers
 
-	r, err := newRouter(ctx, args)
+	_, httpsPort, err := net.SplitHostPort(args.HttpsAddr)
 	if err != nil {
 		return err
 	}
 
+	clientset, err := k8s.NewKubernetesInterface(pcontext.KubeConfigPath, pcontext.NodeName)
+	if err != nil {
+		return err
+	}
+
+	ctx, err = events.WithContext(ctx, clientset)
+	if err != nil {
+		return err
+	}
 	eventsRecorder := events.FromContext(ctx)
 	defer func() {
 		if err != nil {
 			eventsRecorder.Failed()
 		}
 	}()
-
 	eventsRecorder.Initializing()
+
+	r, err := routing.NewRouter(ctx, clientset, args.RouterAddr, httpsPort)
+	if err != nil {
+		return err
+	}
 
 	err = addMirrorConfiguration(ctx, args)
 	if err != nil {
@@ -176,25 +189,6 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 	}
 
 	return nil
-}
-
-func newRouter(ctx context.Context, args *ServerCmd) (routing.Router, error) {
-	_, httpsPort, err := net.SplitHostPort(args.HttpsAddr)
-	if err != nil {
-		return nil, err
-	}
-
-	clientset, err := k8s.NewKubernetesInterface(pcontext.KubeConfigPath, pcontext.NodeName)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx, err = events.WithContext(ctx, clientset)
-	if err != nil {
-		return nil, err
-	}
-
-	return routing.NewRouter(ctx, clientset, args.RouterAddr, httpsPort)
 }
 
 func addMirrorConfiguration(ctx context.Context, args *ServerCmd) error {
