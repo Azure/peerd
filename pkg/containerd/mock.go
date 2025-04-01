@@ -10,8 +10,7 @@ import (
 	"github.com/opencontainers/go-digest"
 )
 
-const testManifestBlob = `{"schemaVersion": 2, "mediaType": "application/vnd.oci.image.manifest.v1+json", "config": {"digest": sha256:bb863d6b95453b6b10dfaa1a52cb53f453d9a97ee775808ebaf6533bb4c9bb30", "mediaType": "application/vnd.oci.image.config.v1+json", "size": 0}, "layers": []}`
-
+const testManifestBlob = `{"schemaVersion": 2, "mediaType": "application/vnd.oci.image.manifest.v1+json", "config": {"digest": "sha256:bb863d6b95453b6b10dfaa1a52cb53f453d9a97ee775808ebaf6533bb4c9bb30", "mediaType": "application/vnd.oci.image.config.v1+json", "size": 0}, "layers": []}`
 type MockContainerdStore struct {
 	validRefs        []Reference
 	sizeTooLargeRefs []Reference
