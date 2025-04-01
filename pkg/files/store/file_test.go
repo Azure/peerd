@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/azure/peerd/pkg/cache"
 	readermocks "github.com/azure/peerd/pkg/discovery/content/reader/mocks"
 	"github.com/azure/peerd/pkg/discovery/routing/mocks"
 	"github.com/azure/peerd/pkg/files"
@@ -20,7 +19,7 @@ func TestReadAtWithChunkOffset(t *testing.T) {
 
 	files.CacheBlockSize = 1 // 1 byte
 
-	s, err := NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)))
+	s, err := NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)), testFileCachePath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -47,7 +46,7 @@ func TestReadAtWithChunkOffset(t *testing.T) {
 		t.Fatalf("expected %v, got %v", errOnlySingleChunkAvailable, err)
 	}
 
-	_, err = os.ReadFile(cache.Path + "/test/0")
+	_, err = os.ReadFile(testFileCachePath + "/test/0")
 	if !strings.Contains(err.Error(), "no such file or directory") {
 		t.Fatalf("expected chunk file to not exist, got %v", err)
 	}
@@ -64,7 +63,7 @@ func TestReadAtWithChunkOffset(t *testing.T) {
 		t.Errorf("expected to read %q, got %q", "o", string(buf[0]))
 	}
 
-	chunkFile, err := os.ReadFile(cache.Path + "/test/4")
+	chunkFile, err := os.ReadFile(testFileCachePath + "/test/4")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,7 +77,7 @@ func TestReadAt(t *testing.T) {
 
 	files.CacheBlockSize = 1 // 1 byte
 
-	s, err := NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)))
+	s, err := NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)), testFileCachePath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,7 +103,7 @@ func TestReadAt(t *testing.T) {
 		t.Errorf("expected to read %d byte, got %d", 1, n)
 	}
 
-	chunkFile, err := os.ReadFile(cache.Path + "/test/0")
+	chunkFile, err := os.ReadFile(testFileCachePath + "/test/0")
 	if err != nil {
 		t.Fatal(err)
 	} else if string(chunkFile) != "h" {
@@ -128,7 +127,7 @@ func TestReadAt(t *testing.T) {
 func TestSeek(t *testing.T) {
 	data := []byte("hello world")
 
-	s, err := NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)))
+	s, err := NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)), testFileCachePath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -192,7 +191,7 @@ func TestFstat(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s, err := NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)))
+	s, err := NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)), testFileCachePath)
 	if err != nil {
 		t.Fatal(err)
 	}

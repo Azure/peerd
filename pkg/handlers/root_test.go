@@ -106,7 +106,7 @@ func TestNewEngine(t *testing.T) {
 func TestHandler(t *testing.T) {
 	mr := mocks.NewMockRouter(map[string][]string{})
 	ms := containerd.NewMockContainerdStore(nil)
-	mfs, err := store.NewMockStore(ctxWithMetrics, mr)
+	mfs, err := store.NewMockStore(ctxWithMetrics, mr, t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}

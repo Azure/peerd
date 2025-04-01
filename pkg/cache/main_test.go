@@ -10,6 +10,8 @@ import (
 	"testing"
 )
 
+var testFileCachePath string
+
 func TestMain(m *testing.M) {
 	setup()
 	code := m.Run()
@@ -21,14 +23,13 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	suf := newRandomStringN(10)
-	Path += suf
+	testFileCachePath = os.TempDir() + newRandomStringN(10)
 }
 
 // teardown removes the cache directory.
 func teardown() error {
-	if err := os.RemoveAll(Path); err != nil {
-		return fmt.Errorf("failed to remove cache dir: %v --- %v", Path, err)
+	if err := os.RemoveAll(testFileCachePath); err != nil {
+		return fmt.Errorf("failed to remove cache dir: %v --- %v", testFileCachePath, err)
 	}
 
 	return nil

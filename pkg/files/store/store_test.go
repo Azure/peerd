@@ -43,7 +43,7 @@ func TestOpenP2p(t *testing.T) {
 	ctx.Set(pcontext.FileChunkCtxKey, expK)
 
 	PrefetchWorkers = 0 // turn off prefetching
-	s, err := NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)))
+	s, err := NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)), testFileCachePath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,7 +74,7 @@ func TestOpenNonP2p(t *testing.T) {
 	ctx.Set(pcontext.FileChunkCtxKey, expK)
 
 	PrefetchWorkers = 0 // turn off prefetching
-	s, err := NewMockStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)))
+	s, err := NewMockStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)), testFileCachePath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -105,7 +105,7 @@ func TestKey(t *testing.T) {
 		{Key: "url", Value: hostAndPath},
 	}
 
-	s, err := NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)))
+	s, err := NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)), testFileCachePath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -125,7 +125,7 @@ func TestKey(t *testing.T) {
 }
 
 func TestSubscribe(t *testing.T) {
-	s, err := NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)))
+	s, err := NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)), testFileCachePath)
 	if err != nil {
 		t.Fatal(err)
 	}

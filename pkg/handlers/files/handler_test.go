@@ -47,7 +47,7 @@ func TestPartialContentResponseInP2PMode(t *testing.T) {
 	}
 
 	store.PrefetchWorkers = 0 // turn off prefetching
-	s, err := store.NewMockStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)))
+	s, err := store.NewMockStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)), testFileCachePath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,7 +99,7 @@ func TestNotFoundInP2PMode(t *testing.T) {
 	}
 
 	store.PrefetchWorkers = 0 // turn off prefetching
-	s, err := store.NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)))
+	s, err := store.NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)), testFileCachePath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -135,7 +135,7 @@ func TestFill(t *testing.T) {
 	}
 
 	store.PrefetchWorkers = 0 // turn off prefetching
-	s, err := store.NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)))
+	s, err := store.NewFilesStore(ctxWithMetrics, mocks.NewMockRouter(make(map[string][]string)), testFileCachePath)
 	if err != nil {
 		t.Fatal(err)
 	}

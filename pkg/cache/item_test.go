@@ -17,7 +17,7 @@ func TestWriteAll(t *testing.T) {
 	// Setup
 	l := zerolog.Nop()
 	name := newRandomStringN(10)
-	filePath := path.Join(Path, name)
+	filePath := path.Join(testFileCachePath, name)
 
 	i, err := newItem(filePath, l)
 	if err != nil {
@@ -51,7 +51,7 @@ func TestReadFromStart(t *testing.T) {
 	// Setup
 	l := zerolog.Nop()
 	name := newRandomStringN(10)
-	filePath := path.Join(Path, name)
+	filePath := path.Join(testFileCachePath, name)
 
 	i, err := newItem(filePath, l)
 	if err != nil {
@@ -80,7 +80,7 @@ func TestFill(t *testing.T) {
 	// Setup
 	l := zerolog.Nop()
 	name := newRandomStringN(10)
-	filePath := path.Join(Path, name)
+	filePath := path.Join(testFileCachePath, name)
 
 	i, err := newItem(filePath, l)
 	if err != nil {
@@ -116,7 +116,7 @@ func TestBytes(t *testing.T) {
 	// Setup
 	l := zerolog.Nop()
 	name := newRandomStringN(10)
-	filePath := path.Join(Path, name)
+	filePath := path.Join(testFileCachePath, name)
 
 	i, err := newItem(filePath, l)
 	if err != nil {
@@ -153,7 +153,7 @@ func TestDrop(t *testing.T) {
 	// Setup
 	l := zerolog.Nop()
 	name := newRandomStringN(10)
-	filePath := path.Join(Path, name)
+	filePath := path.Join(testFileCachePath, name)
 
 	i, err := newItem(filePath, l)
 	if err != nil {

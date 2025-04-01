@@ -147,20 +147,20 @@ func waitForSet() {
 	time.Sleep(10 * time.Millisecond)
 }
 
-// New creates a new cache of files.
+// NewCache creates a new cache of files.
 // cacheBlockSize is the fixed size of the cache block in bytes, and is used to evaluate the cost of each item in the cache.
-func New(ctx context.Context, cacheBlockSize int64) Cache {
+func NewCache(ctx context.Context, cacheBlockSize int64, path string) Cache {
 	log := zerolog.Ctx(ctx).With().Str("component", "cache").Logger()
 
 	atomic.StoreInt32(&fdCnt, 0)
-	if err := os.MkdirAll(Path, 0755); err != nil {
+	if err := os.MkdirAll(path, 0755); err != nil {
 		// This will call os.Exit(1)
-		log.Fatal().Err(err).Str("path", Path).Msg("failed to initialize cache directory")
+		log.Fatal().Err(err).Str("path", path).Msg("failed to initialize cache directory")
 	}
 
 	cache := &fileCache{
 		log:           log,
-		path:          Path,
+		path:          path,
 		metadataCache: NewSyncMap(1e7),
 	}
 

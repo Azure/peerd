@@ -23,7 +23,4 @@ var (
 
 	// MemoryCacheMaxCost is the capacity of the memory cache.
 	MemoryCacheMaxCost int64 = 1 * 1024 * 1024 * 1024 // 1 Gib
-
-	// Path is the path to the cache directory.
-	Path string = "/tmp/distribution/peerd/cache"
 )

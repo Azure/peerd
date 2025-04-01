@@ -25,16 +25,16 @@ var (
 func TestGetKey(t *testing.T) {
 	name := newRandomStringN(10)
 	offset := int64(100)
-	c := New(context.Background(), cacheBlockSize)
+	c := NewCache(context.Background(), cacheBlockSize, testFileCachePath)
 	got := c.(*fileCache).getKey(name, offset)
-	want := fmt.Sprintf("%v/%v/%v", Path, name, offset)
+	want := fmt.Sprintf("%v/%v/%v", testFileCachePath, name, offset)
 	if got != want {
 		t.Errorf("expected: %v, got: %v", want, got)
 	}
 }
 
 func TestExists(t *testing.T) {
-	c := New(context.Background(), cacheBlockSize)
+	c := NewCache(context.Background(), cacheBlockSize, testFileCachePath)
 
 	filesThatExist := []string{}
 	for i := 0; i < 5; i++ {
@@ -117,7 +117,7 @@ func TestExists(t *testing.T) {
 }
 
 func TestPutAndGetSize(t *testing.T) {
-	c := New(context.Background(), cacheBlockSize)
+	c := NewCache(context.Background(), cacheBlockSize, testFileCachePath)
 	var eg errgroup.Group
 
 	for i := 0; i < 1000; i++ {
@@ -154,7 +154,7 @@ func TestPutAndGetSize(t *testing.T) {
 func TestGetOrCreate(t *testing.T) {
 	zerolog.TimeFieldFormat = time.RFC3339
 	//c := New(zerolog.New(os.Stdout).With().Timestamp().Logger().WithContext(context.Background()))
-	c := New(context.Background(), cacheBlockSize)
+	c := NewCache(context.Background(), cacheBlockSize, testFileCachePath)
 	var eg errgroup.Group
 
 	fileNames := new(sync.Map)

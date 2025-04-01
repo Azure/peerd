@@ -34,7 +34,7 @@ func TestSyncMapAddEvict(t *testing.T) {
 		t.Fatalf("unexpected length of map after adding to capacity: %d", mapLen)
 	}
 
-	sm.Set("200", 200) //Now it's beyond the map capacity. 10% of entries will be evicted
+	sm.Set("200", 200) // Now it's beyond the map capacity. 10% of entries will be evicted
 	if mapLen := len(*sm.mapObj); mapLen != 91 {
 		t.Fatalf("unexpected length of map after adding beyond capacity: %d", mapLen)
 	}

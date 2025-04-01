@@ -19,8 +19,8 @@ func (m *MockStore) Cache() cache.Cache {
 	return m.cache
 }
 
-func NewMockStore(ctx context.Context, r routing.Router) (*MockStore, error) {
-	s, err := NewFilesStore(ctx, r)
+func NewMockStore(ctx context.Context, r routing.Router, fileCachePath string) (*MockStore, error) {
+	s, err := NewFilesStore(ctx, r, fileCachePath)
 	if err != nil {
 		return nil, err
 	}

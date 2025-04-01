@@ -122,7 +122,7 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 		return err
 	}
 
-	filesStore, err := store.NewFilesStore(ctx, r)
+	filesStore, err := store.NewFilesStore(ctx, r, store.DefaultFileCachePath)
 	if err != nil {
 		return err
 	}

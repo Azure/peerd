@@ -20,11 +20,13 @@ import (
 	"github.com/rs/zerolog"
 )
 
+const DefaultFileCachePath = "/tmp/distribution/peerd/cache"
+
 // NewFilesStore creates a new store.
-func NewFilesStore(ctx context.Context, r routing.Router) (FilesStore, error) {
+func NewFilesStore(ctx context.Context, r routing.Router, fileCachePath string) (FilesStore, error) {
 	fs := &store{
 		metricsRecorder: metrics.FromContext(ctx),
-		cache:           cache.New(ctx, int64(files.CacheBlockSize)),
+		cache:           cache.NewCache(ctx, int64(files.CacheBlockSize), fileCachePath),
 		prefetchChan:    make(chan prefetchableSegment, PrefetchWorkers),
 		prefetchable:    PrefetchWorkers > 0,
 		router:          r,
