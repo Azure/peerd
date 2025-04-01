@@ -140,8 +140,8 @@ func TestHandleManifestHead(t *testing.T) {
 		t.Fatalf("expected application/vnd.oci.image.manifest.v1+json, got %s", mr.Header().Get(contentTypeHeader))
 	}
 
-	if mr.Header().Get(contentLengthHeader) != "257" {
-		t.Fatalf("expected 257, got %s", mr.Header().Get(contentLengthHeader))
+	if mr.Header().Get(contentLengthHeader) != "258" {
+		t.Fatalf("expected 258, got %s", mr.Header().Get(contentLengthHeader))
 	}
 }
 
@@ -216,8 +216,8 @@ func TestHandleManifest(t *testing.T) {
 		t.Fatalf("expected application/vnd.oci.image.manifest.v1+json, got %s", mr.Header().Get(contentTypeHeader))
 	}
 
-	if mr.Header().Get(contentLengthHeader) != "257" {
-		t.Fatalf("expected 257, got %s", mr.Header().Get(contentLengthHeader))
+	if mr.Header().Get(contentLengthHeader) != "258" {
+		t.Fatalf("expected 258, got %s", mr.Header().Get(contentLengthHeader))
 	}
 }
 
@@ -277,8 +277,8 @@ func TestHandleBlobHead(t *testing.T) {
 		t.Fatalf("expected empty body, got %s", mr.Body.String())
 	}
 
-	if mr.Header().Get(contentLengthHeader) != "257" {
-		t.Fatalf("expected 257, got %s", mr.Header().Get(contentLengthHeader))
+	if mr.Header().Get(contentLengthHeader) != "258" {
+		t.Fatalf("expected 258, got %s", mr.Header().Get(contentLengthHeader))
 	}
 
 	if mr.Header().Get(dockerContentDigestHeader) != "sha256:blob" {
@@ -353,8 +353,8 @@ func TestHandleBlob(t *testing.T) {
 		t.Fatalf("expected %s, got %s", testManifestBlob, mr.Body.String())
 	}
 
-	if mr.Header().Get(contentLengthHeader) != "257" {
-		t.Fatalf("expected 257, got %s", mr.Header().Get(contentLengthHeader))
+	if mr.Header().Get(contentLengthHeader) != "258" {
+		t.Fatalf("expected 258, got %s", mr.Header().Get(contentLengthHeader))
 	}
 
 	if mr.Header().Get(dockerContentDigestHeader) != "sha256:blob" {
@@ -455,8 +455,8 @@ func TestHandleM(t *testing.T) {
 		t.Fatalf("expected application/vnd.oci.image.manifest.v1+json, got %s", mr.Header().Get(contentTypeHeader))
 	}
 
-	if mr.Header().Get(contentLengthHeader) != "257" {
-		t.Fatalf("expected 257, got %s", mr.Header().Get(contentLengthHeader))
+	if mr.Header().Get(contentLengthHeader) != "258" {
+		t.Fatalf("expected 258, got %s", mr.Header().Get(contentLengthHeader))
 	}
 }
 
@@ -496,8 +496,8 @@ func TestHandleB(t *testing.T) {
 		t.Fatalf("expected %s, got %s", testManifestBlob, mr.Body.String())
 	}
 
-	if mr.Header().Get(contentLengthHeader) != "257" {
-		t.Fatalf("expected 257, got %s", mr.Header().Get(contentLengthHeader))
+	if mr.Header().Get(contentLengthHeader) != "258" {
+		t.Fatalf("expected 258, got %s", mr.Header().Get(contentLengthHeader))
 	}
 }
 
@@ -541,8 +541,8 @@ func TestHandleByTag(t *testing.T) {
 		t.Fatalf("expected application/vnd.oci.image.manifest.v1+json, got %s", mr.Header().Get(contentTypeHeader))
 	}
 
-	if mr.Header().Get(contentLengthHeader) != "257" {
-		t.Fatalf("expected 257, got %s", mr.Header().Get(contentLengthHeader))
+	if mr.Header().Get(contentLengthHeader) != "258" {
+		t.Fatalf("expected 258, got %s", mr.Header().Get(contentLengthHeader))
 	}
 }
 
