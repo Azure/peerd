@@ -23,12 +23,6 @@ Sub commands:
         up
         delete
 
-    init
-        random
-
-    run
-        dotnet
-
 * dry run: create nodepool called 'nodepool1' and install the peerd proxy
     $(basename $0) nodepool up nodepool1
 
