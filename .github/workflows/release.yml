@@ -140,7 +140,7 @@ jobs:
           PEERD_IMAGE_TAG=${{ env.TAG }} make tests-deps-install ci-aks-streaming
 
   tag:
-    name: Tag Release
+    name: Tag Stable Peerd Image
     runs-on: ubuntu-latest
     needs: [publish, ciCtr, ciStreaming]
     permissions:
@@ -169,3 +169,42 @@ jobs:
         run: |
           docker tag ${{ env.REGISTRY }}/${{ env.REPO_PREFIX }}peerd:${{ env.SOURCE_TAG }} ${{ env.REGISTRY }}/${{ env.REPO_PREFIX }}peerd:${{ env.TARGET_TAG }} && \
             docker push ${{ env.REGISTRY }}/${{ env.REPO_PREFIX }}peerd:${{ env.TARGET_TAG }}
+  
+  releaseHelm:
+    name: Release Peerd Helm Chart
+    runs-on: ubuntu-latest
+    needs: [publish, ciCtr, ciStreaming]
+    env:
+      RELEASE_NAME: ${{ needs.publish.outputs.git_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Helm
+        uses: azure/setup-helm@v4.3.0
+        id: install
+
+      - name: Package Helm Chart
+        run: |
+          helm package build/package/peerd-helm --destination packaged-charts
+
+      - name: Create Helm Index
+        run: |
+          helm repo index packaged-charts --url "https://github.com/${{ github.repository }}/releases/download/${{ env.RELEASE_NAME }}"
+
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh
+
+      - name: Create GitHub Release and Upload Assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ github.ref_name }} \
+            packaged-charts/*.tgz \
+            packaged-charts/index.yaml \
+            --title "Helm Chart Release ${{ github.ref_name }}" \
+            --notes "This release contains the Helm chart for version ${{ env.RELEASE_NAME }}."
