@@ -6,7 +6,6 @@ import (
 	"crypto/rand"
 	"fmt"
 	"os"
-	"path/filepath"
 	"testing"
 )
 
@@ -23,7 +22,12 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	testFileCachePath = filepath.Join(os.TempDir(), newRandomStringN(10))
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic(fmt.Sprintf("failed to get current working directory: %v", err))
+	}
+
+	testFileCachePath = cwd + newRandomStringN(10)
 }
 
 // teardown removes the cache directory.
