@@ -47,7 +47,7 @@ spec:
             - containerPort: 5004
               name: metrics
           resources:
-            {{- toYaml .Values.peerd.resources | nindent 10 }}
+            {{- toYaml .Values.peerd.resources | nindent 12 }}
           {{- if or ((.Values.peerd.resources).limits.cpu) ((.Values.peerd.resources).limits.memory) }}
           env:
           {{- end }}

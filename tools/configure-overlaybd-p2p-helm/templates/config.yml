@@ -1,0 +1,21 @@
+# Script to update the overlaybd configuration for peer-to-peer.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "overlaybd.name" . }}-config
+  namespace: {{ include "overlaybd.namespace" . }}
+  labels:
+    {{- include "overlaybd.labels" . | nindent 4 }}
+data:
+  wasm: |
+    #!/usr/bin/env bash
+    set -xe
+
+    # Enable overlaybd peer-to-peer
+    /opt/acr/tools/overlaybd/config.sh p2pConfig.enable true
+    /opt/acr/tools/overlaybd/config.sh p2pConfig.address \"http://localhost:30000/blobs\"  
+    /opt/acr/tools/overlaybd/config.sh logConfig.logLevel 0
+
+    # Restart overlaybd
+    sudo systemctl restart overlaybd-tcmu
+    sudo systemctl restart overlaybd-snapshotter

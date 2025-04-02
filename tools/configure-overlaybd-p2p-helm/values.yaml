@@ -1,0 +1,12 @@
+overlaybd:
+
+  image:
+    pullPolicy: IfNotPresent
+    ref: docker.io/alexeldeib/nsenter:latest # https://github.com/alexeldeib/azbench/blob/main/images/nsenter/entrypoint.sh
+
+  namespace:
+    k8s: configure-overlaybd-p2p-ns
+
+  affinity:
+  
+  tolerations:

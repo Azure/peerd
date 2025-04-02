@@ -30,8 +30,6 @@ peerd:
     requests:
       cpu: "10m"
 
-  # Uncomment to add affinity rules.
-  # affinity:
+  affinity:
     
-  # Uncomment to add tolerations.
-  # tolerations:
+  tolerations:

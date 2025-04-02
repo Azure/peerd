@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: &name {{ include "overlaybd.name" . }}-ds
+  namespace: {{ include "overlaybd.namespace" . }}
+  labels:
+    {{- include "overlaybd.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: *name
+  template:
+    metadata:
+      labels:
+        app: *name
+    spec:
+      hostNetwork: true
+      hostPID: true
+      containers:
+        - image: "{{ .Values.overlaybd.image.ref }}"
+          imagePullPolicy: "{{ .Values.overlaybd.image.pullPolicy }}"
+          name: *name
+          args: ["wasm"]
+          resources:
+            requests:
+              cpu: 0.5
+              memory: 200Mi
+            limits:
+              cpu: 0.5
+              memory: 200Mi
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: actions
+              mountPath: "/opt/actions"
+            - name: hostmount
+              mountPath: "/mnt/actions"
+      volumes:
+        - name: hostmount
+          hostPath:
+            path: /opt/actions
+            type: DirectoryOrCreate
+        - name: actions
+          configMap:
+            name: {{ include "overlaybd.name" . }}-config
+      {{- with .Values.overlaybd.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.overlaybd.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

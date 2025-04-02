@@ -34,6 +34,15 @@ spec:
           ports:
             - containerPort: 5004
               name: metrics
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: peerd
+                    operator: In
+                    values:
+                      - ci
 ---
 apiVersion: v1
 kind: Service

@@ -8,8 +8,8 @@ The following sections describe how to use Peerd in your Kubernetes cluster.
 
 | Environment                    | Compatibility Verified |
 | ------------------------------ | ---------------------- |
-| Azure Kubernetes Service (AKS) | :white_check_mark:     |
-| Kind                           | :white_check_mark:     |
+| Azure Kubernetes Service (AKS) | <p>&#9989;</p>         |
+| Kind                           | <p>&#9989;</p>         |
 
 - `helm` installed and configured.
 - `kubectl` installed and configured.
@@ -37,25 +37,14 @@ After the configuration file is updated, the `overlaybd-snapshotter` and `overla
 the changes to take effect. *Note that this will impact any ongoing streaming and must be done with caution*. The restart
 commands are illustrated in the example below.
 
-#### Example
+#### Configure Overlaybd P2P Helm Chart on Azure Kubernetes Service (AKS)
 
-Since this configuration must be applied to all nodes in the cluster, it is recommended to use a DaemonSet to deploy a
-script that updates the configuration file. For example, the [teleport.yml] file is used in the Peerd CI (see `cmd__test__streaming`
-in [azure.sh]) to configure the `overlaybd-snapshotter` to work with Peerd on AKS. It deploys a DaemonSet that runs the
-following script:
+You may use the included [configure-overlaybd-p2p-helm] tool to do these steps easily if using AKS
+To run the tool:
 
 ```bash
-#!/usr/bin/env bash
-set -xe
-
-# Enable overlaybd peer-to-peer
-/opt/acr/tools/overlaybd/config.sh p2pConfig.enable true
-/opt/acr/tools/overlaybd/config.sh p2pConfig.address \"http://localhost:30000/blobs\"  
-/opt/acr/tools/overlaybd/config.sh logConfig.logLevel 0
-
-# Restart overlaybd
-sudo systemctl restart overlaybd-tcmu
-sudo systemctl restart overlaybd-snapshotter
+CLUSTER_CONTEXT=<your-cluster-context> && \
+  helm --kube-context=$CLUSTER_CONTEXT install --wait overlaybd ./tools/configure-overlaybd-p2p-helm
 ```
 
 ## Deployment
@@ -121,7 +110,7 @@ On a 100 nodes AKS cluster of VM size `Standard_D2s_v3`, sample throughput obser
 
 [azure.sh]: ../build/ci/scripts/azure.sh
 [ci-script-readiness]: ../build/ci/scripts/azure.sh
+[configure-overlaybd-p2p-helm]: ../tools/configure-overlaybd-p2p-helm/
 [Grafana dashboard]: ../build/package/peerd-grafana/dashboard.json
 [overlaybd-snapshotter]: https://github.com/containerd/accelerated-container-image?tab=readme-ov-file#components
-[teleport.yml]: ../build/ci/k8s/teleport.yml
 [values.yml]: ../build/package/peerd-helm/values.yaml

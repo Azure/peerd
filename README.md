@@ -8,6 +8,10 @@
 [![codecov]][code-cov]
 [![release-tag]][peerd-pkgs]
 
+<img src="./assets/images/logo.png" alt="peerd-logo" width="130">
+
+---
+
 Peerd enhances [Azure Artifact Streaming] and containerd image pull performance by enabling peer-to-peer distribution in
 a Kubernetes cluster. Nodes can share streamable content as well as images with each other, which can result in throughput
 and latency improvements.
@@ -16,14 +20,14 @@ and latency improvements.
 
 ## Benefits
 
-| Benefit                                         | Artifact Streaming | Image Pulls        | Notes                                                                                                                                              |
-| ----------------------------------------------- | ------------------ | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Increased Throughput**                        | :white_check_mark: | :white_check_mark: | Both streaming and image pull latency improves.                                                                                                    |
-| **Reduced Cluster Scale Out Time**              | :white_check_mark: | :white_check_mark: | New nodes stream or pull images from peers that already have that content.                                                                         |
-| **Improved Cluster Fault Tolerance**            | :white_check_mark: | :white_check_mark: | Mitigating upstream throttling or unavailability.                                                                                                  |
-| **Reduced Container Registry Egress Costs**     | :white_check_mark: | :white_check_mark: | By sharing content within the cluster, upstream I/O is reduced.                                                                                    |
-| **More Cluster Firewall Configuration Options** | :white_check_mark: | :white_check_mark: | Once an image or streamable content is ingested, nodes can share from each other without needing to communicate with the container registry.       |
-| **Ease of Use**                                 | :white_check_mark: | :white_check_mark: | Peerd is a drop-in solution that requires no changes to existing workflows or tooling, with seamless fallback to the container registry if needed. |
+| Benefit                                         | Artifact Streaming | Image Pulls    | Notes                                                                                                                                              |
+| ----------------------------------------------- | ------------------ | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Increased Throughput**                        | <p>&#9989;</p>     | <p>&#9989;</p> | Both streaming and image pull latency improves.                                                                                                    |
+| **Reduced Cluster Scale Out Time**              | <p>&#9989;</p>     | <p>&#9989;</p> | New nodes stream or pull images from peers that already have that content.                                                                         |
+| **Improved Cluster Fault Tolerance**            | <p>&#9989;</p>     | <p>&#9989;</p> | Mitigating upstream throttling or unavailability.                                                                                                  |
+| **Reduced Container Registry Egress Costs**     | <p>&#9989;</p>     | <p>&#9989;</p> | By sharing content within the cluster, upstream I/O is reduced.                                                                                    |
+| **More Cluster Firewall Configuration Options** | <p>&#9989;</p>     | <p>&#9989;</p> | Once an image or streamable content is ingested, nodes can share from each other without needing to communicate with the container registry.       |
+| **Ease of Use**                                 | <p>&#9989;</p>     | <p>&#9989;</p> | Peerd is a drop-in solution that requires no changes to existing workflows or tooling, with seamless fallback to the container registry if needed. |
 
 ## Usage Guide
 
@@ -55,7 +59,6 @@ Please see [CODE_OF_CONDUCT.md] for further details.
 [cluster-ops]: ./assets/images//cluster-ops.gif
 [codecov]: https://codecov.io/gh/Azure/peerd/branch/main/graph/badge.svg
 [code-cov]: https://codecov.io/gh/Azure/peerd
-[Code Coverage]: https://img.shields.io/badge/coverage-54.9%25-orange
 [CODE_OF_CONDUCT.md]: CODE_OF_CONDUCT.md
 [CodeQL]: https://github.com/Azure/peerd/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main
 [code-ql]: https://github.com/Azure/peerd/actions/workflows/github-code-scanning/codeql

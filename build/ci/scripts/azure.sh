@@ -5,7 +5,6 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 source $SCRIPT_DIR/env.sh
 
 PEERD_HELM_CHART="$SCRIPT_DIR/../../package/peerd-helm"
-TELEPORT_DEPLOY_TEMPLATE="$SCRIPT_DIR/../k8s/teleport.yml"
 SCANNER_APP_DEPLOY_TEMPLATE="$SCRIPT_DIR/../k8s/scanner.yml"
 TESTS_AZURE_CLI_DEPLOY_TEMPLATE=$SCRIPT_DIR/../k8s/azure-cli.yml
 
@@ -74,7 +73,7 @@ nodepool_deploy() {
     if [ "$DRY_RUN" == "false" ]; then
         echo "creating nodepool '$nodepool' in aks cluster '$aksName' in resource group '$rg'" && \
             az aks nodepool add --cluster-name $aksName --name $nodepool --resource-group $rg \
-                --mode User --labels "p2p-nodepool=true" --node-count 3 --node-vm-size Standard_D2s_v3  --enable-artifact-streaming
+                --mode User --node-count 3 --labels "peerd=ci" --node-vm-size Standard_D2s_v3  --enable-artifact-streaming
     else
         echo "[dry run] would have deployed nodepool '$nodepool' to aks cluster '$aksName' in resource group '$rg'"
     fi
@@ -93,7 +92,10 @@ peerd_helm_deploy() {
         HELM_RELEASE_NAME=peerd && \
             helm install --wait $HELM_RELEASE_NAME $PEERD_HELM_CHART \
                 --set "peerd.image.ref=ghcr.io/azure/acr/dev/peerd:$peerd_image_tag" \
-                --set "peerd.configureMirrors=$configureMirrors"
+                --set "peerd.configureMirrors=$configureMirrors" \
+                --set "peerd.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].key=peerd" \
+                --set "peerd.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].operator=In" \
+                --set "peerd.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values[0]=ci"
     else
         echo "[dry run] would have deployed app to k8s cluster"
     fi
@@ -191,6 +193,7 @@ cmd__nodepool__up () {
 
     echo "sanitizing"
     helm uninstall peerd --ignore-not-found=true
+    helm uninstall overlaybd-p2p --ignore-not-found=true
 
     echo "creating new nodepool '$nodepool'"
     nodepool_deploy $AKS_NAME $RESOURCE_GROUP $nodepool
@@ -243,11 +246,13 @@ cmd__test__streaming() {
         echo "waiting 5 minutes" 
         sleep 300
 
-        echo "deploying acr mirror"
-        kubectl apply -f $TELEPORT_DEPLOY_TEMPLATE
+        echo "deploying overlaybd p2p configuration"
 
-        echo "waiting 10 seconds" 
-        sleep 10
+        # Configure overlaybd p2p.
+        helm install --wait overlaybd-p2p $SCRIPT_DIR/../../../tools/configure-overlaybd-p2p-helm \
+            --set "overlaybd.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].key=peerd" \
+            --set "overlaybd.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].operator=In" \
+            --set "overlaybd.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values[0]=ci"
 
         echo "deploying scanner app and waiting 1 minute"
         envsubst < $SCANNER_APP_DEPLOY_TEMPLATE | kubectl apply -f -
@@ -262,8 +267,9 @@ cmd__test__streaming() {
         print_peerd_metrics
 
         echo "cleaning up apps"
-        helm uninstall peerd --ignore-not-found=true
         kubectl delete -f $SCANNER_APP_DEPLOY_TEMPLATE
+        helm uninstall peerd --ignore-not-found=true
+        helm uninstall overlaybd-p2p --ignore-not-found=true
 
         echo "test 'streaming' complete"
     fi
