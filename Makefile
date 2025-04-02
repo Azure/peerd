@@ -47,6 +47,11 @@ ifndef CONTAINER_REGISTRY
 endif
 	$(call build-image-internal,$(ROOT_DIR)/build/package/Dockerfile,peerd,$(ROOT_DIR))
 
+.PHONY: changelog
+changelog: ## Generate the changelog since last tagged release.
+	@echo "+ $@"
+	@( $(SCRIPTS_DIR)/generate-changelog.sh )
+
 .PHONY: check
 check: check-format lint vet ## Check the source code.
 

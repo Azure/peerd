@@ -186,13 +186,25 @@ jobs:
         uses: azure/setup-helm@v4.3.0
         id: install
 
-      - name: Package Helm Chart
+      - name: Package Helm Charts
         run: |
-          helm package build/package/peerd-helm --destination packaged-charts
+          
+          # Set chart and app versions.
+          # Peerd helm chart.
+          sed -i "s/^version:.*/version: \"${RELEASE_NAME}\"/" build/package/peerd-helm/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: \"${RELEASE_NAME}\"/" build/package/peerd-helm/Chart.yaml
+          
+          # Overlaybd-p2p helm chart.
+          sed -i "s/^version:.*/version: \"${RELEASE_NAME}\"/" tools/configure-overlaybd-p2p-helm/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: \"${RELEASE_NAME}\"/" tools/configure-overlaybd-p2p-helm/Chart.yaml
+          
+          helm package build/package/peerd-helm --destination packaged-charts/peerd
+          helm package tools/configure-overlaybd-p2p-helm --destination packaged-charts/tools/aks
 
       - name: Create Helm Index
         run: |
-          helm repo index packaged-charts --url "https://github.com/${{ github.repository }}/releases/download/${{ env.RELEASE_NAME }}"
+          helm repo index packaged-charts --url "https://github.com/${{ github.repository }}/releases/download/${{ env.RELEASE_NAME }}/peerd"
+          helm repo index packaged-charts/tools/aks --url "https://github.com/${{ github.repository }}/releases/download/${{ env.RELEASE_NAME }}/tools/aks"
 
       - name: Install GitHub CLI
         run: |
@@ -203,8 +215,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          changelog=$(make changelog)
           gh release create ${{ github.ref_name }} \
             packaged-charts/*.tgz \
             packaged-charts/index.yaml \
-            --title "Helm Chart Release ${{ github.ref_name }}" \
-            --notes "This release contains the Helm chart for version ${{ env.RELEASE_NAME }}."
+            packaged-charts/tools/aks/*.tgz \
+            packaged-charts/tools/aks/index.yaml \
+            --title "Helm Charts Release ${{ github.ref_name }}" \
+            --notes "$changelog"
