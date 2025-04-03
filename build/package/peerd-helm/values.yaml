@@ -25,10 +25,10 @@ peerd:
 
   resources:
     limits:
-      cpu: "100m"
-      memory: "128Mi"
+      cpu: "1000m"
+      memory: "500Mi"
     requests:
-      cpu: "10m"
+      cpu: "100m"
 
   affinity:
     

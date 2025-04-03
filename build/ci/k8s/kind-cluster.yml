@@ -11,7 +11,7 @@ nodes:
 
   - role: worker
     labels:
-      p2p-nodepool: "true"
+      peerd: "ci"
     extraMounts:
       - hostPath: $GIT_ROOT/build/ci/configs/containerd.toml
         containerPath: /etc/containerd/config.toml
@@ -20,7 +20,7 @@ nodes:
 
   - role: worker
     labels:
-      p2p-nodepool: "true"
+      peerd: "ci"
     extraMounts:
       - hostPath: $GIT_ROOT/build/ci/configs/containerd.toml
         containerPath: /etc/containerd/config.toml
@@ -29,7 +29,7 @@ nodes:
 
   - role: worker
     labels:
-      p2p-nodepool: "true"
+      peerd: "ci"
     extraMounts:
       - hostPath: $GIT_ROOT/build/ci/configs/containerd.toml
         containerPath: /etc/containerd/config.toml

@@ -27,3 +27,12 @@ spec:
               "https://peerd:5001",
             ]
           name: *name
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: peerd
+                    operator: In
+                    values:
+                      - ci

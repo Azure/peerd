@@ -16,13 +16,6 @@ spec:
       labels:
         app: peerd-test
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: p2p-nodepool
-                operator: Exists
       initContainers:
         - name: sleep
           image: busybox
