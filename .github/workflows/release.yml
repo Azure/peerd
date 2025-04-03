@@ -217,8 +217,8 @@ jobs:
         run: |
           make changelog > changelog.txt
           gh release create ${{ github.ref_name }} \
-            packaged-charts/*.tgz \
-            packaged-charts/index.yaml \
+            packaged-charts/peerd/*.tgz \
+            packaged-charts/peerd/index.yaml \
             packaged-charts/tools/aks/*.tgz \
             packaged-charts/tools/aks/index.yaml \
             --title "Helm Charts Release ${{ github.ref_name }}" \
