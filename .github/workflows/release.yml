@@ -203,7 +203,7 @@ jobs:
 
       - name: Create Helm Index
         run: |
-          helm repo index packaged-charts --url "https://github.com/${{ github.repository }}/releases/download/${{ env.RELEASE_NAME }}/peerd"
+          helm repo index packaged-charts/peerd --url "https://github.com/${{ github.repository }}/releases/download/${{ env.RELEASE_NAME }}/peerd"
           helm repo index packaged-charts/tools/aks --url "https://github.com/${{ github.repository }}/releases/download/${{ env.RELEASE_NAME }}/tools/aks"
 
       - name: Install GitHub CLI
