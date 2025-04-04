@@ -220,9 +220,7 @@ jobs:
         run: |
           make changelog > changelog.txt
           gh release create ${{ github.ref_name }} \
-            packaged-charts/peerd/*.tgz \
-            packaged-charts/peerd/index.yaml \
-            packaged-charts/tools/aks/*.tgz \
-            packaged-charts/tools/aks/index.yaml \
+            packaged-charts/peerd/**/*.tgz \
+            packaged-charts/tools/**/* \
             --title "Helm Charts Release ${{ github.ref_name }}" \
             --notes-file changelog.txt
