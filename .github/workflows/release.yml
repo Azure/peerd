@@ -6,179 +6,15 @@ on:
       - "v[0-9]+.[0-9]+.[0-9]+-alpha"
 
 jobs:
-  publish:
-    name: Build and Publish Container Image
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    env:
-      REGISTRY: ghcr.io
-      REPO_PREFIX: ${{ format('azure/acr/dev/') }}
-    outputs:
-      git_tag: ${{ steps.get_git_tag.outputs.git_tag }}
-    steps:
-      - name: Get Git Tag
-        id: get_git_tag
-        run: echo ::set-output name=git_tag::${GITHUB_REF#refs/tags/}
 
-      - name: Check Out Source Code
-        if: ${{ success() }}
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ steps.get_git_tag.outputs.git_tag }}
-
-      - name: Set Docker Image Tag
-        env:
-          GIT_TAG: ${{ steps.get_git_tag.outputs.git_tag }}
-        id: get_image_tag
-        run: echo ::set-output name=docker_tag::${GIT_TAG}
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build Image
-        if: ${{ success() }}
-        run: |
-          REGISTRY=${{ env.REGISTRY }} REPO_PREFIX=${{ env.REPO_PREFIX }} TAG=${{ steps.get_image_tag.outputs.docker_tag }} make build-image
-
-      - name: Push Image
-        if: ${{ success() }}
-        run: |
-          docker push ${{ env.REGISTRY }}/${{ env.REPO_PREFIX }}peerd:${{ steps.get_image_tag.outputs.docker_tag }}
-
-  ciCtr:
-    name: Run AKS CTR CI
-    runs-on: ubuntu-latest
-    needs: publish
-    permissions:
-      contents: read
-      id-token: write # This is required for requesting the JWT from AAD.
-    env:
-      TAG: ${{ needs.publish.outputs.git_tag }}
-      SUBSCRIPTION: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-    steps:
-      - name: "Az CLI login"
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      # This is a temporary workaround. See: https://github.com/Azure/azure-cli/issues/28708#issuecomment-2049014471
-      - name: Fetch OID token every 4 mins
-        run: |
-          az extension add --name aks-preview
-          az extension update --name aks-preview
-
-          while true; do
-            token_request=$ACTIONS_ID_TOKEN_REQUEST_TOKEN
-            token_uri=$ACTIONS_ID_TOKEN_REQUEST_URL
-            token=$(curl -H "Authorization: bearer $token_request" "${token_uri}&audience=api://AzureADTokenExchange" | jq .value -r)
-            az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -t ${{ secrets.AZURE_TENANT_ID }} --federated-token $token --output none
-            # Sleep for 4 minutes
-            sleep 240
-          done &
-
-      - name: Check Out Source Code
-        if: ${{ success() }}
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ env.TAG }}
-
-      - name: "Make"
-        if: ${{ success() }}
-        run: |
-          PEERD_IMAGE_TAG=${{ env.TAG }} make tests-deps-install ci-aks-ctr
-
-  ciStreaming:
-    name: Run AKS Streaming CI
-    runs-on: ubuntu-latest
-    needs: [publish, ciCtr]
-    permissions:
-      contents: read
-      id-token: write # This is required for requesting the JWT from AAD.
-    env:
-      TAG: ${{ needs.publish.outputs.git_tag }}
-      SUBSCRIPTION: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-    steps:
-      - name: "Az CLI login"
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      # This is a temporary workaround. See: https://github.com/Azure/azure-cli/issues/28708#issuecomment-2049014471
-      - name: Fetch OID token every 4 mins
-        run: |
-          az extension add --name aks-preview
-          az extension update --name aks-preview
-
-          while true; do
-            token_request=$ACTIONS_ID_TOKEN_REQUEST_TOKEN
-            token_uri=$ACTIONS_ID_TOKEN_REQUEST_URL
-            token=$(curl -H "Authorization: bearer $token_request" "${token_uri}&audience=api://AzureADTokenExchange" | jq .value -r)
-            az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -t ${{ secrets.AZURE_TENANT_ID }} --federated-token $token --output none
-            # Sleep for 4 minutes
-            sleep 240
-          done &
-
-      - name: Check Out Source Code
-        if: ${{ success() }}
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ env.TAG }}
-
-      - name: "Make"
-        if: ${{ success() }}
-        run: |
-          PEERD_IMAGE_TAG=${{ env.TAG }} make tests-deps-install ci-aks-streaming
-
-  tag:
-    name: Tag Stable Peerd Image
-    runs-on: ubuntu-latest
-    needs: [publish, ciCtr, ciStreaming]
-    permissions:
-      contents: read
-      packages: write
-    env:
-      REGISTRY: ghcr.io
-      REPO_PREFIX: ${{ format('azure/acr/dev/') }}
-      SOURCE_TAG: ${{ needs.publish.outputs.git_tag }}
-      TARGET_TAG: stable
-    steps:
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Pull Tag ${{ env.SOURCE_TAG }}
-        if: ${{ success() }}
-        run: |
-          docker pull ${{ env.REGISTRY }}/${{ env.REPO_PREFIX }}peerd:${{ env.SOURCE_TAG }}
-
-      - name: Push Tag ${{ env.TARGET_TAG }}
-        if: ${{ success() }}
-        run: |
-          docker tag ${{ env.REGISTRY }}/${{ env.REPO_PREFIX }}peerd:${{ env.SOURCE_TAG }} ${{ env.REGISTRY }}/${{ env.REPO_PREFIX }}peerd:${{ env.TARGET_TAG }} && \
-            docker push ${{ env.REGISTRY }}/${{ env.REPO_PREFIX }}peerd:${{ env.TARGET_TAG }}
-  
   releaseHelm:
     name: Release Peerd Helm Chart
     runs-on: ubuntu-latest
-    needs: [publish, ciCtr, ciStreaming]
     permissions:
       contents: write
       packages: write
     env:
-      RELEASE_NAME: ${{ needs.publish.outputs.git_tag }}
+      RELEASE_NAME: ${{ github.ref_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -201,13 +37,12 @@ jobs:
           sed -i "s/^version:.*/version: \"${RELEASE_NAME}\"/" tools/configure-overlaybd-p2p-helm/Chart.yaml
           sed -i "s/^appVersion:.*/appVersion: \"${RELEASE_NAME}\"/" tools/configure-overlaybd-p2p-helm/Chart.yaml
           
-          helm package build/package/peerd-helm --destination packaged-charts/peerd
-          helm package tools/configure-overlaybd-p2p-helm --destination packaged-charts/tools/aks
+          helm package build/package/peerd-helm --destination packaged-charts
+          helm package tools/configure-overlaybd-p2p-helm --destination packaged-charts
 
       - name: Create Helm Index
         run: |
-          helm repo index packaged-charts/peerd --url "https://github.com/${{ github.repository }}/releases/download/${{ env.RELEASE_NAME }}/peerd"
-          helm repo index packaged-charts/tools/aks --url "https://github.com/${{ github.repository }}/releases/download/${{ env.RELEASE_NAME }}/tools/aks"
+          helm repo index packaged-charts --url "https://github.com/${{ github.repository }}/releases/download/${{ env.RELEASE_NAME }}"
 
       - name: Install GitHub CLI
         run: |
@@ -220,7 +55,6 @@ jobs:
         run: |
           make changelog > changelog.txt
           gh release create ${{ github.ref_name }} \
-            packaged-charts/peerd/**/* \
-            packaged-charts/tools/**/* \
+            packaged-charts/**/* \
             --title "Helm Charts Release ${{ github.ref_name }}" \
             --notes-file changelog.txt
