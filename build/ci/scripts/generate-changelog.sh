@@ -1,22 +1,28 @@
 #!/bin/bash
 set -e
 
-LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "HEAD~")
-HEAD_TAG=$(git rev-parse HEAD)
-if [ "$LAST_TAG" == "$HEAD_TAG" ]; then
-  echo
-  echo "No new commits since last release tag '$LAST_TAG'."
-  exit 0
+
+HEAD_SHA=$(git rev-parse HEAD)
+LAST_TAG=$(git describe --tags --abbrev=0 --match "v*" HEAD^)
+
+if [ -z "$LAST_TAG" ]; then
+  # Use the first commit
+  FIRST_COMMIT=$(git rev-list --max-parents=0 HEAD)
+  RANGE="$FIRST_COMMIT..$HEAD_SHA"
+  START=$FIRST_COMMIT
+else
+  RANGE="$LAST_TAG..$HEAD_SHA"
+  START=$LAST_TAG
 fi
-echo
-echo "Changelog from '$HEAD_TAG' to '$LAST_TAG':"
+
 echo
 echo "Date (UTC): $(date -u)"
-echo "(Alphabetical order by author)"
+echo "Alphabetical order by author."
 echo "---------------------------------------------"
+echo
 
 # Generate the changelog grouped by author with commit count
-git log $LAST_TAG..HEAD --pretty=format:"%an%x00- %s (%h)" --no-merges | \
+git log $RANGE --pretty=format:"%an%x00- %s (%h)" --no-merges | \
   awk -F '\0' '
   {
     author = $1
@@ -35,5 +41,7 @@ git log $LAST_TAG..HEAD --pretty=format:"%an%x00- %s (%h)" --no-merges | \
     }
   }'
 
+echo
+echo "Changelog built starting from '$START' to '$HEAD_SHA'."
 echo "---------------------------------------------"
 echo
