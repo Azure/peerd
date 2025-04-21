@@ -1,4 +1,5 @@
 // Copyright (c) Microsoft Corporation.
+// Portions (c) 2023 Xenit AB and 2024 The Spegel Authors.
 // Licensed under the MIT License.
 package distribution
 

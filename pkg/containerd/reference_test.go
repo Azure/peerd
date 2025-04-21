@@ -1,4 +1,5 @@
-// Copyright (c) Microsoft Corporation.
+// Initial Copyright (c) 2023 Xenit AB and 2024 The Spegel Authors.
+// Portions Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 package containerd
 
