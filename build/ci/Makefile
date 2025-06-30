@@ -6,22 +6,6 @@ ifndef CONTAINER_REGISTRY
 endif
 	$(call build-image-internal,$(ROOT_DIR)/examples/llm/gemma3.27b.Dockerfile,example-llm,$(ROOT_DIR)/examples/llm)
 
-.PHONY: ci-aks-llm-pull
-ci-aks-llm-pull: ## Run the image pull based LLM CI in AKS.
-	@echo "+ $@"
-ifndef NODEPOOL
-	$(eval NODEPOOL := $(shell date +"prel%y%m%d"))
-endif
-ifndef PEERD_IMAGE_TAG
-	$(eval PEERD_IMAGE_TAG := "stable")
-endif
-	@echo "\033[92mRunning CI NODEPOOL: $(NODEPOOL)\033[0m"
-	@( PEERD_IMAGE_TAG=$(PEERD_IMAGE_TAG) PEERD_CONFIGURE_MIRRORS=true PEERD_CONFIGURE_OVERLAYBD_P2P=false $(SCRIPTS_DIR)/azure.sh nodepool up -y $(NODEPOOL) )
-	@( $(SCRIPTS_DIR)/azure.sh peerd_pod_watcher start -y )
-	@( $(SCRIPTS_DIR)/azure.sh test llm_pull -y $(NODEPOOL) )
-	@( $(SCRIPTS_DIR)/azure.sh peerd_pod_watcher stop -y )
-	@( $(SCRIPTS_DIR)/azure.sh nodepool delete -y $(NODEPOOL) )
-
 .PHONY: ci-aks-llm-streaming
 ci-aks-llm-streaming: ## Run the artifact streaming based LLM CI in AKS.
 	@echo "+ $@"
@@ -37,9 +21,6 @@ endif
 	@( $(SCRIPTS_DIR)/azure.sh test llm_streaming -y $(NODEPOOL) )
 	@( $(SCRIPTS_DIR)/azure.sh peerd_pod_watcher stop -y )
 	@( $(SCRIPTS_DIR)/azure.sh nodepool delete -y $(NODEPOOL) )
-
-.PHONY: ci-kind-ctr
-ci-kind-ctr: build-image kind-delete kind-create kind-deploy kind-test-ctr ## Run the containerd hosts CI in kind.
 
 .PHONY: ci-kind-random
 ci-kind-random: build-image tests-random-image kind-delete kind-create kind-deploy kind-test-random ## Run the blobs range CI in kind.
@@ -66,11 +47,6 @@ endif
 kind-get:
 	@echo "+ $@"
 	@( $(SCRIPTS_DIR)/kind.sh cluster get -y )
-
-.PHONY: kind-test-ctr
-kind-test-ctr:
-	@echo "+ $@"
-	@( $(SCRIPTS_DIR)/kind.sh test ctr -y )
 
 .PHONY: kind-test-random
 kind-test-random:

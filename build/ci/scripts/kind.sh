@@ -208,34 +208,6 @@ wait_for_events() {
     fi
 }
 
-cmd__test__ctr() {
-    local context=$KIND_CLUSTER_CONTEXT
-    local img="mcr.microsoft.com/hello-world:latest"
-
-    echo "initializing test 'ctr': pulling image '$img'"
-
-    if [ "$DRY_RUN" == "true" ]; then
-        echo "[dry run] would have initialized test 'ctr'"
-    else
-        # Get nodes
-        nodes=$(kubectl --context=$context get nodes -o jsonpath='{.items[*].metadata.name}')
-        echo "nodes: $nodes"
-        total=`echo "$nodes" | tr -s " " "\012" | wc -l`
-
-        # Pull the image on all nodes and verify that at least one P2PActive event is generated.
-        for node in $( echo "$nodes" | tr -s " " "\012" ); do
-            echo "pulling image '$img' on node '$node'" && \
-                docker exec $node bash -c "ctr -n k8s.io images pull --hosts-dir '/etc/containerd/certs.d' $img" &&
-                sleep 6
-        done
-
-        wait_for_events $context "P2PActive" 1
-    fi
-
-    echo "fetching metrics from pods"
-    print_p2p_metrics
-}
-
 cmd__test__random() {
     local img=$1
 

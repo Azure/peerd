@@ -12,22 +12,8 @@
 
 ---
 
-Peerd enhances [Azure Artifact Streaming] and containerd image pull performance by enabling peer-to-peer distribution in
-a Kubernetes cluster. Nodes can share streamable content as well as images with each other, which can result in throughput
-and latency improvements.
-
-![cluster-ops]
-
-## Benefits
-
-| Benefit                                         | Artifact Streaming | Image Pulls    | Notes                                                                                                                                              |
-| ----------------------------------------------- | ------------------ | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Increased Throughput**                        | <p>&#9989;</p>     | <p>&#9989;</p> | Both streaming and image pull latency improves.                                                                                                    |
-| **Reduced Cluster Scale Out Time**              | <p>&#9989;</p>     | <p>&#9989;</p> | New nodes stream or pull images from peers that already have that content.                                                                         |
-| **Improved Cluster Fault Tolerance**            | <p>&#9989;</p>     | <p>&#9989;</p> | Mitigating upstream throttling or unavailability.                                                                                                  |
-| **Reduced Container Registry Egress Costs**     | <p>&#9989;</p>     | <p>&#9989;</p> | By sharing content within the cluster, upstream I/O is reduced.                                                                                    |
-| **More Cluster Firewall Configuration Options** | <p>&#9989;</p>     | <p>&#9989;</p> | Once an image or streamable content is ingested, nodes can share from each other without needing to communicate with the container registry.       |
-| **Ease of Use**                                 | <p>&#9989;</p>     | <p>&#9989;</p> | Peerd is a drop-in solution that requires no changes to existing workflows or tooling, with seamless fallback to the container registry if needed. |
+Peerd enhances [Azure Artifact Streaming] performance by enabling peer-to-peer distribution in a Kubernetes cluster.
+Nodes can share streamable content with each other, which can result in throughput and latency improvements.
 
 ## Usage Guide
 
@@ -56,7 +42,6 @@ Please see [CODE_OF_CONDUCT.md] for further details.
 [Azure Artifact Streaming]: https://learn.microsoft.com/en-us/azure/container-registry/container-registry-artifact-streaming
 [Build Status]: https://github.com/azure/peerd/actions/workflows/build.yml/badge.svg
 [build-status]: https://github.com/azure/peerd/actions/workflows/build.yml
-[cluster-ops]: ./assets/images//cluster-ops.gif
 [codecov]: https://codecov.io/gh/Azure/peerd/branch/main/graph/badge.svg
 [code-cov]: https://codecov.io/gh/Azure/peerd
 [CODE_OF_CONDUCT.md]: CODE_OF_CONDUCT.md
@@ -67,7 +52,6 @@ Please see [CODE_OF_CONDUCT.md] for further details.
 [design.md]: ./docs/design.md
 [Go Report Card]: https://goreportcard.com/badge/github.com/azure/peerd
 [go-report-card]: https://goreportcard.com/report/github.com/azure/peerd
-[kubectl-node-shell]: https://github.com/kvaps/kubectl-node-shell
 [Kind CI Status]: https://github.com/azure/peerd/actions/workflows/kind.yml/badge.svg
 [kind-ci-status]: https://github.com/azure/peerd/actions/workflows/kind.yml
 [Overlaybd]: https://github.com/containerd/overlaybd

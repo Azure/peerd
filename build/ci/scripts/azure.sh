@@ -35,12 +35,6 @@ Sub commands:
 * confirm: delete nodepool 'nodepool1'
     $(basename $0) nodepool delete -y 'nodepool1'
 
-* dry run: runs the llm pull test on 'nodepool1'
-    $(basename $0) test llm_pull 'nodepool1'
-
-* confirm: run the llm pull test on 'nodepool1'
-    $(basename $0) test llm_pull -y 'nodepool1'
-
 * dry run: runs the llm streaming test on 'nodepool1'
     $(basename $0) test llm_streaming 'nodepool1'
 
@@ -105,8 +99,6 @@ peerd_helm_deploy() {
         HELM_RELEASE_NAME=peerd && \
             helm install --wait $HELM_RELEASE_NAME $PEERD_HELM_CHART \
                 --set "peerd.image.ref=ghcr.io/azure/acr/dev/peerd:$peerd_image_tag" \
-                --set "peerd.configureMirrors=$configureMirrors" \
-                --set "peerd.hosts[0]=https://acrp2pci.azurecr.io" \
                 --set "peerd.resources.limits.memory=4Gi" \
                 --set "peerd.resources.limits.cpu=2" \
                 --set "peerd.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].key=peerd" \
@@ -289,51 +281,6 @@ cmd__nodepool__up () {
 
     echo "waiting for pods to connect"
     wait_for_pod_events $AKS_NAME $RESOURCE_GROUP $nodepool "P2PConnected" "app=peerd"
-}
-
-cmd__test__llm_pull() {
-    aksName=$AKS_NAME
-    rg=$RESOURCE_GROUP
-    local nodepool=$1
-
-    echo "running test 'llm_pull'"
-
-    if [ "$DRY_RUN" == "true" ]; then
-        echo "[dry run] would have run test 'llm_pull'"
-    else
-        # Deploy the LLM daemonset to the nodepool.
-        # Since there is only a single node, this acts as a seeding step, allowing peerd to add this content to its hash table.
-        envsubst < $PEERD_LLM_CI_DEPLOY_TEMPLATE | kubectl apply -f -
-
-        sleep 30
-
-        # Wait for image pull to complete by monitoring the pod event for Pulled event.
-        wait_for_pod_events $aksName $rg $nodepool "Pulled" "app=peerd-llm-ci" 1
-
-        # Scale out the nodepool. This will cause peerd pods to be deployed first, followed by the LLM pods due to the affinity rules.
-        echo "Scaling out nodepool '$nodepool' in aks cluster '$aksName' in resource group '$rg' to 4 nodes"
-        az aks nodepool scale --cluster-name $aksName --name $nodepool --resource-group $rg --node-count 4
-
-        # Ensure at least 4 app pods are pulled to compare pull time.
-        sleep 60
-        wait_for_pod_events $aksName $rg $nodepool "Pulled" "app=peerd-llm-ci" 4
-
-        # Ensure there is p2p activity.
-        wait_for_pod_events $AKS_NAME $RESOURCE_GROUP $nodepool "P2PActive" "app=peerd" 1
-
-        echo "fetching metrics from peerd pods"
-        print_peerd_metrics
-
-        echo "cleaning up apps"
-
-        # This will clean up the peerd-ns namespace, which is where the LLM pods are also deployed.
-        helm uninstall peerd --ignore-not-found=true
-        helm uninstall overlaybd-p2p --ignore-not-found=true
-        
-        echo "test 'llm_pull' complete"
-    fi
-
-    print_and_exit_if_dry_run
 }
 
 cmd__test__llm_streaming() {

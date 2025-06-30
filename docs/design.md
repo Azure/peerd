@@ -6,8 +6,7 @@ mirror.
 * It discovers other nodes in the cluster and establishes a peer-to-peer overlay network in the cluster using the
   [Kademlia DHT][kademlia-white-paper] protocol.
 
-* It discovers content such as OCI images in the node's containerd content store as well as streamable container files,
-  such as used in [Azure Artifact Streaming], and advertises them to its peers.
+* It discovers streamable container files such as used in [Azure Artifact Streaming], and advertises them to its peers.
 
 * It can serve discovered/cached content to other nodes in the cluster, acting as a mirror for the content.
 
@@ -34,18 +33,6 @@ mirror.
   | --------------------------- | -------------------------- |
   | ![normal-streaming-summary] | ![peerd-streaming-summary] |
 
-* **Peer to Peer Container Image Pulls**: Pulling a container image to a node in Kubernetes is often a time consuming
-  process, especially in scenarios where the registry becomes a bottleneck, such as deploying a large cluster or scaling
-  out in response to bursty traffic. To increase throughput, nodes in the cluster which already have the image can be
-  used as an alternate image source. Peerd subscribes to events in the containerd content store, and advertises local
-  images to peers. When a node needs an image, it can query its peers for the image, and download it from them instead
-  of the registry. Containerd has a [mirror][containerd hosts] facility that can be used to configure Peerd as the 
-  mirror for container images.
-
-  | **Without Peerd**      | **With Peerd**        |
-  | ---------------------- | --------------------- |
-  | ![normal-pull-summary] | ![peerd-pull-summary] |
-
 The APIs are described in the [swagger.yaml].
 
 The design is inspired from the [Spegel] project, which is a peer to peer proxy for container images that uses libp2p.
@@ -56,12 +43,6 @@ In this section, we describe the design and architecture of `peerd`.
 |                   |
 | ----------------- |
 | ![peerd-dht-topo] |
-
-#### **Image Pulls Description** 
-
-|               |                   |
-| ------------- | ----------------- |
-| ![peerd-pull] | ![peerd-pull-seq] |
 
 #### **Image Streaming Description**
 
@@ -82,25 +63,23 @@ a) Where the application needs to scale immediately to handle a burst of request
 b) Where the application must be deployed on each node of a large cluster (say 1000+ nodes) and the container image
    itself is very large (multiple Gbs), such as training a large language model.
 
-ACR Teleport addresses scenario a by allowing a container to quickly start up using the registry as a remote filesystem
-and downloading only specific parts of files needed for it to serve requests. However, scenario b will continue to be
+ACR Teleport addresses scenario `a` by allowing a container to quickly start up using the registry as a remote filesystem
+and downloading only specific parts of files needed for it to serve requests. However, scenario `b` will continue to be
 impacted by increased latencies due to the requirement of downloading entire layers from the registry to all nodes before
 the application can run. Here, the registry can become a bottleneck for the downloads.
 
-To minimize network I/O to the remote registry and improve speed, once an image (or parts of it) has been downloaded by
+To minimize network I/O to the remote registry and improve speed, once an image (or parts of it) have been downloaded by
 a node, other nodes in the cluster can leverage this peer and download from it rather than from the remote ACR. This can
 reduce network traffic to the registry and improve the average download speed per node. Peers must be able to discover
-content already downloaded to the network and share it with others. Such p2p distribution would benefit both scenarios
-above, a (Teleport) and b (regular non-Teleport).
+content already downloaded to the network and share it with others.
 
 ### Design
 
-There are four main components to the design that together make up the `peerd` binary:
+There are three main components to the design that together make up the `peerd` binary:
 
 1.	Peer to Peer Router
 2.	File Cache
-3.	Containerd Content Store Subscriber
-4.	P2P Proxy Server
+3.	P2P Proxy Server
 
 #### Peer to Peer Router
 
@@ -130,16 +109,11 @@ The router uses the following configuration to connect to peers:
 
 ##### Advertisements
 
-Once the node has completed bootstrapping, it is ready to advertise its content to the network. There are two sources
-for this content:
-
-1. Containerd Content Store: this is where images pulled to the node are available, see section
-   [Containerd Content Store Subscriber]. 
-
-2. File cache: this is where files pulled to the node are available, see section [File Cache].
+Once the node has completed bootstrapping, it is ready to advertise its content to the network. The source for this content
+is the file cache; this is where files pulled to the node are available.
 
 Advertising means adding the content's key to the node's DHT, and optionally, announcing the available content on the
-network. The key used is the sha256 digest of the content. 
+network. The key used is the sha256 digest of the content, together with the byte range. 
 
 ##### Resolution
 
@@ -171,19 +145,12 @@ starting at offset 1048576 of size ChunkSize. And so on.
 
 ![file-system-layout]
 
-#### Containerd Content Store Subscriber
-
-This component is responsible for discovering layers in the local containerd content store and advertising them to the
-p2p network using the p2p router component, enabling p2p distribution for regular image pulls.
-
 #### P2P Proxy Server
 
-The p2p proxy server (a.k.a. p2p mirror) serves the node’s content from the file cache or containerd content store.
-There are two scenarios for accessing the proxy: 
+The p2p proxy server (a.k.a. p2p mirror) serves the node’s content from the file cache.
+The Overlaybd TCMU driver accesses this proxy server at container runtime.
 
-1. Overlaybd TCMU driver: this is the Teleport scenario.
-
-The driver makes requests like the following to the p2p proxy. 
+The driver makes requests like the following to the p2p proxy.
 
 ```bash
 GET http://localhost:5000/blobs/https://westus2.data.mcr.microsoft.com/01031d61e1024861afee5d512651eb9f36fskt2ei//docker/registry/v2/blobs/sha256/1b/1b930d010525941c1d56ec53b97bd057a67ae1865eebf042686d2a2d18271ced/data?se=20230920T01%3A14%3A49Z&sig=m4Cr%2BYTZHZQlN5LznY7nrTQ4LCIx2OqnDDM3Dpedbhs%3D&sp=r&spr=https&sr=b&sv=2018-03-28&regid=01031d61e1024861afee5d512651eb9f
@@ -195,14 +162,6 @@ Here, the p2p proxy is listening at `localhost:5000`, and it is passed in the fu
 previously obtained by the driver from the ACR. The proxy will first attempt to locate this content in the p2p network
 using the router. If found, the peer will be used to reverse proxy the request. Otherwise, after the configured resolution
 timeout, the request will be proxied to the upstream storage account.
-
-2. Containerd Hosts: this is the non-Teleport scenario.
-
-Here, containerd is configured to use the p2p mirror using its hosts configuration. The p2p mirror will receive registry
-requests to the /v2 API, following the OCI distribution API spec. The mirror will support GET and HEAD requests to `/v2/`
-routes. When a request is received, the digest is first looked up in the p2p network, and if a peer has the layer, it is
-used to serve the request. Otherwise, the mirror returns a 404, and containerd client falls back to the ACR directly (or
-any next configured mirror.)
 
 ### Performance
 

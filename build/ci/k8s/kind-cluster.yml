@@ -3,35 +3,16 @@ apiVersion: kind.x-k8s.io/v1alpha4
 name: p2p
 nodes:
   - role: control-plane
-    extraMounts:
-      - hostPath: $GIT_ROOT/build/ci/configs/certs.d
-        containerPath: /etc/containerd/certs.d
-      - hostPath: $GIT_ROOT/build/ci/configs/containerd.toml
-        containerPath: /etc/containerd/config.toml
 
   - role: worker
     labels:
       peerd: "ci"
-    extraMounts:
-      - hostPath: $GIT_ROOT/build/ci/configs/containerd.toml
-        containerPath: /etc/containerd/config.toml
-      - hostPath: $GIT_ROOT/build/ci/configs/certs.d
-        containerPath: /etc/containerd/certs.d
 
   - role: worker
     labels:
       peerd: "ci"
-    extraMounts:
-      - hostPath: $GIT_ROOT/build/ci/configs/containerd.toml
-        containerPath: /etc/containerd/config.toml
-      - hostPath: $GIT_ROOT/build/ci/configs/certs.d
-        containerPath: /etc/containerd/certs.d
 
   - role: worker
     labels:
       peerd: "ci"
-    extraMounts:
-      - hostPath: $GIT_ROOT/build/ci/configs/containerd.toml
-        containerPath: /etc/containerd/config.toml
-      - hostPath: $GIT_ROOT/build/ci/configs/certs.d
-        containerPath: /etc/containerd/certs.d
+

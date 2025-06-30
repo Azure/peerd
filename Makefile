@@ -103,7 +103,7 @@ lint: ## Run linter.
 .PHONY: swag
 swag: ## Generates the swagger documentation of the p2p server.
 	@echo "+ $@"
-	cd $(ROOT_DIR)/internal/handlers; swag init --ot go,yaml -o $(ROOT_DIR)/api -g ./root.go
+	cd $(ROOT_DIR)/pkg/handlers; swag init --ot go,yaml -o $(ROOT_DIR)/api -g ./root.go
 
 .PHONY: test
 test: ## Runs tests.

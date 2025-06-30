@@ -4,9 +4,6 @@ go 1.24.1
 
 require (
 	github.com/alexflint/go-arg v1.5.1
-	github.com/containerd/containerd/api v1.8.0
-	github.com/containerd/platforms v0.2.1
-	github.com/containerd/typeurl/v2 v2.2.3
 	github.com/dgraph-io/ristretto v0.2.0
 	github.com/distribution/distribution v2.8.3+incompatible
 	github.com/google/uuid v1.6.0

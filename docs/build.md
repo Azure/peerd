@@ -26,42 +26,25 @@ $ make kind-delete
 
 ### Run a Test Workload
 
-There are two kinds of test workloads available in this repository:
+Peer to peer file sharing by specifying the range of bytes to read.
 
-1. Simple peer to peer file sharing by specifying the range of bytes to read.
-   * This enables block level file drivers, such as [Overlaybd], to use `peerd` as the p2p proxy.
-   * This test is run by deploying the `random` test workload to the kind cluster.
-   * The workload is deployed to each node, and outputs performance metrics that are observed by it, such as the speed
-      of downloads and error rates.
+* This enables block level file drivers, such as [Overlaybd], to use `peerd` as the p2p proxy.
+* This test is run by deploying the `random` test workload to the kind cluster.
+* The workload is deployed to each node, and outputs performance metrics that are observed by it, such as the speed
+  of downloads and error rates.
 
-    ```bash
-    $ make ci-kind-random
-      ...
-      {"level":"info","node":"random-zb9vm","version":"bb7ee6a","mode":"upstream","size":22980743,"readsPerBlob":5,"time":"2024-03-07T21:50:29Z","message":"downloading blob"}
-      {"level":"info","node":"random-9gcvw","version":"bb7ee6a","upstream.p50":21.25170790666404,"upstream.p75":5.834663359546446,"upstream.p90":0.7871542327673121,"upstream.p95":0.2965091294200036,"upstream.p100":0.2645602612715345,"time":"2024-03-07T21:50:34Z","message":"speeds (MB/s)"}
-      {"level":"info","node":"random-9gcvw","version":"bb7ee6a","p2p.p50":5.802082290454193,"p2p.p75":1.986398855488793,"p2p.p90":0.6210418172329215,"p2p.p95":0.0523776186045032,"p2p.p100":0.023341096448268952,"time":"2024-03-07T21:50:34Z","message":"speeds (MB/s)"}
-      {"level":"info","node":"random-9gcvw","version":"bb7ee6a","p2p.error_rate":0,"upstream.error_rate":0,"time":"2024-03-07T21:50:34Z","message":"error rates"}
-      ...
+```bash
+$ make ci-kind-random
+  ...
+  {"level":"info","node":"random-zb9vm","version":"bb7ee6a","mode":"upstream","size":22980743,"readsPerBlob":5,"time":"2024-03-07T21:50:29Z","message":"downloading blob"}
+  {"level":"info","node":"random-9gcvw","version":"bb7ee6a","upstream.p50":21.25170790666404,"upstream.p75":5.834663359546446,"upstream.p90":0.7871542327673121,"upstream.p95":0.2965091294200036,"upstream.p100":0.2645602612715345,"time":"2024-03-07T21:50:34Z","message":"speeds (MB/s)"}
+  {"level":"info","node":"random-9gcvw","version":"bb7ee6a","p2p.p50":5.802082290454193,"p2p.p75":1.986398855488793,"p2p.p90":0.6210418172329215,"p2p.p95":0.0523776186045032,"p2p.p100":0.023341096448268952,"time":"2024-03-07T21:50:34Z","message":"speeds (MB/s)"}
+  {"level":"info","node":"random-9gcvw","version":"bb7ee6a","p2p.error_rate":0,"upstream.error_rate":0,"time":"2024-03-07T21:50:34Z","message":"error rates"}
+  ...
 
-      # Clean up
-    $ make kind-delete
-    ```
-
-2. Peer to peer sharing of container images that are available in the containerd content store of a node.
-   * This enables pulling container images from peers in the cluster, instead of from the registry.
-   * This test is run by deploying the `ctr` test workload to the kind cluster.
-   * The workload is deployed to each node, and outputs performance metrics that are observed by it, such as the speed
-      of downloads and error rates.
- 
-    ```bash
-    $ make ci-kind-ctr
-        ...
-        ...        
-        ...
-
-      # Clean up
-    $ make kind-delete
-    ```
+  # Clean up
+$ make kind-delete
+```
 
 ### Build `peerd` Binary
 

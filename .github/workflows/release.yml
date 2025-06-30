@@ -51,50 +51,6 @@ jobs:
         run: |
           docker push ${{ env.REGISTRY }}/${{ env.REPO_PREFIX }}peerd:${{ steps.get_image_tag.outputs.docker_tag }}
 
-  ciPull:
-    name: Run AKS Image Pull CI
-    runs-on: ubuntu-latest
-    needs: publish
-    permissions:
-      contents: read
-      id-token: write # This is required for requesting the JWT from AAD.
-    env:
-      TAG: ${{ needs.publish.outputs.git_tag }}
-      SUBSCRIPTION: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-    steps:
-      - name: "Az CLI login"
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      # This is a temporary workaround. See: https://github.com/Azure/azure-cli/issues/28708#issuecomment-2049014471
-      - name: Fetch OID token every 4 mins
-        run: |
-          az extension add --name aks-preview
-          az extension update --name aks-preview
-
-          while true; do
-            token_request=$ACTIONS_ID_TOKEN_REQUEST_TOKEN
-            token_uri=$ACTIONS_ID_TOKEN_REQUEST_URL
-            token=$(curl -H "Authorization: bearer $token_request" "${token_uri}&audience=api://AzureADTokenExchange" | jq .value -r)
-            az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -t ${{ secrets.AZURE_TENANT_ID }} --federated-token $token --output none
-            # Sleep for 4 minutes
-            sleep 240
-          done &
-
-      - name: Check Out Source Code
-        if: ${{ success() }}
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ env.TAG }}
-
-      - name: "Make"
-        if: ${{ success() }}
-        run: |
-          PEERD_IMAGE_TAG=${{ env.TAG }} make tests-deps-install ci-aks-llm-pull
-
   ciStreaming:
     name: Run AKS Streaming CI
     runs-on: ubuntu-latest

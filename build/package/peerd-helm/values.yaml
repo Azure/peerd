@@ -1,12 +1,4 @@
 peerd:
-  configureMirrors: true
-
-  hosts:
-    - https://docker.io
-    - https://ghcr.io
-    - https://mcr.microsoft.com
-    - https://registry.k8s.io
-
   image:
     pullPolicy: IfNotPresent
     ref: ghcr.io/azure/acr/dev/peerd:stable

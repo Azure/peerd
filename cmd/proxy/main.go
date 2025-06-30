@@ -8,14 +8,12 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
 	"github.com/alexflint/go-arg"
-	"github.com/azure/peerd/pkg/containerd"
 	pcontext "github.com/azure/peerd/pkg/context"
 	"github.com/azure/peerd/pkg/discovery/content/provider"
 	"github.com/azure/peerd/pkg/discovery/routing"
@@ -26,7 +24,6 @@ import (
 	"github.com/azure/peerd/pkg/metrics"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
-	"github.com/spf13/afero"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -108,20 +105,6 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 		return err
 	}
 
-	err = addMirrorConfiguration(ctx, args)
-	if err != nil {
-		return err
-	}
-
-	containerdStore, err := containerd.NewDefaultStore(args.Hosts)
-	if err != nil {
-		return err
-	}
-	err = containerdStore.Verify(ctx)
-	if err != nil {
-		return err
-	}
-
 	filesStore, err := store.NewFilesStore(ctx, r, store.DefaultFileCachePath)
 	if err != nil {
 		return err
@@ -130,11 +113,11 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 	g, ctx := errgroup.WithContext(ctx)
 
 	g.Go(func() error {
-		provider.Provide(ctx, r, containerdStore, filesStore.Subscribe())
+		provider.Provide(ctx, r, filesStore.Subscribe())
 		return nil
 	})
 
-	handler, err := handlers.Handler(ctx, r, containerdStore, filesStore)
+	handler, err := handlers.Handler(ctx, r, filesStore)
 	if err != nil {
 		return err
 	}
@@ -189,56 +172,4 @@ func serverCommand(ctx context.Context, args *ServerCmd) (err error) {
 	}
 
 	return nil
-}
-
-func addMirrorConfiguration(ctx context.Context, args *ServerCmd) error {
-	if !args.AddMirrorConfiguration {
-		return nil
-	}
-
-	l := zerolog.Ctx(ctx)
-	fs := afero.NewOsFs()
-
-	defaultHost, _ := url.Parse("https://mcr.microsoft.com")
-	hosts := append([]url.URL{}, *defaultHost)
-
-	var err error
-
-	if len(args.Hosts) > 0 {
-		hosts, err = toUrls(args.Hosts)
-		if err != nil {
-			return err
-		}
-	}
-
-	l.Info().Msg(fmt.Sprintf("mirrors args: %v, hosts: %v", args.Hosts, hosts))
-
-	defaultMirror, _ := url.Parse("https://localhost:30001")
-	mirrors := append([]url.URL{}, *defaultMirror)
-
-	if len(args.Mirrors) > 0 {
-		mirrors, err = toUrls(args.Mirrors)
-		if err != nil {
-			return err
-		}
-	}
-
-	err = containerd.AddHostsConfiguration(ctx, fs, args.ContainerdHostsConfigPath, hosts, mirrors, false)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func toUrls(hosts []string) ([]url.URL, error) {
-	var urls []url.URL
-	for _, h := range hosts {
-		u, err := url.Parse(h)
-		if err != nil {
-			return nil, err
-		}
-		urls = append(urls, *u)
-	}
-	return urls, nil
 }

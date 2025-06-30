@@ -16,9 +16,6 @@ The following sections describe how to use Peerd in your Kubernetes cluster.
 
 ### Overlaybd Peer-to-Peer Configuration for Artifact Streaming
 
-This step is `OPTIONAL` and should be performed only if you are using Artifact Streaming. Please skip directly to the next
-section if you are pulling images instead.
-
 Artifact Streaming leverages the `overlaybd-snapshotter` which is well integrated with `containerd`. More information on
 `overlaybd-snapshotter` can be found [here](overlaybd-snapshotter). On AKS, `overlaybd-snapshotter` is already installed
 and ready to use.
@@ -63,12 +60,13 @@ Wait for Peerd to establish connections with its peers. Each pod will emit an ev
 
 > See the function `wait_for_peerd_pods` in the [CI script][ci-script-readiness] that programmatically waits for readiness.
 
-## Stream or Pull Images
+## Stream Images
 
-When the application image is pulled or streamed from a peer, the peerd pod will emit a `P2PActive` event, signalling that
-a peer-to-peer transfer is in progress.
+When the application image is streamed from a peer, the peerd pod will emit a `P2PActive` event, signalling that a
+ peer-to-peer transfer is in progress.
 
-> For best results, ensure that at least one peer has fully downloaded the image or begun streaming before scaling out.
+> For best results, ensure that at least one peer has begun streaming before scaling out.
+
 ## Observe Peerd
 
 ### Events
