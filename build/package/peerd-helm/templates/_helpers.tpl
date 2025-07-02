@@ -6,8 +6,8 @@ Expand the name of the chart.
 {{- end }}
 
 {{- define "peerd.namespace" -}}
-{{- if .Values.peerd.namespace.k8s }}
-{{- .Values.peerd.namespace.k8s }}
+{{- if .Release.Namespace }}
+{{- .Release.Namespace }}
 {{- else }}
 {{ include "peerd.name" . }}-ns
 {{- end }}

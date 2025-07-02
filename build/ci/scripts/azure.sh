@@ -4,6 +4,7 @@ set -e
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 source $SCRIPT_DIR/env.sh
 
+HELM_RELEASE_NAMESPACE=peerd-ns
 PEERD_HELM_CHART="$SCRIPT_DIR/../../package/peerd-helm"
 SCANNER_APP_DEPLOY_TEMPLATE="$SCRIPT_DIR/../k8s/scanner.yml"
 PEERD_LLM_CI_DEPLOY_TEMPLATE=$SCRIPT_DIR/../k8s/llm.yml
@@ -98,6 +99,7 @@ peerd_helm_deploy() {
     if [ "$DRY_RUN" == "false" ]; then
         HELM_RELEASE_NAME=peerd && \
             helm install --wait $HELM_RELEASE_NAME $PEERD_HELM_CHART \
+                --namespace $HELM_RELEASE_NAMESPACE --create-namespace \
                 --set "peerd.image.ref=ghcr.io/azure/acr/dev/peerd:$peerd_image_tag" \
                 --set "peerd.resources.limits.memory=4Gi" \
                 --set "peerd.resources.limits.cpu=2" \
@@ -122,7 +124,7 @@ wait_for_pod_events() {
     local found=0
 
     # Get the list of pods.
-    pods=$(kubectl -n peerd-ns get pods -l $selector -o jsonpath='{.items[*].metadata.name}')
+    pods=$(kubectl -n $HELM_RELEASE_NAMESPACE get pods -l $selector -o jsonpath='{.items[*].metadata.name}')
     echo "pods: $pods"
     total=`echo "$pods" | tr -s " " "\012" | wc -l`
 
@@ -139,10 +141,10 @@ wait_for_pod_events() {
         for pod in $( echo "$pods" | tr -s " " "\012" ); do
             echo "checking pod '$pod' for event '$event'"
 
-            foundEvent=$(kubectl -n peerd-ns get events --field-selector involvedObject.kind=Pod,involvedObject.name=$pod -o json | jq -r ".items[] | select(.reason == \"$event\")")
+            foundEvent=$(kubectl -n $HELM_RELEASE_NAMESPACE get events --field-selector involvedObject.kind=Pod,involvedObject.name=$pod -o json | jq -r ".items[] | select(.reason == \"$event\")")
             [[ "$foundEvent" == "" ]] && echo "Event '$event' not found for pod '$pod'" || found=$((found+1))
 
-            errorEvent=$(kubectl -n peerd-ns get events --field-selector involvedObject.kind=Pod,involvedObject.name=$pod -o json | jq -r '.items[] | select(.reason == "P2PDisconnected" or .resosn == "P2PFailed")')
+            errorEvent=$(kubectl -n $HELM_RELEASE_NAMESPACE get events --field-selector involvedObject.kind=Pod,involvedObject.name=$pod -o json | jq -r '.items[] | select(.reason == "P2PDisconnected" or .reason == "P2PFailed")')
             [[ "$errorEvent" == "" ]] || (echo "Error event found for pod '$pod': $errorEvent" && exit 1)
         done
 
@@ -163,13 +165,13 @@ wait_for_pod_events() {
 }
 
 print_peerd_metrics() {
-    p=$(kubectl -n peerd-ns get pods -l app=peerd -o jsonpath='{.items[*].metadata.name}')
+    p=$(kubectl -n $HELM_RELEASE_NAMESPACE get pods -l app=peerd -o jsonpath='{.items[*].metadata.name}')
     echo "pods: $p"
 
     for pod in $( echo "$p" | tr -s " " "\012" ); do
         echo "checking pod '$pod' for metrics"
-        kubectl -n peerd-ns exec -i $pod -- bash -c "cat /var/log/peerdmetrics"
-        kubectl --context=$KIND_CLUSTER_CONTEXT -n peerd-ns exec -i $pod -- bash -c "curl http://localhost:5004/metrics/prometheus" | head -n 20 | echo " ..."
+        kubectl -n $HELM_RELEASE_NAMESPACE exec -i $pod -- bash -c "cat /var/log/peerdmetrics"
+        kubectl --context=$KIND_CLUSTER_CONTEXT -n $HELM_RELEASE_NAMESPACE exec -i $pod -- bash -c "curl http://localhost:5004/metrics/prometheus" | head -n 20 | echo " ..."
     done
 }
 
@@ -192,7 +194,7 @@ peerd_pod_watcher() {
 
     for ((i = 1; i <= 300; i++)); do
         # Get the list of pods with the label `app=peerd`
-        pods=$(kubectl -n peerd-ns get pods -l app=peerd -o jsonpath='{.items[*].metadata.name}')
+        pods=$(kubectl -n $HELM_RELEASE_NAMESPACE get pods -l app=peerd -o jsonpath='{.items[*].metadata.name}')
         if [ -z "$pods" ]; then
             echo "[Pod Watcher] No pods found with label 'app=peerd'. Retrying..."
             sleep 15
@@ -205,11 +207,11 @@ peerd_pod_watcher() {
         for pod in $pods; do
             # echo "[Pod Watcher] Checking pod '$pod' for event '$event'"
 
-            if kubectl -n peerd-ns get events --field-selector involvedObject.kind=Pod,involvedObject.name="$pod" -o json | \
+            if kubectl -n $HELM_RELEASE_NAMESPACE get events --field-selector involvedObject.kind=Pod,involvedObject.name="$pod" -o json | \
                 jq -e ".items[] | select(.reason == \"$event\")" > /dev/null; then
                 # echo "[Pod Watcher] Event '$event' found for pod '$pod'"
 
-                NODE_NAME=$(kubectl -n peerd-ns get pod "$pod" -o jsonpath='{.spec.nodeName}')
+                NODE_NAME=$(kubectl -n $HELM_RELEASE_NAMESPACE get pod "$pod" -o jsonpath='{.spec.nodeName}')
                 if [ -n "$NODE_NAME" ]; then
                     currentLabel=$(kubectl get node $NODE_NAME -o jsonpath='{.metadata.labels.peerd-status}')
                     if [ "$currentLabel" == "connected" ]; then

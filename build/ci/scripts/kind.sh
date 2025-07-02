@@ -7,6 +7,7 @@ KIND_CLUSTER_CONTEXT="kind-$KIND_CLUSTER_NAME"
 CLUSTER_CONFIG_FILE="$SCRIPT_DIR/../k8s/kind-cluster.yml"
 HELM_CHART_DIR="$SCRIPT_DIR/../../package/peerd-helm"
 HELM_RELEASE_NAME="peerd"
+HELM_RELEASE_NAMESPACE="peerd-ns"
 export GIT_ROOT="$(git rev-parse --show-toplevel)"
 
 # Console colors and helpers
@@ -118,13 +119,13 @@ validate_params() {
 }
 
 print_p2p_metrics() {
-    p=$(kubectl --context=$KIND_CLUSTER_CONTEXT -n peerd-ns get pods -l app=peerd -o jsonpath='{.items[*].metadata.name}')
+    p=$(kubectl --context=$KIND_CLUSTER_CONTEXT -n $HELM_RELEASE_NAMESPACE get pods -l app=peerd -o jsonpath='{.items[*].metadata.name}')
     echo "pods: $p"
 
     for pod in $( echo "$p" | tr -s " " "\012" ); do
         echo "checking pod '$pod' for metrics"
-        kubectl --context=$KIND_CLUSTER_CONTEXT -n peerd-ns exec -i $pod -- bash -c "cat /var/log/peerdmetrics"
-        kubectl --context=$KIND_CLUSTER_CONTEXT -n peerd-ns exec -i $pod -- bash -c "curl http://localhost:5004/metrics/prometheus" | head -n 10
+        kubectl --context=$KIND_CLUSTER_CONTEXT -n $HELM_RELEASE_NAMESPACE exec -i $pod -- bash -c "cat /var/log/peerdmetrics"
+        kubectl --context=$KIND_CLUSTER_CONTEXT -n $HELM_RELEASE_NAMESPACE exec -i $pod -- bash -c "curl http://localhost:5004/metrics/prometheus" | head -n 10
     done
 }
 
@@ -163,7 +164,7 @@ wait_for_events() {
     local event=$2
     local minimumRequired=$3
 
-    local ns="peerd-ns"
+    local ns="$HELM_RELEASE_NAMESPACE"
     local found=0
 
     # # Get app pods
@@ -262,9 +263,9 @@ cmd__test__random() {
 
         echo "waiting for logs" && \
             sleep 10 && \
-            kubectl --context=$KIND_CLUSTER_CONTEXT -n peerd-ns logs -l app=random -f
-    
-        kubectl --context=$KIND_CLUSTER_CONTEXT -n peerd-ns delete ds/random
+            kubectl --context=$KIND_CLUSTER_CONTEXT -n $HELM_RELEASE_NAMESPACE logs -l app=random -f
+
+        kubectl --context=$KIND_CLUSTER_CONTEXT -n $HELM_RELEASE_NAMESPACE delete ds/random
 
         echo "checking p2p active pods" && sleep 2
         wait_for_events $KIND_CLUSTER_CONTEXT "P2PActive" 1
@@ -305,7 +306,7 @@ cmd__app__deploy() {
             helm --kube-context=$KIND_CLUSTER_CONTEXT uninstall $HELM_RELEASE_NAME
 
         echo "Helm installing release:" $HELM_RELEASE_NAME
-        helm --kube-context=$KIND_CLUSTER_CONTEXT install --wait $HELM_RELEASE_NAME $HELM_CHART_DIR \
+        helm --kube-context=$KIND_CLUSTER_CONTEXT install --namespace $HELM_RELEASE_NAMESPACE --create-namespace --wait $HELM_RELEASE_NAME $HELM_CHART_DIR \
             --set peerd.image.ref=$PEERD_CONTAINER_IMAGE_REF
 
         echo "waiting for pods to connect"

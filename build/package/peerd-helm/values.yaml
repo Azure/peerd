@@ -11,10 +11,6 @@ peerd:
       # See: https://learn.microsoft.com/azure/azure-monitor/containers/prometheus-metrics-scrape-configuration?tabs=CRDConfig%2CCRDScrapeConfig#configmaps
       aksAutoDiscovery: true
 
-  namespace:
-    # The kubernetes namespace for pod deployment and leader election.
-    k8s: peerd-ns
-
   resources:
     limits:
       cpu: "1000m"
