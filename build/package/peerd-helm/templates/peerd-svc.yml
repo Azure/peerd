@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: &name {{ include "peerd.name" . }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "peerd.namespace" . }}
   labels:
     {{- include "peerd.labels" . | nindent 4 }}
 {{- if .Values.peerd.metrics.prometheus.aksAutoDiscovery }}

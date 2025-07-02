@@ -2,7 +2,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: {{ include "peerd.name" . }}-manager-role-binding
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "peerd.namespace" . }}
   labels:
     {{- include "peerd.labels" . | nindent 4 }}
 roleRef:
@@ -12,4 +12,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: {{ include "peerd.serviceAccountName" . }}
-    namespace: {{ .Release.Namespace }}
+    namespace: {{ include "peerd.namespace" . }}
