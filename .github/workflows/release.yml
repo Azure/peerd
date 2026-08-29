@@ -24,7 +24,7 @@ jobs:
 
       - name: Check Out Source Code
         if: ${{ success() }}
-        uses: actions/checkout@v2
+        uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e # v2.8.0
         with:
           ref: ${{ steps.get_git_tag.outputs.git_tag }}
 
@@ -35,7 +35,7 @@ jobs:
         run: echo ::set-output name=docker_tag::${GIT_TAG}
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@dd4fa0671be5250ee6f50aedf4cb05514abda2c7 # v1.14.1
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -63,7 +63,7 @@ jobs:
       SUBSCRIPTION: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     steps:
       - name: "Az CLI login"
-        uses: azure/login@v1
+        uses: azure/login@cb79c773a3cfa27f31f25eb3f677781210c9ce3d # v1.6.1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -86,7 +86,7 @@ jobs:
 
       - name: Check Out Source Code
         if: ${{ success() }}
-        uses: actions/checkout@v2
+        uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e # v2.8.0
         with:
           ref: ${{ env.TAG }}
 
@@ -109,7 +109,7 @@ jobs:
       TARGET_TAG: stable
     steps:
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@dd4fa0671be5250ee6f50aedf4cb05514abda2c7 # v1.14.1
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -137,12 +137,12 @@ jobs:
       RELEASE_NAME: ${{ needs.publish.outputs.git_tag }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
       
       - name: Set up Helm
-        uses: azure/setup-helm@v4.3.0
+        uses: azure/setup-helm@b9e51907a09c216f16ebe8536097933489208112 # v4.3.0
         id: install
 
       - name: Package Helm Charts
